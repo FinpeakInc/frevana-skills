@@ -1,0 +1,212 @@
+# Frevana Skills
+
+Seven reusable skills for Amazon research, image generation, and HTML generation.
+
+Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
+
+## Available Skills
+
+### [`amazon-search`](skills/amazon-search/SKILL.md)
+
+Search Amazon products by keyword.
+
+Use when:
+
+- you want Amazon search results for a keyword
+- you want to look at more than one page
+- you want results for a specific ZIP code
+
+Features:
+
+- keyword search
+- page support with `--page`
+- ZIP-specific results with `--delivery-zip`
+- save results with `--output`
+
+### [`amazon-product`](skills/amazon-product/SKILL.md)
+
+Look up a product by ASIN.
+
+Use when:
+
+- you already have an ASIN
+- you want a quick product detail lookup
+- you want delivery details for a specific ZIP code
+
+Features:
+
+- ASIN-based lookup
+- Amazon US / English by default
+- optional ZIP-specific delivery details
+- save results with `--output`
+
+### [`amazon-keyword-search-volume`](skills/amazon-keyword-search-volume/SKILL.md)
+
+Check Amazon keyword demand.
+
+Use when:
+
+- you want keyword search volume
+- you want to compare multiple keywords
+- you want input for SEO, PPC, or listing work
+
+Features:
+
+- compare one or more keywords with `--keywords`
+- defaults to `United States / English` when marketplace is not specified
+- supported marketplaces: Australia, Austria, Canada, Egypt, France, Germany, India, Italy, Mexico, Netherlands, Saudi Arabia, Singapore, Spain, United Arab Emirates, United Kingdom, United States
+- save results with `--output`
+
+### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
+
+Generate Frevana-hosted images with OpenAI's `gpt-image-2` model.
+
+Use when:
+
+- you want to generate an image from a prompt
+- you want to use `gpt-image-2`
+- you may want to save the result to a file
+
+Features:
+
+- accepts image input via `--prompt` or `--contents`
+- returns a hosted image link
+- supported options: `--n`, `--size`, `--quality`, `--background`, `--output-format`, `--output-compression`
+
+### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
+
+Generate Frevana-hosted images with Gemini's `gemini-3.1-flash-image-preview` model.
+
+Use when:
+
+- the user mentions `Nano Banana 2` or `nano banana`
+- you want to generate an image with the lighter Nano Banana model
+- you may want to save the result to a file
+
+Features:
+
+- accepts image input via `--prompt` or `--contents`
+- returns a hosted image link
+- supported options: `--seed`, `--max-output-tokens`, `--response-modality`, `--aspect-ratio`, `--image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
+
+### [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md)
+
+Generate Frevana-hosted images with Gemini's `gemini-3-pro-image-preview` model.
+
+Use when:
+
+- the user mentions `Nano Banana Pro` or `nano banana`
+- you want the higher-end Nano Banana model
+- you may want to save the result to a file
+
+Features:
+
+- accepts image input via `--prompt` or `--contents`
+- returns a hosted image link
+- supported options: `--seed`, `--max-output-tokens`, `--response-modality`, `--aspect-ratio`, `--image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
+
+### [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md)
+
+Generate final HTML by combining content with a Frevana template.
+
+Use when:
+
+- you already have a `template_id` and content
+- you want finished HTML
+- you want to save that HTML to a file
+
+Features:
+
+- accepts either `--content` or `--content-file`
+- requires `--template-id`
+- returns final HTML directly
+- supports saving the output with `--output`
+
+## Installation
+
+Install the skill pack with:
+
+```bash
+npx skills add FinpeakInc/frevana-skills
+```
+
+If you also plan to run the helper scripts from a local checkout, set:
+
+```bash
+export FREVANA_TOKEN="your-bearer-token"
+```
+
+Requirements:
+
+- Amazon skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+
+## Usage
+
+After installation, use the skill through your agent. If your agent supports repo-level instructions, also load `AGENTS.md`.
+
+Example prompts:
+
+```text
+Search Amazon for wireless earbuds
+Fetch Amazon product details for B0D5XWJQ5R
+Get Amazon keyword demand for wireless earbuds,gaming headset in United States
+Generate an image with gpt-image-2 for a matte black espresso machine
+Generate a dashboard illustration with Nano Banana Pro
+Generate final HTML from template annual_summary_v2 and this content
+```
+
+If you are working inside this repo, you can also run the helper scripts directly:
+
+```bash
+bash skills/amazon-search/scripts/search_amazon.sh \
+  --query "wireless mouse" \
+  --delivery-zip 10001 \
+  --page 2 \
+  --output ./out/amazon-search-result.json
+
+bash skills/amazon-product/scripts/fetch_product.sh \
+  --asin B0BDJ49KVD \
+  --customer-zipcode 10001 \
+  --output ./out/amazon-product-result.json
+
+bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh \
+  --keywords "wireless earbuds,gaming headset" \
+  --location-name "United States" \
+  --output ./out/amazon-keyword-search-volume-result.json
+
+bash skills/gpt-image-2/scripts/generate_image.sh \
+  --prompt "A cinematic product photo of a matte black espresso machine on travertine" \
+  --size 1536x1024 \
+  --quality high \
+  --background opaque \
+  --output-format png \
+  --output ./out/gpt-image-2-result.json
+
+bash skills/nano-banana-pro/scripts/generate_image.sh \
+  --prompt "A bright SaaS dashboard scene" \
+  --seed 7 \
+  --max-output-tokens 1024 \
+  --response-modality IMAGE \
+  --response-modality TEXT \
+  --aspect-ratio 4:3 \
+  --image-size 2K \
+  --output ./out/nano-banana-pro-result.json
+
+bash skills/frevana-gen-report/scripts/generate_report.sh \
+  --content-file ./report-content.md \
+  --template-id "medium-article-template-v2" \
+  --output ./out/frevana-report.html
+```
+
+## Skill Structure
+
+Each skill currently contains:
+- `SKILL.md` - Instructions for the agent
+- `scripts/` - Helper scripts for automation
+
+Some skills may grow extra folders later, such as `tests/` or `references/`.
+
+## License
+
+MIT
