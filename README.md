@@ -156,49 +156,6 @@ Generate a dashboard illustration with Nano Banana Pro
 Generate final HTML from template annual_summary_v2 and this content
 ```
 
-If you are working inside this repo, you can also run the helper scripts directly:
-
-```bash
-bash skills/amazon-search/scripts/search_amazon.sh \
-  --query "wireless mouse" \
-  --delivery-zip 10001 \
-  --page 2 \
-  --output ./out/amazon-search-result.json
-
-bash skills/amazon-product/scripts/fetch_product.sh \
-  --asin B0BDJ49KVD \
-  --customer-zipcode 10001 \
-  --output ./out/amazon-product-result.json
-
-bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh \
-  --keywords "wireless earbuds,gaming headset" \
-  --location-name "United States" \
-  --output ./out/amazon-keyword-search-volume-result.json
-
-bash skills/gpt-image-2/scripts/generate_image.sh \
-  --prompt "A cinematic product photo of a matte black espresso machine on travertine" \
-  --size 1536x1024 \
-  --quality high \
-  --background opaque \
-  --output-format png \
-  --output ./out/gpt-image-2-result.json
-
-bash skills/nano-banana-pro/scripts/generate_image.sh \
-  --prompt "A bright SaaS dashboard scene" \
-  --seed 7 \
-  --max-output-tokens 1024 \
-  --response-modality IMAGE \
-  --response-modality TEXT \
-  --aspect-ratio 4:3 \
-  --image-size 2K \
-  --output ./out/nano-banana-pro-result.json
-
-bash skills/frevana-gen-report/scripts/generate_report.sh \
-  --content-file ./report-content.md \
-  --template-id "medium-article-template-v2" \
-  --output ./out/frevana-report.html
-```
-
 ## Skill Structure
 
 Each skill currently contains:
