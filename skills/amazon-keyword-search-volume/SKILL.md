@@ -1,15 +1,15 @@
 ---
 name: amazon-keyword-search-volume
-description: Get Amazon keyword search volume through Frevana's `POST /dataforseo/amazon-keywords-search-volume` endpoint. Use whenever the user wants Amazon keyword demand, search-volume estimates, batch keyword lookups, or keyword research for Amazon SEO/PPC/listing decisions.
+description: Use when the user wants Amazon keyword demand estimates, batch search-volume lookups, or keyword research for SEO, PPC, or listing decisions.
 ---
 
 # Amazon Keyword Search Volume
 
-Retrieve Amazon keyword search volume by calling Frevana's `POST https://ai-factory.frevana.com/dataforseo/amazon-keywords-search-volume`.
+Retrieve Amazon keyword search volume through Frevana.
 
 ## Purpose
 
-This skill is for **backend Amazon keyword demand retrieval**.
+This skill is for **checking Amazon keyword demand**.
 
 Inputs:
 
@@ -21,9 +21,9 @@ Inputs:
 
 Output:
 
-- validated response JSON returned by the Amazon keyword search volume endpoint
+- validated response JSON with Amazon keyword search-volume data
 
-This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the API payload unless the user explicitly asks for a transformation.
+This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the returned data unless the user explicitly asks for a transformation.
 
 ## What This Skill Needs
 
@@ -163,4 +163,4 @@ The API returns JSON. This skill validates the response as JSON and returns it u
 
 - "Check Amazon search volume for wireless earbuds and gaming headset"
 - "Get Amazon keyword search volume in Germany"
-- "Call the Amazon keyword search volume endpoint and save the raw JSON to a file"
+- "Check Amazon keyword search volume for these terms and save the raw JSON to a file"

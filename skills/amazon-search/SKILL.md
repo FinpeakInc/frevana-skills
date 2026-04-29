@@ -1,15 +1,15 @@
 ---
 name: amazon-search
-description: Search Amazon products by keyword through Frevana's `POST /service/serpapi/amazon-search` endpoint. Use whenever the user wants Amazon search results, product discovery, pagination, or delivery-aware search results from Amazon data.
+description: Use when the user wants Amazon search results by keyword, product discovery, later result pages, or delivery-aware search results.
 ---
 
 # Amazon Search
 
-Search Amazon product listings by calling Frevana's `POST https://ai-factory.frevana.com/service/serpapi/amazon-search`.
+Search Amazon product listings through Frevana.
 
 ## Purpose
 
-This skill is for **backend Amazon search retrieval**.
+This skill is for **finding Amazon search results**.
 
 Inputs:
 
@@ -19,9 +19,9 @@ Inputs:
 
 Output:
 
-- validated response JSON returned by the Amazon search endpoint
+- validated response JSON with Amazon search results
 
-This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the API payload unless the user explicitly asks for a transformation.
+This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the returned data unless the user explicitly asks for a transformation.
 
 ## What This Skill Needs
 
@@ -127,4 +127,4 @@ The API returns JSON. This skill validates the response as JSON and returns it u
 
 - "Search Amazon for wireless mouse"
 - "Show me page 2 of Amazon search results for wireless mouse with ZIP 10001"
-- "Call the Amazon search endpoint and save the raw JSON to a file"
+- "Search Amazon for this keyword and save the raw JSON to a file"

@@ -1,15 +1,15 @@
 ---
 name: amazon-product
-description: Fetch Amazon product details by ASIN through Frevana's `POST /service/serpapi/amazon-product` endpoint. Use whenever the user gives an Amazon ASIN and wants listing details, product attributes, delivery-aware info, or a quick product lookup from Amazon data.
+description: Use when the user provides an Amazon ASIN and wants listing details, product attributes, or delivery-aware product data.
 ---
 
 # Amazon Product
 
-Retrieve Amazon product details by calling Frevana's `POST https://ai-factory.frevana.com/service/serpapi/amazon-product`.
+Retrieve Amazon product details through Frevana.
 
 ## Purpose
 
-This skill is for **backend Amazon product lookup**.
+This skill is for **looking up a specific Amazon product**.
 
 Inputs:
 
@@ -22,9 +22,9 @@ Inputs:
 
 Output:
 
-- validated response JSON returned by the Amazon product endpoint
+- validated response JSON with Amazon product details
 
-This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the API payload unless the user explicitly asks for a transformation.
+This skill validates that the response is JSON and returns it unchanged. Do **not** rewrite or reshape the returned data unless the user explicitly asks for a transformation.
 
 ## What This Skill Needs
 
@@ -139,4 +139,4 @@ The API returns JSON. This skill validates the response as JSON and returns it u
 
 - "Fetch Amazon product details for ASIN B0BDJ49KVD"
 - "Check ASIN B0BDJ49KVD with customer ZIP 10001"
-- "Call the Amazon product endpoint and save the raw JSON to a file"
+- "Look up this Amazon ASIN and save the raw JSON to a file"
