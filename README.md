@@ -1,10 +1,28 @@
 # Frevana Skills
 
-Seven reusable skills for Amazon research, image generation, and HTML generation.
+Eight reusable skills for Frevana auth bootstrap, Amazon research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
 ## Available Skills
+
+### [`frevana-auth`](skills/frevana-auth/SKILL.md)
+
+Authenticate the Frevana CLI and save the local API key config.
+
+Use when:
+
+- you need to run `frevana login`
+- you are setting up Frevana CLI on a new machine
+- you need to install `frevana` before authenticating
+- you want to know where the saved local credentials live
+
+Features:
+
+- starts the device authorization flow with `frevana login`
+- retries after `npm i -g @frevana/frevana` only when the login command is unavailable
+- uses `https://api.frevana.com` by default and supports an optional custom `--server`
+- reports the saved config path without exposing the raw API key by default
 
 ### [`amazon-search`](skills/amazon-search/SKILL.md)
 
@@ -138,6 +156,7 @@ export FREVANA_TOKEN="your-bearer-token"
 
 Requirements:
 
+- Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
 - Amazon skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
@@ -148,6 +167,7 @@ After installation, use the skill through your agent. If your agent supports rep
 Example prompts:
 
 ```text
+Authenticate Frevana CLI on this machine. If `frevana login` is unavailable, install it and retry.
 Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
@@ -162,7 +182,7 @@ Each skill currently contains:
 - `SKILL.md` - Instructions for the agent
 - `scripts/` - Helper scripts for automation
 
-Some skills may grow extra folders later, such as `tests/` or `references/`.
+Some skills may also include `evals/` for reusable skill test prompts.
 
 ## License
 

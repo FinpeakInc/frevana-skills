@@ -6,8 +6,9 @@ Treat this document as the operational guide for the repo. Treat each skill's `S
 
 ## Repository Purpose
 
-This repository contains reusable skills for two main workflow families:
+This repository contains reusable skills for three main workflow families:
 
+- Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
@@ -17,6 +18,9 @@ The repository is not a general application. It is a collection of agent instruc
 
 ```text
 skills/
+  frevana-auth/
+    SKILL.md
+    scripts/login.sh
   amazon-search/
     SKILL.md
     scripts/search_amazon.sh
@@ -51,6 +55,31 @@ skills/
 7. When returning structured results, summarize them unless the user explicitly asks for raw JSON or raw HTML.
 
 ## Skill Routing
+
+### Use `frevana-auth`
+
+Route here when the user wants:
+
+- to log in to Frevana from the CLI
+- to start `frevana login`
+- to install the Frevana CLI before authenticating
+- to obtain or store a Frevana API key for later CLI usage
+
+Required input:
+
+- none
+
+Optional input:
+
+- custom Frevana `server` URL
+
+Important behavior:
+
+- Start the login flow first through the wrapper script.
+- If the `frevana login` command is unavailable, then attempt `npm i -g @frevana/frevana` and retry.
+- If that install fails because the package is unavailable in the current registry, ask the user for the correct private registry or local package source.
+- Let the CLI manage device authorization and local credential storage.
+- Do not print the saved API key value back to the user unless they explicitly ask for the raw secret.
 
 ### Use `amazon-search`
 
@@ -249,6 +278,7 @@ Do not modify the returned HTML unless the user explicitly asks for edits after 
 
 Use these rules to avoid bad assumptions:
 
+- If the user wants Frevana CLI login and does not provide a server URL, use `https://api.frevana.com`.
 - If the user says "search Amazon for this" but does not provide a keyword, ask for the keyword.
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
@@ -256,6 +286,19 @@ Use these rules to avoid bad assumptions:
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
 
 ## Execution Order Rules
+
+### Frevana auth bootstrap
+
+For `frevana-auth`:
+
+1. Prefer `scripts/login.sh` over manual shell commands.
+2. Run `frevana login --server <effective-server>`, using `https://api.frevana.com` when the user does not provide a custom server.
+3. If the command is unavailable, attempt `npm i -g @frevana/frevana`.
+4. If `npm` is missing and the command is unavailable, fail fast and tell the user to install Node.js/npm first.
+5. If the install step fails because the package is unavailable in the current registry, stop and ask the user for the correct private registry or local package source.
+6. Retry `frevana login --server <effective-server>` after a successful install.
+7. Let the CLI complete the device authorization flow and save credentials locally.
+8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
 ### Amazon skills
 
@@ -292,6 +335,16 @@ For `frevana-gen-report`:
 
 ## Dependency Rules
 
+### Frevana auth bootstrap
+
+Needed:
+
+- `bash`
+- `frevana` or `npm`
+- browser access or a manual way to open the authorization URL
+
+Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
+
 ### Amazon workflows
 
 Needed:
@@ -315,6 +368,12 @@ If `FREVANA_TOKEN` is missing in a non-interactive run, stop and tell the user t
 Never echo bearer tokens back to the user.
 
 ## Output Rules
+
+### Frevana auth outputs
+
+- The main output is the interactive `frevana login` flow.
+- Summarize the authorization result and where credentials were saved.
+- Treat the API key as sensitive and do not print it unless the user explicitly asks for the raw value.
 
 ### Amazon outputs
 
@@ -345,6 +404,7 @@ Use these paths when executing repo scripts:
 bash skills/amazon-search/scripts/search_amazon.sh
 bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
+bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
@@ -352,6 +412,17 @@ bash skills/frevana-gen-report/scripts/generate_report.sh
 ```
 
 ## Common Examples
+
+### Frevana auth
+
+```bash
+bash skills/frevana-auth/scripts/login.sh
+
+# Uses https://api.frevana.com by default
+
+bash skills/frevana-auth/scripts/login.sh \
+  --server "http://localhost:3001"
+```
 
 ### Amazon search
 
@@ -426,6 +497,7 @@ Before acting, the agent should verify:
 - Is the user intent mapped to the correct skill?
 - Are all required inputs present?
 - Is there a repo script that should be used instead of a custom command?
+- If this is an auth request, does `frevana` need to be installed before login starts?
 - Is the provider/model fixed for this skill?
 - Should the result be summarized, or does the user want raw output?
 - Is there any missing dependency or login step that should be surfaced clearly?
