@@ -4,15 +4,19 @@ set -euo pipefail
 
 FIXED_PROVIDER="openai"
 FIXED_MODEL="gpt-image-2"
-API_BASE_URL="https://ai-factory.frevana.com"
+DEFAULT_API_BASE_URL="https://ai-factory.frevana.com"
+API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
 OPENAI_IMAGE_PATH="/openai/image/generate"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
+MAX_IMAGE_COUNT="16"
+MAX_IMAGE_SIZE_BYTES="$((50 * 1024 * 1024))"
+MAX_MASK_SIZE_BYTES="$((4 * 1024 * 1024))"
 
 usage() {
   cat <<'EOF'
 Usage:
-  generate_image.sh (--prompt "image prompt" | --contents "image contents") [openai options] [--output /path/to/result.json] [--token "bearer token"]
+  generate_image.sh (--prompt "image prompt" | --contents "image contents") [openai options] [--image /path/to/ref.png ...] [--image-dir /path/to/images ...] [--mask /path/to/mask.png] [--output /path/to/result.json] [--token "bearer token"]
 
 Fixed backend:
   --provider openai
@@ -25,10 +29,14 @@ OpenAI options:
   --background           Background behavior
   --output-format        Output format
   --output-compression   Output compression for jpeg/webp (1-100)
+  --image                Reference image path for image-to-image (repeatable, png/jpg/jpeg/webp, <50MB each)
+  --image-dir            Directory of reference images for image-to-image (repeatable, recursive, up to 16 images total)
+  --mask                 Optional PNG mask image for image-to-image (<4MB)
 
 Other:
   --output               Optional file path for saving returned JSON
   --token                Optional Bearer token override for this run
+  Env override           FREVANA_API_BASE_URL=http://127.0.0.1:3001 for local testing
   -h, --help             Show this help message
 EOF
 }
@@ -49,6 +57,146 @@ is_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+is_supported_image_path() {
+  case "$1" in
+    *.png|*.PNG|*.jpg|*.JPG|*.jpeg|*.JPEG|*.webp|*.WEBP)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+mime_type_for_path() {
+  case "$1" in
+    *.png|*.PNG)
+      printf '%s' 'image/png'
+      ;;
+    *.jpg|*.JPG|*.jpeg|*.JPEG)
+      printf '%s' 'image/jpeg'
+      ;;
+    *.webp|*.WEBP)
+      printf '%s' 'image/webp'
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+file_size_bytes() {
+  python3 - "$1" <<'PY'
+import os
+import sys
+
+print(os.path.getsize(sys.argv[1]))
+PY
+}
+
+require_existing_file() {
+  local path="$1"
+  local flag_name="$2"
+
+  if [[ -z "$path" ]]; then
+    echo "Missing value for $flag_name" >&2
+    exit 1
+  fi
+  if [[ ! -e "$path" ]]; then
+    echo "File not found for $flag_name: $path" >&2
+    exit 1
+  fi
+  if [[ ! -f "$path" ]]; then
+    echo "Expected a file for $flag_name: $path" >&2
+    exit 1
+  fi
+}
+
+append_image_path() {
+  local path="$1"
+  local file_size
+
+  require_existing_file "$path" "--image"
+  if ! is_supported_image_path "$path"; then
+    echo "Unsupported image type for --image: $path" >&2
+    echo "Allowed image extensions: .png .jpg .jpeg .webp" >&2
+    exit 1
+  fi
+
+  file_size="$(file_size_bytes "$path")"
+  if (( file_size > MAX_IMAGE_SIZE_BYTES )); then
+    echo "Each image must be less than 50MB: $path" >&2
+    exit 1
+  fi
+
+  COLLECTED_IMAGES+=("$path")
+}
+
+collect_directory_images() {
+  local dir_path="$1"
+  local found_any=0
+  local listing_file
+  local path
+
+  if [[ -z "$dir_path" ]]; then
+    echo "Missing value for --image-dir" >&2
+    exit 1
+  fi
+  if [[ ! -d "$dir_path" ]]; then
+    echo "Image directory not found: $dir_path" >&2
+    exit 1
+  fi
+
+  listing_file="$(mktemp)"
+  python3 - "$dir_path" > "$listing_file" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+supported_suffixes = {".png", ".jpg", ".jpeg", ".webp"}
+
+for path in sorted(candidate for candidate in root.rglob("*") if candidate.is_file() and candidate.suffix.lower() in supported_suffixes):
+    print(path)
+PY
+
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    found_any=1
+    append_image_path "$path"
+  done < "$listing_file"
+
+  rm -f "$listing_file"
+
+  if (( ! found_any )); then
+    echo "No supported images found in directory: $dir_path" >&2
+    exit 1
+  fi
+}
+
+validate_mask_path() {
+  local file_size
+
+  if [[ -z "$MASK_PATH" ]]; then
+    return 0
+  fi
+
+  require_existing_file "$MASK_PATH" "--mask"
+  case "$MASK_PATH" in
+    *.png|*.PNG)
+      ;;
+    *)
+      echo "Mask must be a PNG file: $MASK_PATH" >&2
+      exit 1
+      ;;
+  esac
+
+  file_size="$(file_size_bytes "$MASK_PATH")"
+  if (( file_size > MAX_MASK_SIZE_BYTES )); then
+    echo "Mask must be less than 4MB: $MASK_PATH" >&2
+    exit 1
+  fi
+}
+
 PROMPT=""
 N=""
 SIZE=""
@@ -58,6 +206,10 @@ OUTPUT_FORMAT=""
 OUTPUT_COMPRESSION=""
 OUTPUT_PATH=""
 TOKEN_OVERRIDE=""
+MASK_PATH=""
+IMAGE_PATHS=()
+IMAGE_DIRS=()
+COLLECTED_IMAGES=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -87,6 +239,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --output-compression)
       OUTPUT_COMPRESSION="${2:-}"
+      shift 2
+      ;;
+    --image)
+      IMAGE_PATHS+=("${2:-}")
+      shift 2
+      ;;
+    --image-dir)
+      IMAGE_DIRS+=("${2:-}")
+      shift 2
+      ;;
+    --mask)
+      MASK_PATH="${2:-}"
       shift 2
       ;;
     --output)
@@ -173,6 +337,40 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ -n "${IMAGE_PATHS[*]-}" ]]; then
+  for image_path in "${IMAGE_PATHS[@]}"; do
+    append_image_path "$image_path"
+  done
+fi
+
+if [[ -n "${IMAGE_DIRS[*]-}" ]]; then
+  for image_dir in "${IMAGE_DIRS[@]}"; do
+    collect_directory_images "$image_dir"
+  done
+fi
+
+COLLECTED_IMAGE_COUNT=0
+if [[ -n "${COLLECTED_IMAGES[*]-}" ]]; then
+  COLLECTED_IMAGE_COUNT="${#COLLECTED_IMAGES[@]}"
+fi
+
+if (( COLLECTED_IMAGE_COUNT > MAX_IMAGE_COUNT )); then
+  echo "You can upload up to 16 images total. Received: $COLLECTED_IMAGE_COUNT" >&2
+  exit 1
+fi
+
+validate_mask_path
+
+USE_MULTIPART=0
+if (( COLLECTED_IMAGE_COUNT > 0 )) || [[ -n "$MASK_PATH" ]]; then
+  USE_MULTIPART=1
+fi
+
+if (( USE_MULTIPART )) && (( COLLECTED_IMAGE_COUNT == 0 )); then
+  echo "At least one image file is required when using image-to-image options." >&2
+  exit 1
+fi
+
 TOKEN="${TOKEN_OVERRIDE:-${FREVANA_TOKEN:-}}"
 if [[ -z "$TOKEN" ]]; then
   if [[ -t 0 ]]; then
@@ -197,9 +395,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export PROMPT N SIZE QUALITY BACKGROUND OUTPUT_FORMAT OUTPUT_COMPRESSION FIXED_MODEL
+if (( ! USE_MULTIPART )); then
+  export PROMPT N SIZE QUALITY BACKGROUND OUTPUT_FORMAT OUTPUT_COMPRESSION FIXED_MODEL
 
-python3 - "$PAYLOAD_FILE" <<'PY'
+  python3 - "$PAYLOAD_FILE" <<'PY'
 import json
 import os
 import sys
@@ -227,18 +426,56 @@ if os.environ.get("OUTPUT_COMPRESSION"):
 
 payload_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 PY
+fi
 
-HTTP_CODE="$(
-  curl -sS \
-    --connect-timeout "$CONNECT_TIMEOUT" \
-    --max-time "$MAX_TIME" \
-    -o "$RESPONSE_FILE" \
-    -w "%{http_code}" \
-    -X POST "$API_BASE_URL$OPENAI_IMAGE_PATH" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $TOKEN" \
-    --data @"$PAYLOAD_FILE"
-)"
+CURL_ARGS=(
+  -sS
+  --connect-timeout "$CONNECT_TIMEOUT"
+  --max-time "$MAX_TIME"
+  -o "$RESPONSE_FILE"
+  -w "%{http_code}"
+  -X POST "$API_BASE_URL$OPENAI_IMAGE_PATH"
+  -H "Authorization: Bearer $TOKEN"
+)
+
+if (( USE_MULTIPART )); then
+  CURL_ARGS+=(--form-string "prompt=$PROMPT")
+  CURL_ARGS+=(--form-string "model=$FIXED_MODEL")
+
+  if [[ -n "$N" ]]; then
+    CURL_ARGS+=(--form-string "n=$N")
+  fi
+  if [[ -n "$SIZE" ]]; then
+    CURL_ARGS+=(--form-string "size=$SIZE")
+  fi
+  if [[ -n "$QUALITY" ]]; then
+    CURL_ARGS+=(--form-string "quality=$QUALITY")
+  fi
+  if [[ -n "$BACKGROUND" ]]; then
+    CURL_ARGS+=(--form-string "background=$BACKGROUND")
+  fi
+  if [[ -n "$OUTPUT_FORMAT" ]]; then
+    CURL_ARGS+=(--form-string "output_format=$OUTPUT_FORMAT")
+  fi
+  if [[ -n "$OUTPUT_COMPRESSION" ]]; then
+    CURL_ARGS+=(--form-string "output_compression=$OUTPUT_COMPRESSION")
+  fi
+
+  if (( COLLECTED_IMAGE_COUNT > 0 )); then
+    for image_path in "${COLLECTED_IMAGES[@]}"; do
+      CURL_ARGS+=(-F "image=@$image_path;type=$(mime_type_for_path "$image_path")")
+    done
+  fi
+
+  if [[ -n "$MASK_PATH" ]]; then
+    CURL_ARGS+=(-F "mask=@$MASK_PATH;type=image/png")
+  fi
+else
+  CURL_ARGS+=(-H "Content-Type: application/json")
+  CURL_ARGS+=(--data @"$PAYLOAD_FILE")
+fi
+
+HTTP_CODE="$(curl "${CURL_ARGS[@]}")"
 
 if [[ "$HTTP_CODE" -lt 200 || "$HTTP_CODE" -ge 300 ]]; then
   echo "Frevana API request failed with HTTP $HTTP_CODE" >&2

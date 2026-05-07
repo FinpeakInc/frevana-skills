@@ -77,17 +77,20 @@ Features:
 
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
-Generate Frevana-hosted images with OpenAI's `gpt-image-2` model.
+Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
 
 Use when:
 
 - you want to generate an image from a prompt
+- you want to edit from one or more local reference images
+- you want to use a local directory of reference images
 - you want to use `gpt-image-2`
 - you may want to save the result to a file
 
 Features:
 
-- accepts image input via `--prompt` or `--contents`
+- accepts prompt input via `--prompt` or `--contents`
+- supports image-to-image input via `--image`, `--image-dir`, and `--mask`
 - returns a hosted image link
 - supported options: `--n`, `--size`, `--quality`, `--background`, `--output-format`, `--output-compression`
 
@@ -172,6 +175,7 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Generate an image with gpt-image-2 for a matte black espresso machine
+Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Generate a dashboard illustration with Nano Banana Pro
 Generate final HTML from template annual_summary_v2 and this content
 ```
@@ -181,6 +185,7 @@ Generate final HTML from template annual_summary_v2 and this content
 Each skill currently contains:
 - `SKILL.md` - Instructions for the agent
 - `scripts/` - Helper scripts for automation
+- `tests/` - Script-level verification when a skill includes runnable tests
 
 Some skills may also include `evals/` for reusable skill test prompts.
 
