@@ -12,11 +12,31 @@ MAX_TIME="600"
 MAX_IMAGE_COUNT="16"
 MAX_IMAGE_SIZE_BYTES="$((50 * 1024 * 1024))"
 MAX_MASK_SIZE_BYTES="$((4 * 1024 * 1024))"
+TEMP_ARTIFACTS=()
+
+register_temp_artifact() {
+  TEMP_ARTIFACTS+=("$1")
+}
+
+cleanup() {
+  local artifact_path
+
+  if (( ${#TEMP_ARTIFACTS[@]} == 0 )); then
+    return
+  fi
+
+  for artifact_path in "${TEMP_ARTIFACTS[@]}"; do
+    if [[ -e "$artifact_path" ]]; then
+      rm -rf "$artifact_path"
+    fi
+  done
+}
+trap cleanup EXIT
 
 usage() {
   cat <<'EOF'
 Usage:
-  generate_image.sh (--prompt "image prompt" | --contents "image contents") [openai options] [--image /path/to/ref.png ...] [--image-dir /path/to/images ...] [--mask /path/to/mask.png] [--output /path/to/result.json] [--token "bearer token"]
+  generate_image.sh (--prompt "image prompt" | --contents "image contents") [openai options] [--image /path/to/ref.png ...] [--image-url https://example.com/ref.png ...] [--image-dir /path/to/images ...] [--mask /path/to/mask.png] [--output /path/to/result.json] [--token "bearer token"]
 
 Fixed backend:
   --provider openai
@@ -30,6 +50,7 @@ OpenAI options:
   --output-format        Output format
   --output-compression   Output compression for jpeg/webp (1-100)
   --image                Reference image path for image-to-image (repeatable, png/jpg/jpeg/webp, <50MB each)
+  --image-url            Reference image URL for image-to-image (repeatable, downloads png/jpg/jpeg/webp first)
   --image-dir            Directory of reference images for image-to-image (repeatable, recursive, up to 16 images total)
   --mask                 Optional PNG mask image for image-to-image (<4MB)
 
@@ -55,6 +76,10 @@ is_allowed_value() {
 
 is_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+is_http_url() {
+  [[ "$1" =~ ^https?://[^[:space:]]+$ ]]
 }
 
 is_supported_image_path() {
@@ -83,6 +108,49 @@ mime_type_for_path() {
       return 1
       ;;
   esac
+}
+
+extension_for_content_type() {
+  case "$1" in
+    image/png)
+      printf '%s' '.png'
+      ;;
+    image/jpeg|image/jpg)
+      printf '%s' '.jpg'
+      ;;
+    image/webp)
+      printf '%s' '.webp'
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+extension_for_image_url() {
+  python3 - "$1" <<'PY'
+import sys
+from pathlib import PurePosixPath
+from urllib.parse import urlparse
+
+suffix = PurePosixPath(urlparse(sys.argv[1]).path).suffix.lower()
+if suffix in {".png", ".jpg", ".jpeg", ".webp"}:
+    print(suffix)
+PY
+}
+
+content_type_from_headers() {
+  python3 - "$1" <<'PY'
+import sys
+from pathlib import Path
+
+content_type = ""
+for line in Path(sys.argv[1]).read_text(encoding="utf-8", errors="ignore").splitlines():
+    if line.lower().startswith("content-type:"):
+        content_type = line.split(":", 1)[1].strip().split(";", 1)[0].strip().lower()
+
+print(content_type)
+PY
 }
 
 file_size_bytes() {
@@ -130,6 +198,64 @@ append_image_path() {
   fi
 
   COLLECTED_IMAGES+=("$path")
+}
+
+download_image_url() {
+  local image_url="$1"
+  local header_file
+  local download_file
+  local download_dir
+  local content_type=""
+  local file_extension=""
+  local downloaded_path
+
+  if [[ -z "$image_url" ]]; then
+    echo "Missing value for --image-url" >&2
+    exit 1
+  fi
+
+  if ! is_http_url "$image_url"; then
+    echo "Invalid value for --image-url: $image_url" >&2
+    echo "Only http:// and https:// image URLs are supported." >&2
+    exit 1
+  fi
+
+  header_file="$(mktemp)"
+  register_temp_artifact "$header_file"
+  download_file="$(mktemp)"
+  register_temp_artifact "$download_file"
+
+  if ! curl -fsSL --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" -D "$header_file" -o "$download_file" "$image_url"; then
+    echo "Failed to download --image-url: $image_url" >&2
+    exit 1
+  fi
+
+  if [[ ! -s "$download_file" ]]; then
+    echo "Downloaded image URL returned an empty body: $image_url" >&2
+    exit 1
+  fi
+
+  content_type="$(content_type_from_headers "$header_file")"
+  if ! file_extension="$(extension_for_content_type "$content_type")"; then
+    file_extension="$(extension_for_image_url "$image_url")"
+  fi
+
+  if [[ -z "$file_extension" ]]; then
+    if [[ -n "$content_type" ]]; then
+      echo "Unsupported content type for --image-url: $content_type" >&2
+    else
+      echo "Could not determine file type for --image-url: $image_url" >&2
+    fi
+    echo "Supported remote image types: .png .jpg .jpeg .webp" >&2
+    exit 1
+  fi
+
+  download_dir="$(mktemp -d)"
+  register_temp_artifact "$download_dir"
+  downloaded_path="$download_dir/reference$file_extension"
+  mv "$download_file" "$downloaded_path"
+
+  append_image_path "$downloaded_path"
 }
 
 collect_directory_images() {
@@ -208,6 +334,7 @@ OUTPUT_PATH=""
 TOKEN_OVERRIDE=""
 MASK_PATH=""
 IMAGE_PATHS=()
+IMAGE_URLS=()
 IMAGE_DIRS=()
 COLLECTED_IMAGES=()
 
@@ -243,6 +370,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --image)
       IMAGE_PATHS+=("${2:-}")
+      shift 2
+      ;;
+    --image-url)
+      IMAGE_URLS+=("${2:-}")
       shift 2
       ;;
     --image-dir)
@@ -343,6 +474,12 @@ if [[ -n "${IMAGE_PATHS[*]-}" ]]; then
   done
 fi
 
+if [[ -n "${IMAGE_URLS[*]-}" ]]; then
+  for image_url in "${IMAGE_URLS[@]}"; do
+    download_image_url "$image_url"
+  done
+fi
+
 if [[ -n "${IMAGE_DIRS[*]-}" ]]; then
   for image_dir in "${IMAGE_DIRS[@]}"; do
     collect_directory_images "$image_dir"
@@ -390,10 +527,9 @@ fi
 PAYLOAD_FILE="$(mktemp)"
 RESPONSE_FILE="$(mktemp)"
 RESULT_FILE="$(mktemp)"
-cleanup() {
-  rm -f "$PAYLOAD_FILE" "$RESPONSE_FILE" "$RESULT_FILE"
-}
-trap cleanup EXIT
+register_temp_artifact "$PAYLOAD_FILE"
+register_temp_artifact "$RESPONSE_FILE"
+register_temp_artifact "$RESULT_FILE"
 
 if (( ! USE_MULTIPART )); then
   export PROMPT N SIZE QUALITY BACKGROUND OUTPUT_FORMAT OUTPUT_COMPRESSION FIXED_MODEL

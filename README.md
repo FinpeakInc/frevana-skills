@@ -83,6 +83,7 @@ Use when:
 
 - you want to generate an image from a prompt
 - you want to edit from one or more local reference images
+- you want to edit from one or more remote reference image URLs
 - you want to use a local directory of reference images
 - you want to use `gpt-image-2`
 - you may want to save the result to a file
@@ -90,7 +91,7 @@ Use when:
 Features:
 
 - accepts prompt input via `--prompt` or `--contents`
-- supports image-to-image input via `--image`, `--image-dir`, and `--mask`
+- supports image-to-image input via `--image`, `--image-url`, `--image-dir`, and `--mask`
 - returns a hosted image link
 - supported options: `--n`, `--size`, `--quality`, `--background`, `--output-format`, `--output-compression`
 
@@ -176,6 +177,7 @@ Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
+Use gpt-image-2 with https://example.com/reference.png as the reference image
 Generate a dashboard illustration with Nano Banana Pro
 Generate final HTML from template annual_summary_v2 and this content
 ```

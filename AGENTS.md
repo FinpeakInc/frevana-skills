@@ -180,6 +180,7 @@ Route here when the user wants:
 - Frevana-hosted images generated with OpenAI
 - the `gpt-image-2` model specifically
 - image-to-image runs that use one or more local reference images
+- image-to-image runs that use one or more remote reference image URLs
 - image-to-image runs that use a local directory of images
 - raw JSON output from the Frevana OpenAI image backend
 
@@ -196,6 +197,7 @@ Optional input:
 - `output_format`
 - `output_compression`
 - reference image path(s)
+- reference image URL(s)
 - reference image directory path(s)
 - mask path
 - output file path
@@ -474,6 +476,7 @@ bash skills/gpt-image-2/scripts/generate_image.sh \
 bash skills/gpt-image-2/scripts/generate_image.sh \
   --prompt "Turn these product references into one polished hero shot" \
   --image ./refs/front.png \
+  --image-url "https://example.com/reference/detail.png" \
   --image-dir ./refs/detail-shots \
   --mask ./refs/mask.png \
   --size 1024x1024 \
