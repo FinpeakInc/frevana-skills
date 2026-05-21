@@ -10,6 +10,7 @@ This repository contains reusable skills for three main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
+- Google News lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -30,6 +31,9 @@ skills/
   amazon-keyword-search-volume/
     SKILL.md
     scripts/get_search_volume.sh
+  google-news-search/
+    SKILL.md
+    scripts/search_google_news.sh
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
@@ -173,6 +177,32 @@ Supported marketplaces are limited to:
 
 If the user asks for an unsupported marketplace, stop and say that the skill only supports the listed marketplaces.
 
+### Use `google-news-search`
+
+Route here when the user wants:
+
+- Google News search results by keyword
+- current news articles from Google News
+- country- or language-specific Google News results
+- scoped Google News results by topic, publication, section, or story token
+
+Required input:
+
+- `q` search keyword
+
+Optional input:
+
+- `gl`
+- `hl`
+- `topic_token`
+- `publication_token`
+- `section_token`
+- `story_token`
+- output file path
+- one-time token override
+
+The user can provide only `q`. Do not invent optional country, language, or token fields when the user did not provide them.
+
 ### Use `gpt-image-2`
 
 Route here when the user wants:
@@ -307,9 +337,9 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon skills
+### Amazon and Google News skills
 
-For `amazon-search`, `amazon-product`, and `amazon-keyword-search-volume`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, and `google-news-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
@@ -352,7 +382,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon workflows
+### Amazon and Google News workflows
 
 Needed:
 
@@ -389,6 +419,13 @@ Never echo bearer tokens back to the user.
 - If comparing products, highlight title, ASIN, price, rating, and delivery notes when available.
 - If comparing keywords, highlight the highest-volume and lowest-volume items and notable gaps.
 
+### Google News outputs
+
+- The endpoint script returns validated JSON to stdout.
+- Summarize the results by default.
+- Highlight headline/title, source, publication time, URL, and snippet when available.
+- Preserve the raw JSON when the user asks for it.
+
 ### Frevana image outputs
 
 - Preserve the raw JSON response when returning structured output.
@@ -411,6 +448,7 @@ Use these paths when executing repo scripts:
 bash skills/amazon-search/scripts/search_amazon.sh
 bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
+bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
@@ -460,6 +498,18 @@ bash skills/amazon-product/scripts/fetch_product.sh \
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh \
   --keywords "wireless earbuds,gaming headset" \
   --location-name "United States"
+```
+
+### Google News search
+
+```bash
+bash skills/google-news-search/scripts/search_google_news.sh \
+  --q "artificial intelligence"
+
+bash skills/google-news-search/scripts/search_google_news.sh \
+  --q "artificial intelligence" \
+  --gl US \
+  --hl en
 ```
 
 ### GPT-Image-2

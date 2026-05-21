@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Eight reusable skills for Frevana auth bootstrap, Amazon research, image generation, and HTML generation.
+Nine reusable skills for Frevana auth bootstrap, Amazon research, Google News research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -73,6 +73,23 @@ Features:
 - compare one or more keywords with `--keywords`
 - defaults to `United States / English` when marketplace is not specified
 - supported marketplaces: Australia, Austria, Canada, Egypt, France, Germany, India, Italy, Mexico, Netherlands, Saudi Arabia, Singapore, Spain, United Arab Emirates, United Kingdom, United States
+- save results with `--output`
+
+### [`google-news-search`](skills/google-news-search/SKILL.md)
+
+Search Google News by keyword.
+
+Use when:
+
+- you want Google News results for a query
+- you want country- or language-specific Google News results
+- you have a Google News topic, publication, section, or story token
+
+Features:
+
+- `q` is the only required input
+- optional `--gl` and `--hl`
+- optional Google News token filters
 - save results with `--output`
 
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
@@ -161,7 +178,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon and Google News skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -175,6 +192,7 @@ Authenticate Frevana CLI on this machine. If `frevana login` is unavailable, ins
 Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
+Search Google News for artificial intelligence
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
