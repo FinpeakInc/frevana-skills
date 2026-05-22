@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Eleven reusable skills for Frevana auth bootstrap, Amazon research, Google News and Google Shopping research, image generation, and HTML generation.
+Twelve reusable skills for Frevana auth bootstrap, Amazon research, Google News, Google Trends, and Google Shopping research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -91,6 +91,23 @@ Features:
 - optional `--gl` and `--hl`
 - optional Google News token filters
 - save results with `--output`
+
+### [`google-trends`](skills/google-trends/SKILL.md)
+
+Query Google Trends by keyword.
+
+Use when:
+
+- you want Google Trends results for a query
+- you want trend interest over time, regional interest, or related queries
+- you want country-, category-, date-range-, property-, language-, or timezone-specific Trends results
+
+Features:
+
+- `q` is the only required input
+- optional `--geo`, `--cat`, `--date`, `--gprop`, `--hl`, and `--tz`
+- saves every successful response to `./out/google-trends-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
 
 ### [`google-shopping-search`](skills/google-shopping-search/SKILL.md)
 
@@ -214,7 +231,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, Google News, and Google Shopping skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, Google News, Google Trends, and Google Shopping skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -229,6 +246,7 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search Google News for artificial intelligence
+Search Google Trends for home treadmill with geo=US and date=today 12-m
 Search Google Shopping for wireless earbuds with gl=US and hl=en
 Search Google Shopping Light for wireless earbuds with gl=US and hl=en
 Generate an image with gpt-image-2 for a matte black espresso machine

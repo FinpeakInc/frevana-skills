@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-trends",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Google Trends for home treadmill and summarize the trend data instead of dumping raw JSON.",
+      "expected_output": "Uses the google-trends script with q=home treadmill, saves the JSON, and summarizes trend fields that are present in the response.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "查一下 Google Trends 里 q=家庭跑步机，geo=US，date=today 12-m，hl=en，tz=420，并保存原始 JSON。",
+      "expected_output": "Uses q=家庭跑步机, geo=US, date=today 12-m, hl=en, tz=420, and an output path; preserves the raw JSON.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Query Google Trends for running shoes with category 18 and gprop=froogle.",
+      "expected_output": "Uses q=running shoes, cat=18, and gprop=froogle without inventing unspecified geo, date, hl, or tz fields.",
+      "files": []
+    }
+  ]
+}
