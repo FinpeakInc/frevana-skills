@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
-- Google News, Google Related Questions, Google Shopping, Google Shopping Light, and Google Trends lookups through Frevana-backed HTTP APIs
+- Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, and Google Trends lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -46,6 +46,9 @@ skills/
   google-shopping-light-search/
     SKILL.md
     scripts/search_google_shopping_light.sh
+  google-immersive-product/
+    SKILL.md
+    scripts/search_google_immersive_product.sh
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
@@ -292,6 +295,28 @@ Optional input:
 The user can provide only `q`. Do not invent optional Google domain, country, language, pagination, device, or sort fields when the user did not provide them.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
+### Use `google-immersive-product`
+
+Route here when the user wants:
+
+- Google Immersive Product details
+- product details from a Google Shopping `immersive_product_page_token`
+- store offers inside the Google Immersive Product popup
+- the next page of stores using `stores_next_page_token`
+- to call `/service/serpapi/google-immersive-product`
+
+Required input:
+
+- `page_token`
+
+Optional input:
+
+- `next_page_token`
+- output file path override
+- one-time token override
+
+The required `page_token` comes from a Google Shopping result item's `immersive_product_page_token`. The optional `next_page_token` comes from the current Google Immersive Product response's `product_results.stores_next_page_token` and is only for store pagination. If the user gives only a product name, keyword, or URL without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
+
 ### Use `google-shopping-light-search`
 
 Route here when the user wants:
@@ -437,6 +462,7 @@ Use these rules to avoid bad assumptions:
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
+- If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
@@ -458,16 +484,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Shopping Light skills
+### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, and `google-shopping-light-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `google-trends`, `google-shopping-search`, and `google-shopping-light-search`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -504,7 +530,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Shopping Light workflows
+### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product workflows
 
 Needed:
 
@@ -569,6 +595,13 @@ Never echo bearer tokens back to the user.
 - Highlight product title, price, rating, source merchant, product link, and thumbnail when available.
 - Preserve the raw JSON when the user asks for it.
 
+### Google Immersive Product outputs
+
+- The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
+- Summarize the results by default.
+- Highlight product title, brand, rating, review count, price range, store offers, top insights, and follow-up `stores_next_page_token` when available.
+- Preserve the raw JSON when the user asks for it.
+
 ### Frevana image outputs
 
 - Preserve the raw JSON response when returning structured output.
@@ -596,6 +629,7 @@ bash skills/google-related-questions/scripts/search_google_related_questions.sh
 bash skills/google-trends/scripts/search_google_trends.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
 bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
+bash skills/google-immersive-product/scripts/search_google_immersive_product.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
@@ -668,6 +702,18 @@ bash skills/google-related-questions/scripts/search_google_related_questions.sh 
 bash skills/google-related-questions/scripts/search_google_related_questions.sh \
   --next-page-token "eyJvbnMiOiIxMDA0MSI..." \
   --output ./out/google-related-questions-result.json
+```
+
+### Google Immersive Product
+
+```bash
+bash skills/google-immersive-product/scripts/search_google_immersive_product.sh \
+  --page-token "eyJlaSI6Im5ZVmxaOX..."
+
+bash skills/google-immersive-product/scripts/search_google_immersive_product.sh \
+  --page-token "eyJlaSI6Im5ZVmxaOX..." \
+  --next-page-token "f69uOnica15aklmSk3pT0..." \
+  --output ./out/google-immersive-product-result.json
 ```
 
 ### Google Trends

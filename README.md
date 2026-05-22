@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Twelve reusable skills for Frevana auth bootstrap, Amazon research, Google News, Google Trends, and Google Shopping research, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -92,6 +92,22 @@ Features:
 - optional Google News token filters
 - save results with `--output`
 
+### [`google-related-questions`](skills/google-related-questions/SKILL.md)
+
+Expand Google Related Questions / People Also Ask results by token.
+
+Use when:
+
+- you have a `next_page_token` from a Google Search `related_questions` item
+- you want follow-up People Also Ask results
+- you want to save raw related question results
+
+Features:
+
+- requires `--next-page-token`
+- returns validated JSON
+- save results with `--output`
+
 ### [`google-trends`](skills/google-trends/SKILL.md)
 
 Query Google Trends by keyword.
@@ -125,6 +141,23 @@ Features:
 - optional `--google-domain`, `--gl`, and `--hl`
 - optional `--start`, `--device`, and `--sort-by`
 - saves every successful response to `./out/google-shopping-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`google-immersive-product`](skills/google-immersive-product/SKILL.md)
+
+Fetch Google Immersive Product details from a Google Shopping result token.
+
+Use when:
+
+- you have an `immersive_product_page_token` from Google Shopping results
+- you want product detail popup data, store offers, ratings, reviews, or top insights
+- you want the next page of stores using `stores_next_page_token`
+
+Features:
+
+- requires `--page-token`
+- optional `--next-page-token` for store pagination
+- saves every successful response to `./out/google-immersive-product-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
 
 ### [`google-shopping-light-search`](skills/google-shopping-light-search/SKILL.md)
@@ -231,7 +264,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, Google News, Google Trends, and Google Shopping skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Immersive Product skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -246,8 +279,10 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search Google News for artificial intelligence
+Expand Google Related Questions with next_page_token eyJvbnMiOiIxMDA0MSI...
 Search Google Trends for home treadmill with geo=US and date=today 12-m
 Search Google Shopping for wireless earbuds with gl=US and hl=en
+Fetch Google Immersive Product details with page_token eyJlaSI6Im5ZVmxaOX...
 Search Google Shopping Light for wireless earbuds with gl=US and hl=en
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot

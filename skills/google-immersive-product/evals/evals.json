@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-immersive-product",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use this immersive_product_page_token to fetch Google Immersive Product details through Frevana, then summarize the product title, rating, price range, and store offers instead of dumping raw JSON: eyJlaSI6Im5ZVmxaOX...",
+      "expected_output": "Uses the google-immersive-product script with --page-token; summarizes product_results fields such as title, brand, rating, reviews, price_range, stores, and stores_next_page_token when available.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "继续翻这个 Google Immersive Product 的 stores，page_token 是 eyJlaSI6Im5ZVmxaOX...，next_page_token 是 f69uOnica15aklmSk3pT0...，保存原始 JSON 到 out/immersive-product-stores-page-2.json",
+      "expected_output": "Uses --page-token, --next-page-token, and --output out/immersive-product-stores-page-2.json; preserves raw JSON without reshaping.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search Google Immersive Product for 'LG TV'.",
+      "expected_output": "Does not treat the keyword as a valid input; explains that page_token is required and suggests running Google Shopping search first to obtain immersive_product_page_token, then continuing with this skill.",
+      "files": []
+    }
+  ]
+}
