@@ -10,7 +10,7 @@ This repository contains reusable skills for three main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
-- Google News and Google Shopping lookups through Frevana-backed HTTP APIs
+- Google News, Google Shopping, and Google Shopping Light lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -37,6 +37,9 @@ skills/
   google-shopping-search/
     SKILL.md
     scripts/search_google_shopping.sh
+  google-shopping-light-search/
+    SKILL.md
+    scripts/search_google_shopping_light.sh
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
@@ -235,6 +238,34 @@ Optional input:
 The user can provide only `q`. Do not invent optional Google domain, country, language, pagination, device, or sort fields when the user did not provide them.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
+### Use `google-shopping-light-search`
+
+Route here when the user wants:
+
+- Google Shopping Light product results by keyword
+- lightweight Google Shopping product discovery
+- country- or language-specific Google Shopping Light results
+- paginated Google Shopping Light results by start offset
+- device-specific Google Shopping Light results
+
+Required input:
+
+- `q` search keyword
+
+Optional input:
+
+- `google_domain`
+- `gl`
+- `hl`
+- `start`
+- `device`
+- output file path override
+- one-time token override
+
+The user can provide only `q`. Do not invent optional Google domain, country, language, pagination, or device fields when the user did not provide them.
+The Light endpoint does not support `sort_by`; use `google-shopping-search` when the user explicitly asks for Google Shopping price sorting.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
 ### Use `gpt-image-2`
 
 Route here when the user wants:
@@ -351,6 +382,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "search Amazon for this" but does not provide a keyword, ask for the keyword.
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
+- If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
 - If the user asks for Frevana report generation without `template_id`, ask for `template_id`.
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
@@ -370,16 +402,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, Google News, and Google Shopping skills
+### Amazon, Google News, Google Shopping, and Google Shopping Light skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, and `google-shopping-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-shopping-search`, and `google-shopping-light-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `google-shopping-search`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `google-shopping-search` and `google-shopping-light-search`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -416,7 +448,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, Google News, and Google Shopping workflows
+### Amazon, Google News, Google Shopping, and Google Shopping Light workflows
 
 Needed:
 
@@ -460,7 +492,7 @@ Never echo bearer tokens back to the user.
 - Highlight headline/title, source, publication time, URL, and snippet when available.
 - Preserve the raw JSON when the user asks for it.
 
-### Google Shopping outputs
+### Google Shopping and Google Shopping Light outputs
 
 - The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
 - Summarize the results by default.
@@ -491,6 +523,7 @@ bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
 bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
+bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
@@ -566,6 +599,19 @@ bash skills/google-shopping-search/scripts/search_google_shopping.sh \
   --hl en \
   --device mobile \
   --sort-by 1
+```
+
+### Google Shopping Light search
+
+```bash
+bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh \
+  --q "wireless earbuds"
+
+bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh \
+  --q "wireless earbuds" \
+  --gl US \
+  --hl en \
+  --device mobile
 ```
 
 ### GPT-Image-2

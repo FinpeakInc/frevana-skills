@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Ten reusable skills for Frevana auth bootstrap, Amazon research, Google News and Google Shopping research, image generation, and HTML generation.
+Eleven reusable skills for Frevana auth bootstrap, Amazon research, Google News and Google Shopping research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -110,6 +110,24 @@ Features:
 - saves every successful response to `./out/google-shopping-search-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
 
+### [`google-shopping-light-search`](skills/google-shopping-light-search/SKILL.md)
+
+Search Google Shopping Light products by keyword.
+
+Use when:
+
+- you want lightweight Google Shopping product results for a query
+- you want country- or language-specific Google Shopping Light results
+- you want pagination by start offset or device-specific results
+
+Features:
+
+- `q` is the only required input
+- optional `--google-domain`, `--gl`, and `--hl`
+- optional `--start` and `--device`
+- saves every successful response to `./out/google-shopping-light-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
 Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
@@ -212,6 +230,7 @@ Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search Google News for artificial intelligence
 Search Google Shopping for wireless earbuds with gl=US and hl=en
+Search Google Shopping Light for wireless earbuds with gl=US and hl=en
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
