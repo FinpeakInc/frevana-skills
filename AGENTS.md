@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
-- Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, and Google Trends lookups through Frevana-backed HTTP APIs
+- Google Ads Transparency Center, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, and Google Trends lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -34,6 +34,9 @@ skills/
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
+  google-ads-transparency-center/
+    SKILL.md
+    scripts/search_google_ads_transparency_center.sh
   google-related-questions/
     SKILL.md
     scripts/search_google_related_questions.sh
@@ -217,6 +220,33 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional country, language, or token fields when the user did not provide them.
+
+### Use `google-ads-transparency-center`
+
+Route here when the user wants:
+
+- Google Ads Transparency Center ad creative results
+- ad lookup by Google advertiser ID
+- domain or text searches for ads shown in Google Ads Transparency Center
+- platform-specific ad searches across Google Play, Google Maps, Google Search, Google Shopping, or YouTube
+- region-specific or paginated Google Ads Transparency Center results
+- to call `/service/serpapi/google-ads-transparency-center`
+
+Required input:
+
+- at least one of `advertiser_id`, `text`, or `next_page_token`
+
+Optional input:
+
+- `platform`
+- `region`
+- output file path override
+- one-time token override
+
+If the user gives only a brand/company name and asks for a specific advertiser record by ID, ask for the advertiser ID instead of guessing. If the user wants a general ad search for that brand, use `text`.
+Do not invent optional platform, region, or pagination token fields when the user did not provide them.
+The Frevana endpoint schema currently exposes only `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-related-questions`
 
@@ -462,6 +492,7 @@ Use these rules to avoid bad assumptions:
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
+- If the user asks for Google Ads Transparency Center search without `advertiser_id`, `text`, or `next_page_token`, ask for one of those inputs.
 - If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
@@ -484,16 +515,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product skills
+### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `google-ads-transparency-center`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -530,7 +561,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product workflows
+### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product workflows
 
 Needed:
 
@@ -572,6 +603,13 @@ Never echo bearer tokens back to the user.
 - The endpoint script returns validated JSON to stdout.
 - Summarize the results by default.
 - Highlight headline/title, source, publication time, URL, and snippet when available.
+- Preserve the raw JSON when the user asks for it.
+
+### Google Ads Transparency Center outputs
+
+- The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
+- Summarize the results by default.
+- Highlight advertiser, advertiser ID, ad creative ID, format, target domain, first shown, last shown, creative media link, details link, and follow-up `serpapi_pagination.next_page_token` when available.
 - Preserve the raw JSON when the user asks for it.
 
 ### Google Related Questions outputs
@@ -625,6 +663,7 @@ bash skills/amazon-search/scripts/search_amazon.sh
 bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
 bash skills/google-news-search/scripts/search_google_news.sh
+bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
 bash skills/google-trends/scripts/search_google_trends.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
@@ -691,6 +730,22 @@ bash skills/google-news-search/scripts/search_google_news.sh \
   --q "artificial intelligence" \
   --gl US \
   --hl en
+```
+
+### Google Ads Transparency Center search
+
+```bash
+bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh \
+  --text "apple.com"
+
+bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh \
+  --advertiser-id "AR17828074650563772417" \
+  --region 2840 \
+  --platform YOUTUBE
+
+bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh \
+  --text "apple.com" \
+  --next-page-token "CgoAP7zn5TAzVgIz..."
 ```
 
 ### Google Related Questions

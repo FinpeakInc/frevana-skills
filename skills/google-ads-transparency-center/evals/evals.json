@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-ads-transparency-center",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "查询 Google Ads Transparency Center 里 apple.com 的广告，region 2840，返回摘要并保存原始 JSON。",
+      "expected_output": "Uses the google-ads-transparency-center script with --text apple.com and --region 2840, saves JSON, and summarizes ad_creatives with advertiser, advertiser_id, creative ID, format, target domain, and pagination token when available.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "用 advertiser_id AR17828074650563772417 查 Google Ads Transparency Center，只看 YOUTUBE 平台的素材。",
+      "expected_output": "Uses --advertiser-id AR17828074650563772417 and --platform YOUTUBE; does not guess optional region or unsupported creative format filters; summarizes returned creatives or reports no results.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "继续翻上一页 Google Ads Transparency Center 结果，next_page_token 是 CgoAP7zn5TAzVgIzEhDiBCUGAlOPw6FzYbYAAAAAGgn8+M97+Oyd2pM=。",
+      "expected_output": "Uses --next-page-token with the provided token, preserves any context fields the user provides, saves raw JSON, and summarizes the next page results.",
+      "files": []
+    }
+  ]
+}
