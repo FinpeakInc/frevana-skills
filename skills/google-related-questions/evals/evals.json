@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-related-questions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use this next_page_token to query Google Related Questions through Frevana, then summarize the questions instead of dumping raw JSON: eyJvbnMiOiIxMDA0MSI...",
+      "expected_output": "Uses the google-related-questions script with next_page_token; summarizes related_questions fields such as question, title, link, snippet, and follow-up next_page_token when available.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "展开这个 People Also Ask token，保存原始 JSON 到 out/related-questions.json：eyJvbnMiOiI2MjAiLCJmYyI6IkVv...==",
+      "expected_output": "Uses --next-page-token and --output out/related-questions.json; preserves the raw JSON without reshaping.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search Google Related Questions for 'best coffee beans'.",
+      "expected_output": "Does not treat the keyword as a valid input; explains that next_page_token is required and suggests running the regular Google Search skill first to obtain related_questions[].next_page_token, then continuing with this skill.",
+      "files": []
+    }
+  ]
+}

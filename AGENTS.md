@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
-- Google News, Google Shopping, Google Shopping Light, and Google Trends lookups through Frevana-backed HTTP APIs
+- Google News, Google Related Questions, Google Shopping, Google Shopping Light, and Google Trends lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -34,6 +34,9 @@ skills/
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
+  google-related-questions/
+    SKILL.md
+    scripts/search_google_related_questions.sh
   google-trends/
     SKILL.md
     scripts/search_google_trends.sh
@@ -211,6 +214,26 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional country, language, or token fields when the user did not provide them.
+
+### Use `google-related-questions`
+
+Route here when the user wants:
+
+- Google Related Questions results
+- People Also Ask follow-up questions
+- to expand a Google Search `related_questions` item using `next_page_token`
+- to call `/service/serpapi/google-related-questions`
+
+Required input:
+
+- `next_page_token`
+
+Optional input:
+
+- output file path
+- one-time token override
+
+This is not a keyword search endpoint. If the user gives only a query, question, or topic without a `next_page_token`, tell them to run the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
 
 ### Use `google-trends`
 
@@ -415,6 +438,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
+- If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
 - If the user asks for Frevana report generation without `template_id`, ask for `template_id`.
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
@@ -434,9 +458,9 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, Google News, Google Trends, Google Shopping, and Google Shopping Light skills
+### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Shopping Light skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-trends`, `google-shopping-search`, and `google-shopping-light-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, and `google-shopping-light-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
@@ -480,7 +504,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, Google News, Google Trends, Google Shopping, and Google Shopping Light workflows
+### Amazon, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Shopping Light workflows
 
 Needed:
 
@@ -524,6 +548,13 @@ Never echo bearer tokens back to the user.
 - Highlight headline/title, source, publication time, URL, and snippet when available.
 - Preserve the raw JSON when the user asks for it.
 
+### Google Related Questions outputs
+
+- The endpoint script returns validated JSON to stdout.
+- Summarize the results by default.
+- Highlight question, answer snippet, source title, link, and follow-up `next_page_token` when available.
+- Preserve the raw JSON when the user asks for it.
+
 ### Google Trends outputs
 
 - The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
@@ -561,6 +592,7 @@ bash skills/amazon-search/scripts/search_amazon.sh
 bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
 bash skills/google-news-search/scripts/search_google_news.sh
+bash skills/google-related-questions/scripts/search_google_related_questions.sh
 bash skills/google-trends/scripts/search_google_trends.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
 bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
@@ -625,6 +657,17 @@ bash skills/google-news-search/scripts/search_google_news.sh \
   --q "artificial intelligence" \
   --gl US \
   --hl en
+```
+
+### Google Related Questions
+
+```bash
+bash skills/google-related-questions/scripts/search_google_related_questions.sh \
+  --next-page-token "eyJvbnMiOiIxMDA0MSI..."
+
+bash skills/google-related-questions/scripts/search_google_related_questions.sh \
+  --next-page-token "eyJvbnMiOiIxMDA0MSI..." \
+  --output ./out/google-related-questions-result.json
 ```
 
 ### Google Trends
