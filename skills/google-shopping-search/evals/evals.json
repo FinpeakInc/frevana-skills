@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-shopping-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Google Shopping for wireless earbuds with gl=US and hl=en, then summarize the top products instead of dumping raw JSON.",
+      "expected_output": "Uses the google-shopping-search script with q, gl, and hl; summarizes product titles, prices, ratings, merchants, and links when available.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "查一下 Google Shopping 上的 running shoes，第 20 个结果开始，device=mobile，按价格从低到高排序，并保存原始 JSON。",
+      "expected_output": "Uses q=running shoes, start=20, device=mobile, sort_by=1, and an output path; preserves the raw JSON.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search Google Shopping for espresso machine on google.com with country US and language English. Use desktop results.",
+      "expected_output": "Uses q=espresso machine, google_domain=google.com, gl=US, hl=en, and device=desktop without inventing unspecified fields.",
+      "files": []
+    }
+  ]
+}

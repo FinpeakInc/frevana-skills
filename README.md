@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Nine reusable skills for Frevana auth bootstrap, Amazon research, Google News research, image generation, and HTML generation.
+Ten reusable skills for Frevana auth bootstrap, Amazon research, Google News and Google Shopping research, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -92,6 +92,24 @@ Features:
 - optional Google News token filters
 - save results with `--output`
 
+### [`google-shopping-search`](skills/google-shopping-search/SKILL.md)
+
+Search Google Shopping products by keyword.
+
+Use when:
+
+- you want Google Shopping product results for a query
+- you want country- or language-specific Google Shopping results
+- you want pagination by start offset, device-specific results, or price sorting
+
+Features:
+
+- `q` is the only required input
+- optional `--google-domain`, `--gl`, and `--hl`
+- optional `--start`, `--device`, and `--sort-by`
+- saves every successful response to `./out/google-shopping-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
 Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
@@ -178,7 +196,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon and Google News skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, Google News, and Google Shopping skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -193,6 +211,7 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search Google News for artificial intelligence
+Search Google Shopping for wireless earbuds with gl=US and hl=en
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
