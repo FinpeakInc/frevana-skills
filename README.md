@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Google Ads Transparency Center, Google Search, Google Forums, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -144,6 +144,23 @@ Features:
 - optional `--device`, `--hl`, and `--gl`
 - optional `--start`, `--start-date`, and `--end-date`
 - saves every successful response to `./out/google-forums-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`google-patents-search`](skills/google-patents-search/SKILL.md)
+
+Search Google Patents results by query.
+
+Use when:
+
+- you want Google Patents results for a query
+- you want patent or patent-application discovery
+- you want page, result-count, language, or patent-status filters
+
+Features:
+
+- `q` is the only required input
+- optional `--page`, `--num`, `--language`, and `--status`
+- saves every successful response to `./out/google-patents-search-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
 
 ### [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md)
@@ -353,7 +370,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, eBay, Google Ads Transparency Center, Google Search, Google Forums, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, eBay, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -370,6 +387,7 @@ Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search eBay for vintage watch
 Search Google for coffee with location=Austin, Texas, United States gl=us hl=en
 Search Google Forums for vibe coding with gl=us and hl=en
+Search Google Patents for (Coffee) with status=GRANT and language=en
 Search Google News for artificial intelligence
 Search Google Ads Transparency Center for ads from frevana.com
 Expand Google Related Questions with next_page_token eyJvbnMiOiIxMDA0MSI...

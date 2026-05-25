@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-patents-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Google Patents for (Coffee) with status=GRANT and language=en, then save the raw JSON.",
+      "expected_output": "Uses google-patents-search, calls the repo script once with q, status, language, and an output path, then returns or summarizes the validated JSON without passing unsupported upstream fields.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Google Patents 搜索 AI coffee machine，第 0 页，每页 10 条。",
+      "expected_output": "Maps the request to q='AI coffee machine', page=0, num=10; uses the google-patents-search script and does not invent language or status.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search regular Google for coffee patent news.",
+      "expected_output": "Does not over-trigger google-patents-search for regular Google web search unless the user clearly asks for patent results; uses google-search or asks whether patent-only results are desired.",
+      "files": []
+    }
+  ]
+}
