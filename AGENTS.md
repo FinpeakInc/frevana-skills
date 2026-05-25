@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon data lookups through Frevana-backed HTTP APIs
-- Google Ads Transparency Center, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, and Google Trends lookups through Frevana-backed HTTP APIs
+- Google Ads Transparency Center, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -52,6 +52,9 @@ skills/
   google-immersive-product/
     SKILL.md
     scripts/search_google_immersive_product.sh
+  youtube-search/
+    SKILL.md
+    scripts/search_youtube.sh
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
@@ -375,6 +378,31 @@ The user can provide only `q`. Do not invent optional Google domain, country, la
 The Light endpoint does not support `sort_by`; use `google-shopping-search` when the user explicitly asks for Google Shopping price sorting.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
+### Use `youtube-search`
+
+Route here when the user wants:
+
+- YouTube search results by keyword
+- localized YouTube video results by country or language
+- filtered YouTube Search results using an `sp` parameter
+- paginated YouTube Search results using a follow-up `sp` token
+- to call `/service/serpapi/youtube-search`
+
+Required input:
+
+- `search_query`
+
+Optional input:
+
+- `sp`
+- `hl`
+- `gl`
+- output file path
+- one-time token override
+
+The user can provide only `search_query`. Do not invent optional `sp`, country, or language fields when the user did not provide them.
+The Frevana endpoint schema currently exposes only `search_query`, `sp`, `hl`, and `gl`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+
 ### Use `gpt-image-2`
 
 Route here when the user wants:
@@ -492,6 +520,7 @@ Use these rules to avoid bad assumptions:
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
+- If the user says "search YouTube for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Google Ads Transparency Center search without `advertiser_id`, `text`, or `next_page_token`, ask for one of those inputs.
 - If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
@@ -515,9 +544,9 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product skills
+### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
@@ -561,7 +590,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, and Google Immersive Product workflows
+### Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search workflows
 
 Needed:
 
@@ -640,6 +669,13 @@ Never echo bearer tokens back to the user.
 - Highlight product title, brand, rating, review count, price range, store offers, top insights, and follow-up `stores_next_page_token` when available.
 - Preserve the raw JSON when the user asks for it.
 
+### YouTube Search outputs
+
+- The endpoint script returns validated JSON to stdout.
+- Summarize the results by default.
+- Highlight video title, channel, published time, views, duration, URL, thumbnail, and follow-up pagination token when available.
+- Preserve the raw JSON when the user asks for it.
+
 ### Frevana image outputs
 
 - Preserve the raw JSON response when returning structured output.
@@ -669,6 +705,7 @@ bash skills/google-trends/scripts/search_google_trends.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
 bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
 bash skills/google-immersive-product/scripts/search_google_immersive_product.sh
+bash skills/youtube-search/scripts/search_youtube.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
@@ -810,6 +847,19 @@ bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
   --gl US \
   --hl en \
   --device mobile
+```
+
+### YouTube search
+
+```bash
+bash skills/youtube-search/scripts/search_youtube.sh \
+  --search-query "mrbeast"
+
+bash skills/youtube-search/scripts/search_youtube.sh \
+  --search-query "mrbeast" \
+  --sp "EgIQAQ%253D%253D" \
+  --hl en \
+  --gl us
 ```
 
 ### GPT-Image-2

@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -197,6 +197,22 @@ Features:
 - saves every successful response to `./out/google-shopping-light-search-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
 
+### [`youtube-search`](skills/youtube-search/SKILL.md)
+
+Search YouTube videos by keyword.
+
+Use when:
+
+- you want YouTube search results for a keyword
+- you want country- or language-specific YouTube results
+- you have an `sp` filter or pagination token
+
+Features:
+
+- `search_query` is the only required input
+- optional `--sp`, `--hl`, and `--gl`
+- save results with `--output`
+
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
 Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
@@ -283,7 +299,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, and Google Immersive Product skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -304,6 +320,7 @@ Search Google Trends for home treadmill with geo=US and date=today 12-m
 Search Google Shopping for wireless earbuds with gl=US and hl=en
 Fetch Google Immersive Product details with page_token eyJlaSI6Im5ZVmxaOX...
 Search Google Shopping Light for wireless earbuds with gl=US and hl=en
+Search YouTube for mrbeast with gl=us and hl=en
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
