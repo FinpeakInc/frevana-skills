@@ -1,0 +1,23 @@
+{
+  "skill_name": "reddit-url-mentions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我查一下 https://openai.com 在 Reddit 上有没有被提到",
+      "expected_output": "调用 Reddit URL mentions 脚本查询 https://openai.com，返回 JSON 结果并解释其中 Reddit 提及情况",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Check Reddit mentions for these URLs: https://github.com, https://stackoverflow.com. Tag it as 'dev-sites-2026' and save the raw JSON to a file",
+      "expected_output": "调用脚本同时查询两个 URL，带上 tag 参数 'dev-sites-2026'，返回 JSON 并保存到文件",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search for Reddit mentions of https://news.ycombinator.com and summarize what people are saying about it there",
+      "expected_output": "调用脚本查询 https://news.ycombinator.com 的 Reddit 提及情况，返回 JSON 并从中提取关键信息向用户总结",
+      "files": []
+    }
+  ]
+}

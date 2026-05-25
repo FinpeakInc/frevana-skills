@@ -9,3 +9,4 @@ build/
 .git
 out
 ssim.sh
+.claude

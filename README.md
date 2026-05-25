@@ -52,6 +52,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
+| Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs via DataForSEO | one or more target URLs |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted OpenAI image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana Pro | prompt or contents |
@@ -412,6 +413,24 @@ Features:
 - optional `--sp`, `--hl`, and `--gl`
 - save results with `--output`
 
+### [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md)
+
+Check Reddit mentions of one or more URLs via DataForSEO.
+
+Use when:
+
+- you want to find Reddit posts that mention a specific URL
+- you want to check multiple URLs for Reddit mentions (max 10)
+- you want to see what subreddits are discussing a particular page
+
+Features:
+
+- `--targets` is the only required input (comma-separated absolute URLs, max 10)
+- optional `--tag` for a user-defined task identifier (max 255 chars)
+- returns subreddit name, author, post title, permalink, and member count
+- URLs with no Reddit mentions return `reddit_reviews: null`
+- save results with `--output`
+
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
 Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
@@ -484,7 +503,7 @@ Features:
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
-- Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
+- Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
@@ -523,6 +542,7 @@ Search Google Shopping for wireless earbuds with gl=US and hl=en
 Fetch Google Immersive Product details with page_token eyJlaSI6Im5ZVmxaOX...
 Search Google Shopping Light for wireless earbuds with gl=US and hl=en
 Search YouTube for mrbeast with gl=us and hl=en
+Search Reddit for mentions of https://example.com
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
