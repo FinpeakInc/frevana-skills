@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Google for coffee with location Austin, Texas, United States, gl=us, hl=en, and save the raw JSON.",
+      "expected_output": "Uses google-search, calls the repo script once with q, location, gl, hl, and an output path, then returns or summarizes the validated JSON without passing unsupported upstream fields.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Google 搜索 electric bike reviews，移动端，第 3 页，每页 20 条，safe=off。",
+      "expected_output": "Maps the request to q='electric bike reviews', device=mobile, start=20, num=20, safe=off; uses the google-search script and does not invent location, gl, or hl.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Expand Google Related Questions for best coffee beans.",
+      "expected_output": "Does not use google-search as the final endpoint for Related Questions expansion; explains that google-related-questions needs next_page_token and suggests running google-search first to obtain related_questions[].next_page_token.",
+      "files": []
+    }
+  ]
+}

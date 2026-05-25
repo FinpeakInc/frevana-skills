@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Google Ads Transparency Center, Google Search, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -109,6 +109,24 @@ Features:
 - optional `--gl` and `--hl`
 - optional Google News token filters
 - save results with `--output`
+
+### [`google-search`](skills/google-search/SKILL.md)
+
+Search regular Google web results by keyword.
+
+Use when:
+
+- you want Google Search / SERP results for a query
+- you want organic results, related searches, related questions, answer boxes, or knowledge graph
+- you want country-, language-, location-, result-count-, pagination-, safe-search-, or device-specific Google Search results
+
+Features:
+
+- `q` is the only required input
+- optional `--location`, `--gl`, and `--hl`
+- optional `--num`, `--start`, `--safe`, and `--device`
+- saves every successful response to `./out/google-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
 
 ### [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md)
 
@@ -317,7 +335,7 @@ export FREVANA_TOKEN="your-bearer-token"
 Requirements:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, eBay, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Amazon, eBay, Google Ads Transparency Center, Google Search, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
 
 ## Usage
@@ -332,6 +350,7 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search eBay for vintage watch
+Search Google for coffee with location=Austin, Texas, United States gl=us hl=en
 Search Google News for artificial intelligence
 Search Google Ads Transparency Center for ads from frevana.com
 Expand Google Related Questions with next_page_token eyJvbnMiOiIxMDA0MSI...
