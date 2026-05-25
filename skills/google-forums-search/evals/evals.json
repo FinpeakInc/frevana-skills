@@ -1,0 +1,23 @@
+{
+  "skill_name": "google-forums-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Google Forums for vibe coding with gl=us and hl=en, then save the raw JSON.",
+      "expected_output": "Uses google-forums-search, calls the repo script once with q, gl, hl, and an output path, then returns or summarizes the validated JSON without passing unsupported upstream fields.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Google Forums 搜索 AI coding，移动端，第 2 页，从 20260101 到 20260525。",
+      "expected_output": "Maps the request to q='AI coding', device=mobile, start=10, start_date=20260101, end_date=20260525; uses the google-forums-search script and does not invent gl or hl.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Search regular Google for vibe coding discussions.",
+      "expected_output": "Does not over-trigger google-forums-search for regular Google web search unless the user clearly asks for forum-style results; uses google-search or asks whether forum-only results are desired.",
+      "files": []
+    }
+  ]
+}

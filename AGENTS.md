@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
-- Google Ads Transparency Center, Google Search, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
+- Google Ads Transparency Center, Google Search, Google Forums, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -49,6 +49,9 @@ skills/
   google-search/
     SKILL.md
     scripts/search_google.sh
+  google-forums-search/
+    SKILL.md
+    scripts/search_google_forums.sh
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
@@ -392,6 +395,35 @@ The user can provide only `q`. Do not invent optional location, country, languag
 The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Search fields unless the Frevana endpoint schema is expanded first.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
+### Use `google-forums-search`
+
+Route here when the user wants:
+
+- Google Forums results by keyword
+- forum-style Google results from Google's Forums tab
+- Reddit, Quora, Stack Overflow, community discussion, or other forum-style results surfaced through Google Forums
+- country-, language-, device-, pagination-, or date-bounded Google Forums results
+- to call `/service/serpapi/google-forums`
+
+Required input:
+
+- `q` search keyword
+
+Optional input:
+
+- `device`
+- `hl`
+- `gl`
+- `start`
+- `start_date`
+- `end_date`
+- output file path override
+- one-time token override
+
+The user can provide only `q`. Do not invent optional device, language, country, pagination, or date-bound fields when the user did not provide them.
+The Frevana endpoint schema currently exposes only `q`, `device`, `hl`, `gl`, `start`, `start_date`, and `end_date`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Forums fields such as `location`, `uule`, `period_unit`, `period_value`, `nfpr`, `filter`, or `tbs` unless the Frevana endpoint schema is expanded first.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
 ### Use `google-news-search`
 
 Route here when the user wants:
@@ -718,6 +750,7 @@ Use these rules to avoid bad assumptions:
 - If the user asks for Walmart product reviews without `product_id` or a clear Walmart `us_item_id`, suggest running `walmart-search` first to obtain one.
 - If the user asks for Walmart product sellers without `product_id` or a clear Walmart `us_item_id`, suggest running `walmart-search` first to obtain one.
 - If the user says "search Google for this" or wants regular Google Search results but does not provide a keyword, ask for the keyword.
+- If the user says "search Google Forums for this" or wants forum-style Google results but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search YouTube for this" but does not provide a keyword, ask for the keyword.
@@ -744,16 +777,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -790,7 +823,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search workflows
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search workflows
 
 Needed:
 
@@ -867,6 +900,13 @@ Never echo bearer tokens back to the user.
 - The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
 - Summarize the results by default.
 - Highlight organic result title, source/domain, link, snippet, answer box, knowledge graph, related questions, related searches, and follow-up pagination when available.
+- Preserve the raw JSON when the user asks for it.
+
+### Google Forums outputs
+
+- The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
+- Summarize the results by default.
+- Highlight forum result title, source/community, link, snippet, displayed metadata, sitelinks, answer/comment counts, dates, related searches, and follow-up pagination when available.
 - Preserve the raw JSON when the user asks for it.
 
 ### Google News outputs
@@ -946,6 +986,7 @@ bash skills/walmart-search/scripts/search_walmart.sh
 bash skills/walmart-product-reviews/scripts/search_walmart_product_reviews.sh
 bash skills/walmart-product-sellers/scripts/search_walmart_product_sellers.sh
 bash skills/google-search/scripts/search_google.sh
+bash skills/google-forums-search/scripts/search_google_forums.sh
 bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
@@ -1085,6 +1126,22 @@ bash skills/google-search/scripts/search_google.sh \
   --start 20 \
   --safe off \
   --device mobile
+```
+
+### Google Forums search
+
+```bash
+bash skills/google-forums-search/scripts/search_google_forums.sh \
+  --q "vibe coding"
+
+bash skills/google-forums-search/scripts/search_google_forums.sh \
+  --q "vibe coding" \
+  --gl us \
+  --hl en \
+  --device mobile \
+  --start 10 \
+  --start-date 20260101 \
+  --end-date 20260525
 ```
 
 ### Google News search
