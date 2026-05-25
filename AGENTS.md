@@ -43,6 +43,9 @@ skills/
   walmart-product-reviews/
     SKILL.md
     scripts/search_walmart_product_reviews.sh
+  walmart-product-sellers/
+    SKILL.md
+    scripts/search_walmart_product_sellers.sh
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
@@ -330,6 +333,31 @@ If the user gives only a product name, keyword, or Walmart URL without a clear i
 Do not invent optional page, sort, or rating fields when the user did not provide them.
 The Frevana endpoint schema currently exposes only `product_id`, `page`, `sort`, and `rating`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the reviews API again.
+
+### Use `walmart-product-sellers`
+
+Route here when the user wants:
+
+- Walmart sellers for a known product
+- Walmart seller offers or marketplace offers
+- store-specific Walmart seller availability
+- seller prices, delivery dates, return policies, or seller store-front links
+- to call `/service/serpapi/walmart-product-sellers`
+
+Required input:
+
+- `product_id` / Walmart `us_item_id`
+
+Optional input:
+
+- `store_id`
+- output file path override
+- one-time token override
+
+If the user gives only a product name, keyword, or Walmart URL without a clear item ID, suggest running `walmart-search` first and using the chosen result's `organic_results[].us_item_id`.
+Do not invent `store_id` when the user did not provide it.
+The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the sellers API again.
 
 ### Use `google-news-search`
 
@@ -655,6 +683,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "search Home Depot for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Walmart for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Walmart product reviews without `product_id` or a clear Walmart `us_item_id`, suggest running `walmart-search` first to obtain one.
+- If the user asks for Walmart product sellers without `product_id` or a clear Walmart `us_item_id`, suggest running `walmart-search` first to obtain one.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search YouTube for this" but does not provide a keyword, ask for the keyword.
@@ -683,14 +712,14 @@ For `frevana-auth`:
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `google-ads-transparency-center`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -792,6 +821,13 @@ Never echo bearer tokens back to the user.
 - Highlight product name, overall rating, total review count, rating counts, top positive and negative reviews, review title, text, rating, date, reviewer, customer type, feedback counts, and follow-up pagination when available.
 - Preserve the raw JSON when the user asks for it.
 
+### Walmart product sellers outputs
+
+- The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
+- Summarize the results by default.
+- Highlight product name, shipping destination, seller name, seller type, availability, offer type, price, delivery date, delivery price, return policy, seller store-front URL, and store-specific context when available.
+- Preserve the raw JSON when the user asks for it.
+
 ### Google News outputs
 
 - The endpoint script returns validated JSON to stdout.
@@ -867,6 +903,7 @@ bash skills/ebay-search/scripts/search_ebay.sh
 bash skills/home-depot-search/scripts/search_home_depot.sh
 bash skills/walmart-search/scripts/search_walmart.sh
 bash skills/walmart-product-reviews/scripts/search_walmart_product_reviews.sh
+bash skills/walmart-product-sellers/scripts/search_walmart_product_sellers.sh
 bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
@@ -978,6 +1015,17 @@ bash skills/walmart-product-reviews/scripts/search_walmart_product_reviews.sh \
   --rating 5 \
   --sort submission-desc \
   --page 2
+```
+
+### Walmart product sellers
+
+```bash
+bash skills/walmart-product-sellers/scripts/search_walmart_product_sellers.sh \
+  --product-id 10543894
+
+bash skills/walmart-product-sellers/scripts/search_walmart_product_sellers.sh \
+  --product-id 10543894 \
+  --store-id 5888
 ```
 
 ### Google News search
