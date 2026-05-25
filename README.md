@@ -1,10 +1,65 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
-## Available Skills
+## Quick Start
+
+Install the skill pack:
+
+```bash
+npx skills add FinpeakInc/frevana-skills
+```
+
+For local script usage from this repository, set a Frevana bearer token:
+
+```bash
+export FREVANA_TOKEN="your-bearer-token"
+```
+
+Then run a skill script directly:
+
+```bash
+bash skills/google-patents-search/scripts/search_google_patents.sh --q "ai"
+bash skills/walmart-search/scripts/search_walmart.sh --query "wireless earbuds"
+bash skills/home-depot-search/scripts/search_home_depot.sh --q "cordless drill"
+```
+
+Most API-backed scripts validate the response as JSON, save it under `./out/`, and print the same JSON to stdout. Do not commit generated files from `out/` unless you intentionally need a fixture or example output.
+
+## Skill Index
+
+| Family | Skill | Use for | Required input |
+| --- | --- | --- | --- |
+| Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
+| Amazon | [`amazon-search`](skills/amazon-search/SKILL.md) | Amazon product search and discovery | keyword |
+| Amazon | [`amazon-product`](skills/amazon-product/SKILL.md) | Amazon product detail lookup | ASIN |
+| Amazon | [`amazon-keyword-search-volume`](skills/amazon-keyword-search-volume/SKILL.md) | Amazon keyword demand and comparison | one or more keywords |
+| Marketplace | [`ebay-search`](skills/ebay-search/SKILL.md) | eBay listing search by keyword or category | query or category ID |
+| Marketplace | [`home-depot-search`](skills/home-depot-search/SKILL.md) | Home Depot product search | query |
+| Walmart | [`walmart-search`](skills/walmart-search/SKILL.md) | Walmart product search and filtering | query |
+| Walmart | [`walmart-product-reviews`](skills/walmart-product-reviews/SKILL.md) | Walmart reviews for a known product | product ID / `us_item_id` |
+| Walmart | [`walmart-product-sellers`](skills/walmart-product-sellers/SKILL.md) | Walmart seller offers for a known product | product ID / `us_item_id` |
+| Google SERP | [`google-search`](skills/google-search/SKILL.md) | Regular Google web search / SERP results | query |
+| Google SERP | [`google-forums-search`](skills/google-forums-search/SKILL.md) | Forum-style Google results | query |
+| Google SERP | [`google-related-questions`](skills/google-related-questions/SKILL.md) | Expand People Also Ask / related questions | `next_page_token` |
+| Google SERP | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
+| Google SERP | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
+| Google Commerce | [`google-shopping-search`](skills/google-shopping-search/SKILL.md) | Google Shopping product search | query |
+| Google Commerce | [`google-shopping-light-search`](skills/google-shopping-light-search/SKILL.md) | Lightweight Google Shopping product search | query |
+| Google Commerce | [`google-immersive-product`](skills/google-immersive-product/SKILL.md) | Google Shopping immersive product details | page token |
+| Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
+| Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
+| YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
+| Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted OpenAI image generation or editing | prompt or contents |
+| Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana 2 | prompt or contents |
+| Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana Pro | prompt or contents |
+| Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
+
+Use the table to pick a skill quickly. Use the detailed sections below for options, defaults, and save behavior.
+
+## Skill Details
 
 ### [`frevana-auth`](skills/frevana-auth/SKILL.md)
 
@@ -92,6 +147,79 @@ Features:
 - optional `--page` and `--results-per-page`
 - saves every successful response to `./out/ebay-search-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
+
+### [`home-depot-search`](skills/home-depot-search/SKILL.md)
+
+Search Home Depot products by keyword.
+
+Use when:
+
+- you want Home Depot product results for a keyword
+- you want US or Canada Home Depot results
+- you want store-specific, delivery ZIP, pagination, or page-size controls
+
+Features:
+
+- `q` is the only required input
+- optional `--country`, `--store`, and `--delivery-zip`
+- optional `--page` and `--page-size`
+- saves every successful response to `./out/home-depot-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`walmart-search`](skills/walmart-search/SKILL.md)
+
+Search Walmart products by keyword.
+
+Use when:
+
+- you want Walmart product results for a keyword
+- you want category-specific Walmart results
+- you want device, pagination, sorting, facet, or price-bound controls
+
+Features:
+
+- `query` is the only required input
+- optional `--device`, `--cat-id`, and `--page`
+- optional `--sort`, `--facet`, `--min-price`, and `--max-price`
+- supported sort values include `price_low`, `price_high`, `best_seller`, `best_match`, `rating_high`, and `new`
+- saves every successful response to `./out/walmart-search-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`walmart-product-reviews`](skills/walmart-product-reviews/SKILL.md)
+
+Fetch Walmart reviews for a known product.
+
+Use when:
+
+- you already have a Walmart `product_id` or `us_item_id`
+- you want review pagination, sorting, or star-rating filters
+- you want top positive or negative review data
+
+Features:
+
+- requires `--product-id`
+- accepts `--product_id`, `--us-item-id`, and `--us_item_id` aliases
+- optional `--page`, `--sort`, and `--rating`
+- saves every successful response to `./out/walmart-product-reviews-<timestamp>-<pid>.json` by default
+- use `walmart-search` first when you only have a product name or keyword
+
+### [`walmart-product-sellers`](skills/walmart-product-sellers/SKILL.md)
+
+Fetch Walmart seller offers for a known product.
+
+Use when:
+
+- you already have a Walmart `product_id` or `us_item_id`
+- you want marketplace seller offers, prices, availability, delivery dates, or return policies
+- you want store-specific seller availability from a provided `store_id`
+
+Features:
+
+- requires `--product-id`
+- accepts `--product_id`, `--us-item-id`, and `--us_item_id` aliases
+- optional `--store-id`
+- saves every successful response to `./out/walmart-product-sellers-<timestamp>-<pid>.json` by default
+- use `walmart-search` first when you only have a product name or keyword
 
 ### [`google-news-search`](skills/google-news-search/SKILL.md)
 
@@ -353,25 +481,20 @@ Features:
 - returns final HTML directly
 - supports saving the output with `--output`
 
-## Installation
+## Requirements
 
-Install the skill pack with:
+- Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
+- Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
+- Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
-```bash
-npx skills add FinpeakInc/frevana-skills
-```
+## Local Script Conventions
 
-If you also plan to run the helper scripts from a local checkout, set:
-
-```bash
-export FREVANA_TOKEN="your-bearer-token"
-```
-
-Requirements:
-
-- Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts
-- Amazon, eBay, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product, and YouTube Search skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
-- Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`
+- Prefer the script in each skill's `scripts/` directory over ad hoc API calls.
+- Let scripts read `FREVANA_TOKEN` from the environment unless you intentionally pass a one-time `--token`.
+- Treat bearer tokens as secrets. Do not paste them into logs, docs, or shared examples.
+- Most search scripts save successful responses to `./out/<skill>-<UTC timestamp>-<pid>.json` by default.
+- Use `--output` only when you need a deterministic result path.
+- For follow-up parsing or summaries, read the saved JSON file instead of calling the same endpoint again.
 
 ## Usage
 
@@ -385,6 +508,10 @@ Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States
 Search eBay for vintage watch
+Search Home Depot for cordless drill with country=us and delivery_zip=10001
+Search Walmart for wireless earbuds sorted by price_low with min_price=25 and max_price=100
+Get Walmart product reviews for product_id 5689919121
+Get Walmart product sellers for product_id 10543894 and store_id 5888
 Search Google for coffee with location=Austin, Texas, United States gl=us hl=en
 Search Google Forums for vibe coding with gl=us and hl=en
 Search Google Patents for (Coffee) with status=GRANT and language=en
@@ -406,11 +533,14 @@ Generate final HTML from template annual_summary_v2 and this content
 ## Skill Structure
 
 Each skill currently contains:
+
 - `SKILL.md` - Instructions for the agent
 - `scripts/` - Helper scripts for automation
-- `tests/` - Script-level verification when a skill includes runnable tests
 
-Some skills may also include `evals/` for reusable skill test prompts.
+Some skills may also include:
+
+- `tests/` - Script-level verification when runnable tests are available
+- `evals/` - Reusable skill evaluation prompts
 
 ## License
 
