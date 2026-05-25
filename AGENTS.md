@@ -9,7 +9,7 @@ Treat this document as the operational guide for the repo. Treat each skill's `S
 This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
-- Amazon, eBay, and Home Depot data lookups through Frevana-backed HTTP APIs
+- Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
 - Frevana AI Factory API workflows for image generation and HTML generation
 
@@ -37,6 +37,9 @@ skills/
   home-depot-search/
     SKILL.md
     scripts/search_home_depot.sh
+  walmart-search/
+    SKILL.md
+    scripts/search_walmart.sh
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
@@ -261,6 +264,40 @@ Optional input:
 If the user says "search Home Depot for this" without a keyword, ask for the keyword.
 Do not invent optional country, store, delivery ZIP, page, or page-size fields when the user did not provide them.
 The Frevana endpoint schema currently exposes only `q`, `country`, `store`, `delivery_zip`, `page`, and `page_size`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `hd_sort`, `hd_filter_tokens`, `store_id`, `nao`, `ps`, `sort`, `filter`, `lowerbound`, `upperbound`, `minmax`, or `pagesize`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
+### Use `walmart-search`
+
+Route here when the user wants:
+
+- Walmart search results by keyword
+- product discovery through Walmart
+- Walmart category-specific listings
+- paginated Walmart results
+- device-specific Walmart results
+- Walmart sorting, including price low to high, price high to low, best seller, best match, rating high, or new
+- Walmart facet or price-bound filtering
+- to call `/service/serpapi/walmart-search`
+
+Required input:
+
+- `query` search keyword
+
+Optional input:
+
+- `device`
+- `cat_id`
+- page number
+- `sort`
+- `facet`
+- `min_price`
+- `max_price`
+- output file path override
+- one-time token override
+
+If the user says "search Walmart for this" without a keyword, ask for the keyword.
+Do not invent optional device, category, page, sort, facet, or price-bound fields when the user did not provide them.
+The Frevana endpoint schema currently exposes only `query`, `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, and `max_price`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `walmart_domain`, `soft_sort`, `store_id`, `spelling`, `nd_en`, or `include_filters`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-news-search`
@@ -585,6 +622,7 @@ Use these rules to avoid bad assumptions:
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search eBay for this" but does not provide a keyword or category ID, ask for the keyword or category ID.
 - If the user says "search Home Depot for this" but does not provide a keyword, ask for the keyword.
+- If the user says "search Walmart for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search YouTube for this" but does not provide a keyword, ask for the keyword.
@@ -611,16 +649,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, eBay, Home Depot, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `google-ads-transparency-center`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `ebay-search`, `home-depot-search`, `google-ads-transparency-center`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `ebay-search`, `home-depot-search`, `walmart-search`, `google-ads-transparency-center`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### Frevana image skills
@@ -657,7 +695,7 @@ Needed:
 
 Attempt `frevana login` first. If the command is unavailable, attempt `npm i -g @frevana/frevana`. If that package is unavailable in the current registry, stop and ask for the correct source instead of guessing.
 
-### Amazon, eBay, Home Depot, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search workflows
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search workflows
 
 Needed:
 
@@ -706,6 +744,13 @@ Never echo bearer tokens back to the user.
 - The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
 - Summarize the results by default.
 - Highlight product title, product ID, brand, price, rating, reviews, delivery, pickup, link, and follow-up pagination when available.
+- Preserve the raw JSON when the user asks for it.
+
+### Walmart outputs
+
+- The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
+- Summarize the results by default.
+- Highlight product title, item ID, product ID, price, currency, rating, reviews, seller, shipping signals, link, thumbnail, and follow-up pagination when available.
 - Preserve the raw JSON when the user asks for it.
 
 ### Google News outputs
@@ -781,6 +826,7 @@ bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
 bash skills/ebay-search/scripts/search_ebay.sh
 bash skills/home-depot-search/scripts/search_home_depot.sh
+bash skills/walmart-search/scripts/search_walmart.sh
 bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
@@ -864,6 +910,21 @@ bash skills/home-depot-search/scripts/search_home_depot.sh \
   --delivery-zip 10001 \
   --page 2 \
   --page-size 40
+```
+
+### Walmart search
+
+```bash
+bash skills/walmart-search/scripts/search_walmart.sh \
+  --query "coffee maker"
+
+bash skills/walmart-search/scripts/search_walmart.sh \
+  --query "wireless earbuds" \
+  --device mobile \
+  --sort price_low \
+  --min-price 25 \
+  --max-price 100 \
+  --page 2
 ```
 
 ### Google News search
