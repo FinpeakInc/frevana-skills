@@ -1,6 +1,6 @@
 ---
 name: google-related-questions
-description: Use when the user wants Google Related Questions, People Also Ask follow-up questions, or more related question results from a Google Search related_questions next_page_token through Frevana. Use this whenever the task mentions Google Related Questions, PAA expansion, People Also Ask expansion, next_page_token from related_questions, or the /service/serpapi/google-related-questions endpoint.
+description: Use when the user wants Google Related Questions, People Also Ask follow-up questions, or more related question results from a Google Search related_questions next_page_token through Frevana. Use this whenever the task mentions Google Related Questions, PAA expansion, People Also Ask expansion, next_page_token from related_questions, or the Frevana endpoint.
 ---
 
 # Google Related Questions
@@ -19,7 +19,7 @@ Output:
 
 - validated response JSON with Google Related Questions results
 
-This endpoint follows SerpAPI's Google Related Questions API. It is not a keyword search endpoint: the required token must come from a `related_questions` item in a regular Google Search API response. If the user only provides a keyword, search phrase, or question, recommend running the regular Google Search skill first to fetch `related_questions[].next_page_token`, then continue this skill with that token.
+This endpoint follows the Frevana Google Related Questions API. It is not a keyword search endpoint: the required token must come from a `related_questions` item in a regular Google Search API response. If the user only provides a keyword, search phrase, or question, recommend running the regular Google Search skill first to fetch `related_questions[].next_page_token`, then continue this skill with that token.
 
 ## What This Skill Needs
 
@@ -79,17 +79,17 @@ The script sends this payload shape:
 }
 ```
 
-Only `next_page_token` is supported by the Frevana endpoint. Do not add SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`; the Frevana service owns the upstream SerpAPI call.
+Only `next_page_token` is supported by the Frevana endpoint. Do not add unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
 - `related_questions`
 
-Each `related_questions` item can include fields such as `question`, `type`, `snippet`, `title`, `link`, `displayed_link`, `source_logo`, `next_page_token`, and `serpapi_link`.
+Each `related_questions` item can include fields such as `question`, `type`, `snippet`, `title`, `link`, `displayed_link`, `source_logo`, `next_page_token`.
 
 ## Output
 
@@ -113,7 +113,7 @@ Each `related_questions` item can include fields such as `question`, `type`, `sn
 
 - "用这个 next_page_token 查询 Google Related Questions，并总结问题列表"
 - "展开这个 People Also Ask 的 next_page_token，保存原始 JSON"
-- "查一下 /service/serpapi/google-related-questions，token 是 eyJvbnMiOiIxMDA0MSI..."
+- "查一下 Frevana google-related-questions endpoint，token 是 eyJvbnMiOiIxMDA0MSI..."
 
 ### English
 

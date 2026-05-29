@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_NEWS_SEARCH_PATH="/service/serpapi/google-news"
+GOOGLE_NEWS_SEARCH_PATH="/service/google-news"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

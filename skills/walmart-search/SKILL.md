@@ -1,6 +1,6 @@
 ---
 name: walmart-search
-description: Use when the user wants Walmart product search results through Frevana/SerpAPI, including product titles, prices, ratings, sellers, thumbnails, Walmart category filtering, device-specific results, pagination, sorting, facets, price bounds, or calls to /service/serpapi/walmart-search.
+description: Use when the user wants Walmart product search results through Frevana, including product titles, prices, ratings, sellers, thumbnails, Walmart category filtering, device-specific results, pagination, sorting, facets, price bounds, or Frevana API calls.
 ---
 
 # Walmart Search
@@ -123,11 +123,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `query` is required. Do not invent `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, or `max_price` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `query`, `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, and `max_price`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `walmart_domain`, `soft_sort`, `store_id`, `spelling`, `nd_en`, or `include_filters`.
+The Frevana endpoint schema currently exposes only `query`, `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, and `max_price`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `walmart_domain`, `soft_sort`, `store_id`, `spelling`, `nd_en`, or `include_filters`.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common result fields include `organic_results`, `filters`, `related_queries`, `spell_check`, `search_information`, and `pagination`, depending on the Walmart response.
+The API returns Frevana JSON. Common result fields include `organic_results`, `filters`, `related_queries`, `spell_check`, `search_information`, and `pagination`, depending on the Walmart response.
 
 ## Output
 

@@ -1,6 +1,6 @@
 ---
 name: google-search
-description: Use when the user wants Google Search results through Frevana/SerpAPI, including organic results, related searches, related questions, knowledge graph, answer boxes, localized country/language results, pagination offsets, safe search, result count, or device-specific Google results.
+description: Use when the user wants Google Search results through Frevana, including organic results, related searches, related questions, knowledge graph, answer boxes, localized country/language results, pagination offsets, safe search, result count, or device-specific Google results.
 ---
 
 # Google Search
@@ -126,11 +126,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `q` is required. Do not invent `location`, `gl`, `hl`, `num`, `start`, `safe`, or `device` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Search fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Search fields unless the Frevana endpoint schema is expanded first.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`

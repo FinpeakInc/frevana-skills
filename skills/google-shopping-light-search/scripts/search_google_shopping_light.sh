@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_SHOPPING_LIGHT_SEARCH_PATH="/service/serpapi/google-shopping-light-search"
+GOOGLE_SHOPPING_LIGHT_SEARCH_PATH="/service/google-shopping-light-search"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

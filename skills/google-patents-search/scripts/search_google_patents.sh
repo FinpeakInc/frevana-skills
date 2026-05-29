@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_PATENTS_PATH="/service/serpapi/google-patents"
+GOOGLE_PATENTS_PATH="/service/google-patents"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

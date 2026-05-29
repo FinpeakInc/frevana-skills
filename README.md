@@ -52,10 +52,10 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
-| Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs via DataForSEO | one or more target URLs |
-| Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted OpenAI image generation or editing | prompt or contents |
-| Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana 2 | prompt or contents |
-| Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted Gemini image generation with Nano Banana Pro | prompt or contents |
+| Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
+| Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
+| Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
+| Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
 Use the table to pick a skill quickly. Use the detailed sections below for options, defaults, and save behavior.
@@ -415,7 +415,7 @@ Features:
 
 ### [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md)
 
-Check Reddit mentions of one or more URLs via DataForSEO.
+Check Reddit mentions of one or more URLs through Frevana.
 
 Use when:
 
@@ -433,7 +433,7 @@ Features:
 
 ### [`gpt-image-2`](skills/gpt-image-2/SKILL.md)
 
-Generate or edit Frevana-hosted images with OpenAI's `gpt-image-2` model.
+Generate or edit Frevana-hosted images with `gpt-image-2`.
 
 Use when:
 
@@ -453,7 +453,7 @@ Features:
 
 ### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
 
-Generate Frevana-hosted images with Gemini's `gemini-3.1-flash-image-preview` model.
+Generate Frevana-hosted images with Nano Banana 2.
 
 Use when:
 
@@ -469,7 +469,7 @@ Features:
 
 ### [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md)
 
-Generate Frevana-hosted images with Gemini's `gemini-3-pro-image-preview` model.
+Generate Frevana-hosted images with Nano Banana Pro.
 
 Use when:
 

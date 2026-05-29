@@ -1,6 +1,6 @@
 ---
 name: google-immersive-product
-description: Use when the user wants Google Immersive Product details through Frevana/SerpAPI, including product detail popups, store offers, store pagination with stores_next_page_token, product ratings, top insights, reviews, thumbnails, or results from a Google Shopping immersive_product_page_token. Use this whenever the task mentions Google Immersive Product, immersive product page token, immersive_product_page_token, stores_next_page_token, or the /service/serpapi/google-immersive-product endpoint.
+description: Use when the user wants Google Immersive Product details through Frevana, including product detail popups, store offers, store pagination with stores_next_page_token, product ratings, top insights, reviews, thumbnails, or results from a Google Shopping immersive_product_page_token. Use this whenever the task mentions Google Immersive Product, immersive product page token, immersive_product_page_token, stores_next_page_token, or the Frevana endpoint.
 ---
 
 # Google Immersive Product
@@ -97,11 +97,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Only `page_token` is required. Do not invent `page_token` or `next_page_token` values. Do not add SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`; the Frevana service owns the upstream SerpAPI call.
+Only `page_token` is required. Do not invent `page_token` or `next_page_token` values. Do not add unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
@@ -140,5 +140,5 @@ The `product_results` object can include fields such as `title`, `brand`, `ratin
 
 - "Use this immersive_product_page_token to fetch Google Immersive Product details."
 - "Get the next store page for this Google Immersive Product result."
-- "Query /service/serpapi/google-immersive-product with this page_token and save raw JSON."
+- "Query the Frevana google-immersive-product endpoint with this page_token and save raw JSON."
 - "Search Google Immersive Product for 'LG TV'." -> Explain that a `page_token` is required and suggest running Google Shopping search first to obtain `immersive_product_page_token`.

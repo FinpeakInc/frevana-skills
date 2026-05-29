@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-WALMART_PRODUCT_REVIEWS_PATH="/service/serpapi/walmart-product-reviews"
+WALMART_PRODUCT_REVIEWS_PATH="/service/walmart-product-reviews"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

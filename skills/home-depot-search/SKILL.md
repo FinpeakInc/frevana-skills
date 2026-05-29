@@ -1,6 +1,6 @@
 ---
 name: home-depot-search
-description: Use when the user wants Home Depot product search results through Frevana/SerpAPI, including product titles, brands, prices, ratings, reviews, delivery or pickup availability, country-specific US/Canada searches, Home Depot store-specific searches, delivery ZIP filtering, pagination, page size control, or calls to /service/serpapi/home-depot-search.
+description: Use when the user wants Home Depot product search results through Frevana, including product titles, brands, prices, ratings, reviews, delivery or pickup availability, country-specific US/Canada searches, Home Depot store-specific searches, delivery ZIP filtering, pagination, page size control, or Frevana API calls.
 ---
 
 # Home Depot Search
@@ -116,11 +116,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `q` is required. Do not invent `country`, `store`, `delivery_zip`, `page`, or `page_size` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `q`, `country`, `store`, `delivery_zip`, `page`, and `page_size`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `hd_sort`, `hd_filter_tokens`, `store_id`, `nao`, `ps`, `sort`, `filter`, `lowerbound`, `upperbound`, `minmax`, or `pagesize`.
+The Frevana endpoint schema currently exposes only `q`, `country`, `store`, `delivery_zip`, `page`, and `page_size`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `hd_sort`, `hd_filter_tokens`, `store_id`, `nao`, `ps`, `sort`, `filter`, `lowerbound`, `upperbound`, `minmax`, or `pagesize`.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common result fields include `products`, `filters`, `taxonomy`, `search_information`, and `pagination`, depending on the Home Depot response.
+The API returns Frevana JSON. Common result fields include `products`, `filters`, `taxonomy`, `search_information`, and `pagination`, depending on the Home Depot response.
 
 ## Output
 

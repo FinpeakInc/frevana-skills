@@ -1,6 +1,6 @@
 ---
 name: walmart-product-sellers
-description: Use when the user wants Walmart seller offers through Frevana/SerpAPI, including sellers for a known Walmart product_id or us_item_id, store-specific seller availability, offer prices, delivery dates, return policies, or calls to /service/serpapi/walmart-product-sellers.
+description: Use when the user wants Walmart seller offers through Frevana, including sellers for a known Walmart product_id or us_item_id, store-specific seller availability, offer prices, delivery dates, return policies, or Frevana API calls.
 ---
 
 # Walmart Product Sellers
@@ -97,11 +97,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `product_id` is required. Do not invent `product_id` or `store_id` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`. The Frevana service owns the upstream SerpAPI call.
+The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`..
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
@@ -139,5 +139,5 @@ The `sellers_results` object commonly includes `product`, `shipping_destination`
 
 - "Get Walmart product sellers for product_id 10543894."
 - "Fetch Walmart seller offers for this us_item_id and store_id 5888."
-- "Call /service/serpapi/walmart-product-sellers and save the raw JSON."
+- "Call the Frevana walmart-product-sellers endpoint and save the raw JSON."
 - "Find sellers for 'coffee maker'." -> Explain that a Walmart `product_id` / `us_item_id` is required, and suggest running Walmart search first.

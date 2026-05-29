@@ -1,6 +1,6 @@
 ---
 name: google-trends
-description: Use when the user wants Google Trends trend data through Frevana/SerpAPI, including keyword interest over time, regional trend data, related queries, category-specific trends, country-specific trends, Google property filtering, language selection, date ranges, or timezone-aware trend results. Use this whenever the user asks to query Google Trends, compare trend interest, check search trend demand, or requests the /service/serpapi/google-trends endpoint.
+description: Use when the user wants Google Trends trend data through Frevana, including keyword interest over time, regional trend data, related queries, category-specific trends, country-specific trends, Google property filtering, language selection, date ranges, or timezone-aware trend results. Use this whenever the user asks to query Google Trends, compare trend interest, check search trend demand, or requests the Frevana endpoint.
 ---
 
 # Google Trends
@@ -123,7 +123,7 @@ Only `q` is required. Do not invent `geo`, `cat`, `date`, `gprop`, `hl`, or `tz`
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. This skill validates the response as JSON and returns it unchanged.
+The API returns Frevana JSON. This skill validates the response as JSON and returns it unchanged.
 
 ## Output
 

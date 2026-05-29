@@ -5,7 +5,7 @@ description: Use when the user provides URLs and wants to check for Reddit menti
 
 # Reddit URL Mentions
 
-Check which Reddit posts mention specific URLs via DataForSEO.
+Check which Reddit posts mention specific URLs through Frevana.
 
 ## Purpose
 
@@ -14,7 +14,7 @@ This skill is for **looking up Reddit mentions of one or more URLs**.
 Inputs:
 
 - `targets` (required) — array of absolute URLs (max 10)
-- `tag` (optional) — user-defined task identifier returned by DataForSEO (max 255 chars)
+- `tag` (optional) — user-defined task identifier returned by Frevana (max 255 chars)
 
 Output:
 

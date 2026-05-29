@@ -1,6 +1,6 @@
 ---
 name: ebay-search
-description: Use when the user wants eBay product listing search results through Frevana/SerpAPI, including keyword search, category-specific search, eBay domain selection, pagination, or result-count control.
+description: Use when the user wants eBay product listing search results through Frevana, including keyword search, category-specific search, eBay domain selection, pagination, or result-count control.
 ---
 
 # eBay Search
@@ -108,11 +108,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 At least one of `query` or `category_id` is required. Do not invent `category_id`, `ebay_domain`, `page`, or `results_per_page` values when the user did not provide them.
 
-The Frevana endpoint is already scoped to SerpAPI eBay Search, so do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint is already scoped to eBay Search, so do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common result fields include `organic_results`, `related_searches`, `categories`, `pagination`, and `serpapi_pagination`, depending on the eBay response.
+The API returns Frevana JSON. Common result fields include `organic_results`, `related_searches`, `categories`, and `pagination`, depending on the eBay response.
 
 ## Output
 

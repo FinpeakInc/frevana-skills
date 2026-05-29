@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-AMAZON_SEARCH_PATH="/service/serpapi/amazon-search"
+AMAZON_SEARCH_PATH="/service/amazon-search"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 
@@ -16,7 +16,7 @@ Options:
   --query          Search keyword to send
   --delivery-zip   Optional delivery ZIP code
   --page           Optional result page (default: 1)
-  --output         Optional file path for saving returned JSON
+  --output         Optional file path for saving returned JSON. Defaults to ./out/amazon-search-<timestamp>-<pid>.json
   --token          Optional Bearer token override for this run
   -h, --help       Show this help message
 EOF
@@ -103,6 +103,10 @@ if [[ -z "$TOKEN" ]]; then
   exit 1
 fi
 
+if [[ -z "$OUTPUT_PATH" ]]; then
+  OUTPUT_PATH="out/amazon-search-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
+fi
+
 PAYLOAD_FILE="$(mktemp)"
 RESPONSE_FILE="$(mktemp)"
 RESULT_FILE="$(mktemp)"
@@ -174,9 +178,8 @@ except json.JSONDecodeError as exc:
 result_path.write_text(raw, encoding="utf-8")
 PY
 
-if [[ -n "$OUTPUT_PATH" ]]; then
-  mkdir -p "$(dirname "$OUTPUT_PATH")"
-  cp "$RESULT_FILE" "$OUTPUT_PATH"
-fi
+mkdir -p "$(dirname "$OUTPUT_PATH")"
+cp "$RESULT_FILE" "$OUTPUT_PATH"
+echo "Saved Amazon Search JSON to $OUTPUT_PATH" >&2
 
 cat "$RESULT_FILE"

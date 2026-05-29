@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-YOUTUBE_SEARCH_PATH="/service/serpapi/youtube-search"
+YOUTUBE_SEARCH_PATH="/service/youtube-search"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

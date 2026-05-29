@@ -77,7 +77,7 @@ bash <skill-path>/scripts/search_youtube.sh \
   --gl us
 ```
 
-Use `--sp` when the user provides a YouTube/SerpApi filter token or wants to continue a paginated result using a follow-up token from the response.
+Use `--sp` when the user provides a YouTube filter token or wants to continue a paginated result using a follow-up token from the response.
 
 ### Save response JSON to a file
 
@@ -112,7 +112,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `search_query` is required. Do not invent `sp`, `hl`, or `gl` values when the user did not provide them.
 
-The Frevana endpoint is already scoped to SerpApi YouTube Search, so do not pass upstream SerpApi-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint is already scoped to YouTube Search, so do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 
 ## Response Shape
 

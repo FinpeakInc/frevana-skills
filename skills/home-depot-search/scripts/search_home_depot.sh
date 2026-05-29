@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-HOME_DEPOT_SEARCH_PATH="/service/serpapi/home-depot-search"
+HOME_DEPOT_SEARCH_PATH="/service/home-depot-search"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

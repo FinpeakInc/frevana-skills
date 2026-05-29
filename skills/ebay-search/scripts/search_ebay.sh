@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-EBAY_SEARCH_PATH="/service/serpapi/ebay-search"
+EBAY_SEARCH_PATH="/service/ebay-search"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

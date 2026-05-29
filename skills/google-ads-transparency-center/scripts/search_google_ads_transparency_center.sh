@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_ADS_TRANSPARENCY_CENTER_PATH="/service/serpapi/google-ads-transparency-center"
+GOOGLE_ADS_TRANSPARENCY_CENTER_PATH="/service/google-ads-transparency-center"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

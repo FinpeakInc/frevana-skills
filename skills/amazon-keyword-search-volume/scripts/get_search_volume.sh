@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-AMAZON_SEARCH_VOLUME_PATH="/dataforseo/amazon-keywords-search-volume"
+AMAZON_SEARCH_VOLUME_PATH="/service/amazon-keywords-search-volume"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

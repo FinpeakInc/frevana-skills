@@ -1,6 +1,6 @@
 ---
 name: google-forums-search
-description: Use when the user wants Google Forums search results through Frevana/SerpAPI, including forum-style discussions from Google's Forums tab, Reddit/Quora/community results, localized country/language results, device-specific forum results, pagination offsets, or date-bounded forum searches.
+description: Use when the user wants Google Forums search results through Frevana, including forum-style discussions from Google's Forums tab, Reddit/Quora/community results, localized country/language results, device-specific forum results, pagination offsets, or date-bounded forum searches.
 ---
 
 # Google Forums Search
@@ -120,11 +120,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `q` is required. Do not invent `device`, `hl`, `gl`, `start`, `start_date`, or `end_date` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `q`, `device`, `hl`, `gl`, `start`, `start_date`, and `end_date`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Forums fields such as `location`, `uule`, `period_unit`, `period_value`, `nfpr`, `filter`, or `tbs` unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `device`, `hl`, `gl`, `start`, `start_date`, and `end_date`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Forums fields such as `location`, `uule`, `period_unit`, `period_value`, `nfpr`, `filter`, or `tbs` unless the Frevana endpoint schema is expanded first.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
@@ -132,7 +132,7 @@ The API returns SerpAPI-origin JSON. Common fields include:
 - `organic_results`
 - `related_searches`
 - `pagination`
-- `serpapi_pagination`
+- `pagination`
 
 ## Output
 
@@ -149,7 +149,7 @@ The API returns SerpAPI-origin JSON. Common fields include:
 - Use `--hl` when the user requests a language code
 - Use `--gl` when the user requests a country code
 - Use `--start` when the user requests pagination by result offset
-- Use `--start-date` and `--end-date` only when the user asks for a specific date-bounded search; SerpAPI expects `YYYYMMDD` date strings
+- Use `--start-date` and `--end-date` only when the user asks for a specific date-bounded search; Frevana expects `YYYYMMDD` date strings
 - If `curl` is missing, stop and tell the user to install `curl`
 - If `python3` is missing, stop and tell the user to install `python3`
 - Do not echo the Bearer token back to the user

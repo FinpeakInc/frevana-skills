@@ -1,6 +1,6 @@
 ---
 name: google-ads-transparency-center
-description: Use when the user wants Google Ads Transparency Center ad creative search results through Frevana/SerpAPI, including advertiser ad lookup by advertiser_id, domain or text ad searches, platform filters for Google Search/Shopping/YouTube/Maps/Play, region-specific ad transparency searches, pagination with next_page_token, or calls to /service/serpapi/google-ads-transparency-center.
+description: Use when the user wants Google Ads Transparency Center ad creative search results through Frevana, including advertiser ad lookup by advertiser_id, domain or text ad searches, platform filters for Google Search/Shopping/YouTube/Maps/Play, region-specific ad transparency searches, pagination with next_page_token, or Frevana API calls.
 ---
 
 # Google Ads Transparency Center
@@ -122,15 +122,15 @@ Provide at least one of `advertiser_id`, `text`, or `next_page_token`. Do not in
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
 - `search_information.total_results`
 - `ad_creatives`
-- `serpapi_pagination.next_page_token`
+- `pagination.next_page_token`
 
-Each `ad_creatives[]` item may include `advertiser_id`, `advertiser`, `ad_creative_id`, `format`, `target_domain`, `image`, `link`, `width`, `height`, `first_shown`, `last_shown`, `details_link`, and `serpapi_details_link`.
+Each `ad_creatives[]` item may include `advertiser_id`, `advertiser`, `ad_creative_id`, `format`, `target_domain`, `image`, `link`, `width`, `height`, `first_shown`, `last_shown`, `details_link`.
 
 ## Output
 
@@ -144,9 +144,9 @@ Each `ad_creatives[]` item may include `advertiser_id`, `advertiser`, `ad_creati
 - Require at least one of `--advertiser-id`, `--text`, or `--next-page-token`.
 - Use `--text` for domains or free-text Google Ads Transparency Center searches.
 - Use `--advertiser-id` only when the user provides a Google advertiser ID such as `AR17828074650563772417`; do not guess it from a brand name.
-- Use `--next-page-token` only for pagination from a prior response's `serpapi_pagination.next_page_token`.
+- Use `--next-page-token` only for pagination from a prior response's `pagination.next_page_token`.
 - Valid `--platform` values are `PLAY`, `MAPS`, `SEARCH`, `SHOPPING`, and `YOUTUBE`.
-- The Frevana endpoint schema currently exposes `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`. Do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
+- The Frevana endpoint schema currently exposes `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`. Do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
 - If `curl` is missing, stop and tell the user to install `curl`.
 - If `python3` is missing, stop and tell the user to install `python3`.
 - Do not echo the Bearer token back to the user.

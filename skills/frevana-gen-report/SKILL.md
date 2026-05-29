@@ -9,7 +9,7 @@ Generate final HTML by calling Frevana's `POST https://ai-factory.frevana.com/re
 
 ## Purpose
 
-This skill is for **backend HTML generation**.
+This skill is for **Frevana HTML generation**.
 
 Inputs:
 - `content`
@@ -137,4 +137,4 @@ This skill extracts `content` and returns only that HTML.
 - "Use Frevana template `tpl_123` to generate an HTML report from this market analysis content"
 - "Use `medium-article-template-v2` to turn this article into final HTML and return the raw result without rewriting it"
 - "Call `/report/generate` with template_id `annual_summary_v2` and save the result as an HTML file"
-- "Given a template ID and article content, call the Frevana backend API and return the final HTML"
+- "Given a template ID and article content, call the Frevana API and return the final HTML"

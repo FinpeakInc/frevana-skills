@@ -1,6 +1,6 @@
 ---
 name: google-shopping-light-search
-description: Use when the user wants Google Shopping Light product search results through Frevana/SerpAPI, including lightweight Google Shopping product lists, titles, prices, ratings, source merchants, localized country/language results, pagination offsets, or device-specific results. Use this instead of google-shopping-search when the user says "Google Shopping Light", "shopping light", or asks for the lightweight Google Shopping endpoint.
+description: Use when the user wants Google Shopping Light product search results through Frevana, including lightweight Google Shopping product lists, titles, prices, ratings, source merchants, localized country/language results, pagination offsets, or device-specific results. Use this instead of google-shopping-search when the user says "Google Shopping Light", "shopping light", or asks for the lightweight Google Shopping endpoint.
 ---
 
 # Google Shopping Light Search
@@ -120,7 +120,7 @@ Only `q` is required. Do not invent `google_domain`, `gl`, `hl`, `start`, or `de
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. This skill validates the response as JSON and returns it unchanged.
+The API returns Frevana JSON. This skill validates the response as JSON and returns it unchanged.
 
 ## Output
 

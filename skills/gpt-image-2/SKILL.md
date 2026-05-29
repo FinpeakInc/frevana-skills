@@ -1,14 +1,11 @@
 ---
 name: gpt-image-2
-description: Use when the user wants Frevana-hosted images generated or edited with OpenAI's gpt-image-2 model, including runs that use local or remote reference images or image directories.
+description: Use when the user wants Frevana-hosted images generated or edited with gpt-image-2, including runs that use local or remote reference images or image directories.
 ---
 
 # GPT-Image-2
 
-Generate or edit images through Frevana's AI Factory OpenAI backend with a fixed contract:
-
-- provider: `openai`
-- model: `gpt-image-2`
+Generate or edit images through Frevana's AI Factory image API.
 
 This skill returns the validated API response JSON unchanged. Treat `data[0].image_url` as the primary image URL.
 
@@ -16,7 +13,7 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 
 - user-provided `prompt` or `contents`
 - optional reference image inputs: `--image`, `--image-url`, `--image-dir`, `--mask`
-- optional OpenAI image options: `n`, `size`, `quality`, `background`, `output_format`, `output_compression`
+- optional Frevana image options: `n`, `size`, `quality`, `background`, `output_format`, `output_compression`
 - `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
@@ -29,7 +26,7 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 3. If the user references one or more remote image URLs, pass each one with `--image-url`; the script downloads supported images first, then reuses the existing upload flow.
 4. If the user references a local directory of images, pass it with `--image-dir`; the script recursively collects supported images from that directory.
 5. If the user provides a local mask image, pass it with `--mask` and keep it PNG-only.
-6. Do not ask for or pass through `provider` or `model`; this skill fixes them.
+6. Do not ask for or pass through image routing overrides; the Frevana script owns them.
 7. Prefer the script over ad hoc `curl` commands.
 8. Let the script read `FREVANA_TOKEN` first.
 9. In non-interactive runs, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token`.
@@ -91,7 +88,7 @@ bash <skill-path>/scripts/generate_image.sh \
 
 ## Notes
 
-- Do not pass `--provider` or `--model`; the wrapper rejects overrides.
+- Do not pass image routing overrides; the wrapper rejects them.
 - If the user says "use `/path/to/reference.png`", map that to `--image /path/to/reference.png`.
 - If the user says "use `https://example.com/reference.png`", map that to `--image-url https://example.com/reference.png`.
 - If the user says "use the images under `/path/to/references`", map that to `--image-dir /path/to/references`.

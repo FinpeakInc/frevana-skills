@@ -16,6 +16,7 @@ Inputs:
 - `query`
 - optional `delivery_zip`
 - optional `page`
+- optional `output`; defaults to `./out/amazon-search-<timestamp>-<pid>.json`
 
 Output:
 
@@ -42,8 +43,8 @@ Use this flow so the request stays simple and reliable:
 3. Let the script read `FREVANA_TOKEN` first.
 4. In interactive shell usage, if `FREVANA_TOKEN` is missing, the script may prompt for it.
 5. In non-interactive or agent workflows, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token` explicitly.
-6. Return the validated response JSON, or summarize the most relevant listings if the user does not need the full payload.
-7. When useful, also save the JSON to a file.
+6. Save the validated response JSON to `./out/amazon-search-<timestamp>-<pid>.json` by default, or to the user-provided `--output` path.
+7. Return the validated response JSON, or summarize the most relevant listings if the user does not need the full payload.
 
 ## Commands
 
@@ -102,7 +103,8 @@ The API returns JSON. This skill validates the response as JSON and returns it u
 ## Output
 
 - Success: the script validates that the response body is JSON and prints it to stdout
-- With `--output`: the same JSON is also written to the specified file path
+- The same JSON is saved to `./out/amazon-search-<timestamp>-<pid>.json` by default
+- With `--output`: the same JSON is written to the specified file path instead
 - Failure: the script prints the response body or parsing error and exits non-zero
 
 ## Notes

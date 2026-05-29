@@ -1,6 +1,6 @@
 ---
 name: google-patents-search
-description: Use when the user wants Google Patents search results through Frevana/SerpAPI, including patent/application searches by query, pagination, result-count, language, or patent status filters such as GRANT and APPLICATION.
+description: Use when the user wants Google Patents search results through Frevana, including patent/application searches by query, pagination, result-count, language, or patent status filters such as GRANT and APPLICATION.
 ---
 
 # Google Patents Search
@@ -105,11 +105,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `q` is required. Do not invent `page`, `num`, `language`, or `status` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `q`, `page`, `num`, `language`, and `status`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Patents fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `page`, `num`, `language`, and `status`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Patents fields unless the Frevana endpoint schema is expanded first.
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
@@ -117,7 +117,7 @@ The API returns SerpAPI-origin JSON. Common fields include:
 - `organic_results`
 - `summary`
 - `pagination`
-- `serpapi_pagination`
+- `pagination`
 
 ## Output
 

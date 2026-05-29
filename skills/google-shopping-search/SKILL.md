@@ -1,6 +1,6 @@
 ---
 name: google-shopping-search
-description: Use when the user wants Google Shopping product search results through Frevana/SerpAPI, including product titles, prices, ratings, source merchants, localized country/language results, pagination offsets, device-specific results, or Google Shopping sort order.
+description: Use when the user wants Google Shopping product search results through Frevana, including product titles, prices, ratings, source merchants, localized country/language results, pagination offsets, device-specific results, or Google Shopping sort order.
 ---
 
 # Google Shopping Search
@@ -124,7 +124,7 @@ Only `q` is required. Do not invent `google_domain`, `gl`, `hl`, `start`, `devic
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. This skill validates the response as JSON and returns it unchanged.
+The API returns Frevana JSON. This skill validates the response as JSON and returns it unchanged.
 
 ## Output
 

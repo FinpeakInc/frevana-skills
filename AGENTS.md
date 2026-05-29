@@ -99,7 +99,7 @@ skills/
 2. Read the target skill's `SKILL.md` before execution if you need details on parameters, defaults, or failure handling.
 3. Prefer the repository scripts over ad hoc API calls when a skill includes a script.
 4. Do not invent missing required inputs. Ask for them when the skill requires them.
-5. Do not change fixed provider or model contracts for Frevana image skills.
+5. Do not change fixed Frevana image-skill routing contracts.
 6. Do not rewrite raw API outputs unless the user explicitly asks for a transformation.
 7. When returning structured results, summarize them unless the user explicitly asks for raw JSON or raw HTML.
 
@@ -231,7 +231,7 @@ Route here when the user wants:
 - category-specific eBay listings
 - paginated eBay results
 - eBay-domain-specific search results
-- to call `/service/serpapi/ebay-search`
+- to call the Frevana ebay-search endpoint
 
 Required input:
 
@@ -247,7 +247,7 @@ Optional input:
 
 If the user gives only "search eBay for this" without a keyword or category ID, ask for the keyword or category ID.
 Do not invent optional eBay domain, page, or result-count fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `query`, `category_id`, `ebay_domain`, `page`, and `results_per_page`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint schema currently exposes only `query`, `category_id`, `ebay_domain`, `page`, and `results_per_page`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `home-depot-search`
@@ -260,7 +260,7 @@ Route here when the user wants:
 - store-specific Home Depot results
 - delivery ZIP or postal-code-aware Home Depot results
 - paginated Home Depot results
-- to call `/service/serpapi/home-depot-search`
+- to call the Frevana home-depot-search endpoint
 
 Required input:
 
@@ -278,7 +278,7 @@ Optional input:
 
 If the user says "search Home Depot for this" without a keyword, ask for the keyword.
 Do not invent optional country, store, delivery ZIP, page, or page-size fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `q`, `country`, `store`, `delivery_zip`, `page`, and `page_size`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `hd_sort`, `hd_filter_tokens`, `store_id`, `nao`, `ps`, `sort`, `filter`, `lowerbound`, `upperbound`, `minmax`, or `pagesize`.
+The Frevana endpoint schema currently exposes only `q`, `country`, `store`, `delivery_zip`, `page`, and `page_size`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `hd_sort`, `hd_filter_tokens`, `store_id`, `nao`, `ps`, `sort`, `filter`, `lowerbound`, `upperbound`, `minmax`, or `pagesize`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `walmart-search`
@@ -292,7 +292,7 @@ Route here when the user wants:
 - device-specific Walmart results
 - Walmart sorting, including price low to high, price high to low, best seller, best match, rating high, or new
 - Walmart facet or price-bound filtering
-- to call `/service/serpapi/walmart-search`
+- to call the Frevana walmart-search endpoint
 
 Required input:
 
@@ -312,7 +312,7 @@ Optional input:
 
 If the user says "search Walmart for this" without a keyword, ask for the keyword.
 Do not invent optional device, category, page, sort, facet, or price-bound fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `query`, `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, and `max_price`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `walmart_domain`, `soft_sort`, `store_id`, `spelling`, `nd_en`, or `include_filters`.
+The Frevana endpoint schema currently exposes only `query`, `device`, `cat_id`, `page`, `sort`, `facet`, `min_price`, and `max_price`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `walmart_domain`, `soft_sort`, `store_id`, `spelling`, `nd_en`, or `include_filters`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `walmart-product-reviews`
@@ -324,7 +324,7 @@ Route here when the user wants:
 - Walmart review sorting
 - Walmart reviews filtered by star rating
 - top positive or negative Walmart reviews
-- to call `/service/serpapi/walmart-product-reviews`
+- to call the Frevana walmart-product-reviews endpoint
 
 Required input:
 
@@ -340,7 +340,7 @@ Optional input:
 
 If the user gives only a product name, keyword, or Walmart URL without a clear item ID, suggest running `walmart-search` first and using the chosen result's `organic_results[].us_item_id`.
 Do not invent optional page, sort, or rating fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `product_id`, `page`, `sort`, and `rating`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint schema currently exposes only `product_id`, `page`, `sort`, and `rating`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the reviews API again.
 
 ### Use `walmart-product-sellers`
@@ -351,7 +351,7 @@ Route here when the user wants:
 - Walmart seller offers or marketplace offers
 - store-specific Walmart seller availability
 - seller prices, delivery dates, return policies, or seller store-front links
-- to call `/service/serpapi/walmart-product-sellers`
+- to call the Frevana walmart-product-sellers endpoint
 
 Required input:
 
@@ -365,7 +365,7 @@ Optional input:
 
 If the user gives only a product name, keyword, or Walmart URL without a clear item ID, suggest running `walmart-search` first and using the chosen result's `organic_results[].us_item_id`.
 Do not invent `store_id` when the user did not provide it.
-The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the sellers API again.
 
 ### Use `google-search`
@@ -376,7 +376,7 @@ Route here when the user wants:
 - regular Google web search / SERP results
 - organic results, related searches, related questions, answer boxes, or knowledge graph from Google Search
 - country-, language-, location-, device-, safe-search-, result-count-, or pagination-specific Google Search results
-- to call `/service/serpapi/google-search`
+- to call the Frevana google-search endpoint
 
 Required input:
 
@@ -395,7 +395,7 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional location, country, language, result count, pagination, safe-search, or device fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Search fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Search fields unless the Frevana endpoint schema is expanded first.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-forums-search`
@@ -406,7 +406,7 @@ Route here when the user wants:
 - forum-style Google results from Google's Forums tab
 - Reddit, Quora, Stack Overflow, community discussion, or other forum-style results surfaced through Google Forums
 - country-, language-, device-, pagination-, or date-bounded Google Forums results
-- to call `/service/serpapi/google-forums`
+- to call the Frevana google-forums endpoint
 
 Required input:
 
@@ -424,7 +424,7 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional device, language, country, pagination, or date-bound fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `q`, `device`, `hl`, `gl`, `start`, `start_date`, and `end_date`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Forums fields such as `location`, `uule`, `period_unit`, `period_value`, `nfpr`, `filter`, or `tbs` unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `device`, `hl`, `gl`, `start`, `start_date`, and `end_date`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Forums fields such as `location`, `uule`, `period_unit`, `period_value`, `nfpr`, `filter`, or `tbs` unless the Frevana endpoint schema is expanded first.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-patents-search`
@@ -435,7 +435,7 @@ Route here when the user wants:
 - patent or patent-application discovery through Google Patents
 - paginated Google Patents results
 - result-count, language, or patent-status filters
-- to call `/service/serpapi/google-patents`
+- to call the Frevana google-patents endpoint
 
 Required input:
 
@@ -451,7 +451,7 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional page, result-count, language, or status fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `q`, `page`, `num`, `language`, and `status`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other upstream Google Patents fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema currently exposes only `q`, `page`, `num`, `language`, and `status`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Patents fields unless the Frevana endpoint schema is expanded first.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-news-search`
@@ -489,7 +489,7 @@ Route here when the user wants:
 - domain or text searches for ads shown in Google Ads Transparency Center
 - platform-specific ad searches across Google Play, Google Maps, Google Search, Google Shopping, or YouTube
 - region-specific or paginated Google Ads Transparency Center results
-- to call `/service/serpapi/google-ads-transparency-center`
+- to call the Frevana google-ads-transparency-center endpoint
 
 Required input:
 
@@ -504,7 +504,7 @@ Optional input:
 
 If the user gives only a brand/company name and asks for a specific advertiser record by ID, ask for the advertiser ID instead of guessing. If the user wants a general ad search for that brand, use `text`.
 Do not invent optional platform, region, or pagination token fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
+The Frevana endpoint schema currently exposes only `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-related-questions`
@@ -514,7 +514,7 @@ Route here when the user wants:
 - Google Related Questions results
 - People Also Ask follow-up questions
 - to expand a Google Search `related_questions` item using `next_page_token`
-- to call `/service/serpapi/google-related-questions`
+- to call the Frevana google-related-questions endpoint
 
 Required input:
 
@@ -592,7 +592,7 @@ Route here when the user wants:
 - product details from a Google Shopping `immersive_product_page_token`
 - store offers inside the Google Immersive Product popup
 - the next page of stores using `stores_next_page_token`
-- to call `/service/serpapi/google-immersive-product`
+- to call the Frevana google-immersive-product endpoint
 
 Required input:
 
@@ -642,7 +642,7 @@ Route here when the user wants:
 - localized YouTube video results by country or language
 - filtered YouTube Search results using an `sp` parameter
 - paginated YouTube Search results using a follow-up `sp` token
-- to call `/service/serpapi/youtube-search`
+- to call the Frevana youtube-search endpoint
 
 Required input:
 
@@ -657,18 +657,18 @@ Optional input:
 - one-time token override
 
 The user can provide only `search_query`. Do not invent optional `sp`, country, or language fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `search_query`, `sp`, `hl`, and `gl`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The Frevana endpoint schema currently exposes only `search_query`, `sp`, `hl`, and `gl`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 
 ### Use `gpt-image-2`
 
 Route here when the user wants:
 
-- Frevana-hosted images generated with OpenAI
+- Frevana-hosted image generation
 - the `gpt-image-2` model specifically
 - image-to-image runs that use one or more local reference images
 - image-to-image runs that use one or more remote reference image URLs
 - image-to-image runs that use a local directory of images
-- raw JSON output from the Frevana OpenAI image backend
+- raw JSON output from the Frevana image API
 
 Required input:
 
@@ -688,12 +688,11 @@ Optional input:
 - mask path
 - output file path
 
-Fixed contract:
+Fixed Frevana routing contract:
 
-- provider: `openai`
-- model: `gpt-image-2`
+- use the `gpt-image-2` skill script
 
-Do not pass or ask for alternate provider/model values.
+Do not pass or ask for alternate image routing values.
 
 ### Use `nano-banana-2`
 
@@ -701,7 +700,7 @@ Route here when the user wants:
 
 - `Nano Banana 2`
 - `nano banana 2`
-- Gemini image generation through Frevana using `gemini-3.1-flash-image-preview`
+- Frevana-hosted image generation with Nano Banana 2
 
 Required input:
 
@@ -716,10 +715,9 @@ Optional input:
 - `image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
 - output file path
 
-Fixed contract:
+Fixed Frevana routing contract:
 
-- provider: `gemini`
-- model: `gemini-3.1-flash-image-preview`
+- use the `nano-banana-2` skill script
 
 ### Use `nano-banana-pro`
 
@@ -727,7 +725,7 @@ Route here when the user wants:
 
 - `Nano Banana Pro`
 - `nano banana pro`
-- Gemini image generation through Frevana using `gemini-3-pro-image-preview`
+- Frevana-hosted image generation with Nano Banana Pro
 
 Required input:
 
@@ -742,10 +740,9 @@ Optional input:
 - `image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
 - output file path
 
-Fixed contract:
+Fixed Frevana routing contract:
 
-- provider: `gemini`
-- model: `gemini-3-pro-image-preview`
+- use the `nano-banana-pro` skill script
 
 ### Use `frevana-gen-report`
 
@@ -958,7 +955,7 @@ Never echo bearer tokens back to the user.
 
 - The endpoint script returns validated JSON to stdout and saves the same JSON to a file on every successful run.
 - Summarize the results by default.
-- Highlight advertiser, advertiser ID, ad creative ID, format, target domain, first shown, last shown, creative media link, details link, and follow-up `serpapi_pagination.next_page_token` when available.
+- Highlight advertiser, advertiser ID, ad creative ID, format, target domain, first shown, last shown, creative media link, details link, and follow-up `pagination.next_page_token` when available.
 - Preserve the raw JSON when the user asks for it.
 
 ### Google Related Questions outputs
@@ -1354,6 +1351,6 @@ Before acting, the agent should verify:
 - Are all required inputs present?
 - Is there a repo script that should be used instead of a custom command?
 - If this is an auth request, does `frevana` need to be installed before login starts?
-- Is the provider/model fixed for this skill?
+- Is the Frevana routing fixed for this skill?
 - Should the result be summarized, or does the user want raw output?
 - Is there any missing dependency or login step that should be surfaced clearly?

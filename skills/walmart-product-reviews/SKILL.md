@@ -1,6 +1,6 @@
 ---
 name: walmart-product-reviews
-description: Use when the user wants Walmart product review data through Frevana/SerpAPI, including reviews for a known Walmart product_id or us_item_id, review pagination, review sorting, rating filters, top positive or negative reviews, or calls to /service/serpapi/walmart-product-reviews.
+description: Use when the user wants Walmart product review data through Frevana, including reviews for a known Walmart product_id or us_item_id, review pagination, review sorting, rating filters, top positive or negative reviews, or Frevana API calls.
 ---
 
 # Walmart Product Reviews
@@ -102,11 +102,11 @@ The script sends this payload shape, omitting optional fields that were not prov
 
 Only `product_id` is required. Do not invent `product_id`, `page`, `sort`, or `rating` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `product_id`, `page`, `sort`, and `rating`; do not pass upstream SerpAPI-only fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`. The Frevana service owns the upstream SerpAPI call.
+The Frevana endpoint schema currently exposes only `product_id`, `page`, `sort`, and `rating`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`..
 
 ## Response Shape
 
-The API returns SerpAPI-origin JSON. Common fields include:
+The API returns Frevana JSON. Common fields include:
 
 - `search_metadata`
 - `search_parameters`
@@ -117,7 +117,7 @@ The API returns SerpAPI-origin JSON. Common fields include:
 - `top_positive`
 - `top_negative`
 - `reviews`
-- `pagination` or `serpapi_pagination`
+- `pagination`
 
 Review entries commonly include `position`, `title`, `text`, `rating`, `positive_feedback`, `negative_feedback`, `review_submission_time`, `user_nickname`, and `customer_type`.
 
@@ -153,5 +153,5 @@ Review entries commonly include `position`, `title`, `text`, `rating`, `positive
 
 - "Get Walmart product reviews for product_id 5689919121."
 - "Fetch 5-star Walmart reviews sorted by submission-desc for this us_item_id."
-- "Call /service/serpapi/walmart-product-reviews and save the raw JSON."
+- "Call the Frevana walmart-product-reviews endpoint and save the raw JSON."
 - "Find reviews for 'coffee maker'." -> Explain that a Walmart `product_id` / `us_item_id` is required, and suggest running Walmart search first.

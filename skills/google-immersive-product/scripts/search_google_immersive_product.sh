@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_IMMERSIVE_PRODUCT_PATH="/service/serpapi/google-immersive-product"
+GOOGLE_IMMERSIVE_PRODUCT_PATH="/service/google-immersive-product"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

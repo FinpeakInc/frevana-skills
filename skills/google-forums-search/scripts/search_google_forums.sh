@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_FORUMS_PATH="/service/serpapi/google-forums"
+GOOGLE_FORUMS_PATH="/service/google-forums"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

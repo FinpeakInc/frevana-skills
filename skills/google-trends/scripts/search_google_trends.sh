@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="https://ai-factory.frevana.com"
-GOOGLE_TRENDS_PATH="/service/serpapi/google-trends"
+GOOGLE_TRENDS_PATH="/service/google-trends"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 
