@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, URL scraping, X/Twitter topic search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, URL scraping, AI platform asks, X/Twitter topic search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -53,6 +53,11 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
 | Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through local Frevana and Chrome | URL |
+| AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through local Frevana and Chrome | one or more prompts |
+| AI | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through local Frevana and Chrome | one or more prompts |
+| AI | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through local Frevana and Chrome | one or more prompts |
+| AI | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through local Frevana and Chrome | one or more prompts |
+| AI | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through local Frevana and Chrome | one or more prompts |
 | Social Media | [`x-topic-search`](skills/x-topic-search/SKILL.md) | X/Twitter posts by topic through local Frevana and Chrome | topic |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
@@ -454,6 +459,35 @@ Features:
 - setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
 - save output with `--output`
 
+### AI Platform Ask Skills
+
+Ask AI platforms through the local Frevana daemon and Chrome session.
+
+Skills:
+
+- [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) uses provider `chatgpt`
+- [`gemini-ask`](skills/gemini-ask/SKILL.md) uses provider `gemini`
+- [`perplexity-ask`](skills/perplexity-ask/SKILL.md) uses provider `perplexity`
+- [`deepseek-ask`](skills/deepseek-ask/SKILL.md) uses provider `deepseek`
+- [`doubao-ask`](skills/doubao-ask/SKILL.md) uses provider `doubao`
+
+Use when:
+
+- you want to ask one of these AI platforms a prompt
+- you want to use the user's logged-in Chrome session
+- you want local Frevana browser automation rather than API-key access
+
+Features:
+
+- `--prompt` / `--question` may be repeated for multiple prompts
+- `--prompt-file` reads one prompt per non-empty line
+- `--format` supports `text` or `json`, defaulting to `text`
+- optional `--timeout`
+- each skill fixes the provider and does not ask for a provider value
+- runs bundled `scripts/setup.sh` before every ask, matching the original Frevana skill flow
+- setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- save output with `--output`
+
 ### [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md)
 
 Check Reddit mentions of one or more URLs through Frevana.
@@ -546,6 +580,7 @@ Features:
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - URL Scrape skill: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, and Chrome connection.
+- AI Platform Ask skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome connection, and login to the target platform in Chrome.
 - X Topic Search skill: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome connection, and X/Twitter login in Chrome.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
