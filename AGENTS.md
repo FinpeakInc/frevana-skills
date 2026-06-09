@@ -11,7 +11,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
-- X/Twitter topic search through the local Frevana daemon and Chrome session
+- Chrome-backed local Frevana workflows, including URL scraping and X/Twitter topic search
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -80,6 +80,10 @@ skills/
   youtube-search/
     SKILL.md
     scripts/search_youtube.sh
+  url-scrape/
+    SKILL.md
+    scripts/setup.sh
+    scripts/scrape_url.sh
   x-topic-search/
     SKILL.md
     scripts/setup.sh
@@ -695,6 +699,28 @@ Optional input:
 The user can provide only `topic`. Default `fetchMode` to `quick` when the user does not provide it. Do not invent optional sort, count, cursor, reply, quote, media, scroll, minimum-count, or timeout fields when the user did not provide them.
 This skill uses the local Frevana daemon and Chrome login state, not `FREVANA_TOKEN`. The user must be logged in to X/Twitter in Chrome.
 
+### Use `url-scrape`
+
+Route here when the user wants:
+
+- to scrape any URL or web page
+- web page content as Markdown or text
+- Chrome-authenticated page scraping using the user's logged-in browser session
+- to call the local Frevana `frevana_scrape` tool
+
+Required input:
+
+- `url`
+
+Optional input:
+
+- `provider` (defaults to `url`)
+- `timeout`
+- output file path
+
+The user can provide only `url`. Default `provider` to `url` when the user does not provide it. Do not invent timeout values.
+This skill uses the local Frevana daemon and Chrome login state, not `FREVANA_TOKEN`. If a scrape returns login/auth content, tell the user to log in to that site in Chrome.
+
 ### Use `gpt-image-2`
 
 Route here when the user wants:
@@ -819,6 +845,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "search Google Shopping Light for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search YouTube for this" but does not provide a keyword, ask for the keyword.
 - If the user says "search X for this", "search Twitter for this", or wants X/Twitter topic search but does not provide a topic, ask for the topic.
+- If the user says "scrape this", "scrape URL", or wants URL scraping but does not provide a URL, ask for the URL.
 - If the user asks for Google Ads Transparency Center search without `advertiser_id`, `text`, or `next_page_token`, ask for one of those inputs.
 - If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
@@ -868,6 +895,22 @@ For `x-topic-search`:
 7. If X returns auth/login content or the call fails because X is unavailable, tell the user to log in to X/Twitter in Chrome.
 8. Return either the raw tool output or a summary, depending on what the user asked for.
 9. Save output with `--output` when a file is useful.
+
+### URL scrape through local Chrome
+
+For `url-scrape`:
+
+1. Extract `url` and any user-provided optional fields.
+2. Require an absolute URL starting with `http://` or `https://`.
+3. Prefer `scripts/scrape_url.sh` over ad hoc `frevana call`.
+4. Do not use or request `FREVANA_TOKEN`; this workflow uses the local Frevana daemon and Chrome session.
+5. Let `scripts/scrape_url.sh` run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
+   `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
+6. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
+7. If the daemon health check still fails after setup, report that setup already ran but the daemon is not healthy.
+8. If scrape returns empty or login/auth content, tell the user to log in to that site in Chrome.
+9. Return either the raw scrape output or a summary, depending on what the user asked for.
+10. Save output with `--output` when a file is useful.
 
 ### Frevana image skills
 
@@ -924,6 +967,18 @@ Needed:
 - Frevana local daemon
 - Chrome connected through Frevana
 - active X/Twitter login in Chrome
+
+### URL scrape local Chrome workflow
+
+Needed:
+
+- `bash`
+- `curl`
+- `python3`
+- bundled `scripts/setup.sh`, which downloads and executes the latest official Frevana setup script
+- `frevana` local binary, or network access to GitHub Releases when setup needs to install it
+- Frevana local daemon
+- Chrome connected through Frevana
 
 ### Frevana image and report workflows
 
