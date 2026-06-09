@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, X/Twitter topic search, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -52,6 +52,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
+| Social Media | [`x-topic-search`](skills/x-topic-search/SKILL.md) | X/Twitter posts by topic through local Frevana and Chrome | topic |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
@@ -413,6 +414,26 @@ Features:
 - optional `--sp`, `--hl`, and `--gl`
 - save results with `--output`
 
+### [`x-topic-search`](skills/x-topic-search/SKILL.md)
+
+Search X/Twitter posts by topic through the local Frevana daemon and Chrome session.
+
+Use when:
+
+- you want X/Twitter posts for a topic, keyword, hashtag, query, or trend
+- you want top or live X results
+- you have a cursor from a previous X topic result
+
+Features:
+
+- `--topic` is the only required input
+- optional `--sort`, `--count`, `--fetch-mode`, `--cursor`, `--timeout`; `--fetch-mode` defaults to `quick`
+- optional flags for replies, quotes, and media metadata
+- runs bundled `scripts/setup.sh` before every search, matching the original Frevana skill flow
+- setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- requires the local Frevana daemon, Chrome connection, and X/Twitter login in Chrome
+- save output with `--output`
+
 ### [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md)
 
 Check Reddit mentions of one or more URLs through Frevana.
@@ -504,6 +525,7 @@ Features:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
+- X Topic Search skill: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome connection, and X/Twitter login in Chrome.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
