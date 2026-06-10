@@ -53,6 +53,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
 | Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through local Frevana and Chrome | URL |
+| Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through local Frevana and Chrome | one or more queries |
 | AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through local Frevana and Chrome | one or more prompts |
 | AI | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through local Frevana and Chrome | one or more prompts |
 | AI | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through local Frevana and Chrome | one or more prompts |
@@ -465,6 +466,7 @@ Ask AI platforms through the local Frevana daemon and Chrome session.
 
 Skills:
 
+- [`google-search-extension`](skills/google-search-extension/SKILL.md) uses provider `google`
 - [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) uses provider `chatgpt`
 - [`gemini-ask`](skills/gemini-ask/SKILL.md) uses provider `gemini`
 - [`perplexity-ask`](skills/perplexity-ask/SKILL.md) uses provider `perplexity`
@@ -474,6 +476,7 @@ Skills:
 Use when:
 
 - you want to ask one of these AI platforms a prompt
+- you want to search Google through the user's Chrome browser session
 - you want to use the user's logged-in Chrome session
 - you want local Frevana browser automation rather than API-key access
 

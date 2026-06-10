@@ -84,6 +84,10 @@ skills/
     SKILL.md
     scripts/setup.sh
     scripts/scrape_url.sh
+  google-search-extension/
+    SKILL.md
+    scripts/setup.sh
+    scripts/search_google_extension.sh
   chatgpt-ask/
     SKILL.md
     scripts/setup.sh
@@ -714,7 +718,6 @@ Optional input:
 - `maxScrollRounds`
 - `minCount`
 - `timeout`
-- `format` (`text` or `json`, defaults to `text`)
 - output file path
 
 The user can provide only `topic`. Default `fetchMode` to `quick` when the user does not provide it. Do not invent optional sort, count, cursor, reply, quote, media, scroll, minimum-count, or timeout fields when the user did not provide them.
@@ -737,11 +740,26 @@ Optional input:
 
 - `provider` (defaults to `url`)
 - `timeout`
-- `format` (`text` or `json`, defaults to `text`)
 - output file path
 
 The user can provide only `url`. Default `provider` to `url` when the user does not provide it. Do not invent timeout values.
 This skill uses the local Frevana daemon and Chrome login state, not `FREVANA_TOKEN`. If a scrape returns login/auth content, tell the user to log in to that site in Chrome.
+
+### Use `google-search-extension`
+
+Route here when the user wants to search Google through Frevana using the local Chrome browser session, rather than using the HTTP API `google-search` skill.
+
+Required input:
+
+- one or more `prompt` or query values, or `prompt_file`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Always use provider `google`. Do not route browser-session Google Search requests through the HTTP API `google-search` skill.
 
 ### Use `chatgpt-ask`
 
@@ -802,6 +820,7 @@ Required input:
 Optional input:
 
 - `timeout`
+- `format` (`text` or `json`, defaults to `text`)
 - output file path
 
 Always use provider `deepseek`. Do not route DeepSeek requests through the generic old Frevana skill.
@@ -817,6 +836,7 @@ Required input:
 Optional input:
 
 - `timeout`
+- `format` (`text` or `json`, defaults to `text`)
 - output file path
 
 Always use provider `doubao`. Do not route Doubao requests through the generic old Frevana skill.
@@ -1015,10 +1035,10 @@ For `url-scrape`:
 
 ### AI platform asks through local Chrome
 
-For `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`:
+For `google-search-extension`, `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`:
 
 1. Extract one or more prompts and any user-provided optional timeout/output format. Accept repeated `--prompt`/`--question` values or `--prompt-file` with one prompt per non-empty line.
-2. Use the matching fixed-provider script: `ask_chatgpt.sh`, `ask_gemini.sh`, `ask_perplexity.sh`, `ask_deepseek.sh`, or `ask_doubao.sh`.
+2. Use the matching fixed-provider script: `search_google_extension.sh`, `ask_chatgpt.sh`, `ask_gemini.sh`, `ask_perplexity.sh`, `ask_deepseek.sh`, or `ask_doubao.sh`.
 3. Do not use or request `FREVANA_TOKEN`; this workflow uses the local Frevana daemon and Chrome session.
 4. Let the script run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
    `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
