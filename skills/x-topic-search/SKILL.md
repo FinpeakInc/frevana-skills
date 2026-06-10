@@ -1,6 +1,6 @@
 ---
 name: x-topic-search
-description: Use when the user wants to search X/Twitter posts by topic, query, hashtag, keyword, or trend through the local Frevana Chrome-backed X search tool.
+description: Use when the user wants to search X/Twitter posts by topic, query, hashtag, keyword, or trend through the local Frevana Chrome Extension-backed X search tool.
 ---
 
 # X Topic Search
@@ -9,7 +9,7 @@ Search X/Twitter posts by topic through the local Frevana daemon.
 
 ## Purpose
 
-This skill is for **finding X/Twitter posts for a topic or query** using the Chrome-backed Frevana MCP tool `frevana_x_search_topic`.
+This skill is for **finding X/Twitter posts for a topic or query** using the Chrome Extension-backed Frevana MCP tool `frevana_x_search_topic`.
 
 Inputs:
 
@@ -36,13 +36,13 @@ Summarize the results unless the user asks for the raw output.
 - user-provided `topic`
 - bundled `scripts/setup.sh` wrapper, which downloads and runs the latest official Frevana setup script
 - Frevana local daemon running after setup, default port `12306`
-- Chrome connected through Frevana
+- Chrome connected through the Frevana Chrome Extension
 - the user logged in to X/Twitter in Chrome
 - `curl`
 - `bash`
 - `python3`
 
-This skill uses the local daemon and Chrome session. It does not use `FREVANA_TOKEN`.
+This is a Chrome Extension skill. It uses the local daemon and Chrome Extension session.
 
 ## Execution Order
 
@@ -154,7 +154,6 @@ Always send `fetchMode`; default it to `quick` when the user does not specify a 
 - The script runs bundled `scripts/setup.sh` before every search, matching the original Frevana skill flow.
 - `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
 - If `frevana` is missing, the official setup script installs the Frevana binary before starting/checking the daemon.
-- Do not ask for or echo bearer tokens; this workflow is local-daemon based.
 
 ## Example Prompts
 

@@ -11,10 +11,23 @@ This repository contains reusable skills for four main workflow families:
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
-- Chrome-backed local Frevana workflows, including URL scraping, AI platform asks, and X/Twitter topic search
+- Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
+
+## Chrome Extension Skill Group
+
+The following skills are Chrome Extension skills:
+
+- `url-scrape`
+- `google-search-extension`
+- `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`
+- `x-topic-search`
+- `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`
+- `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
+
+These skills use the local Frevana daemon and the user's logged-in Chrome Extension session via the Frevana Chrome Extension. They all run their bundled `scripts/setup.sh` wrapper before calling Frevana. The wrapper downloads and executes the official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`, installs the CLI when needed, starts/checks the daemon, and verifies Chrome Extension connectivity.
 
 ## Directory Map
 
@@ -32,6 +45,26 @@ skills/
   amazon-keyword-search-volume/
     SKILL.md
     scripts/get_search_volume.sh
+  amazon-rufus-ai/
+    SKILL.md
+    scripts/setup.sh
+    scripts/ask_amazon_rufus.sh
+  amazon-product-info/
+    SKILL.md
+    scripts/setup.sh
+    scripts/get_amazon_product_info.sh
+  amazon-top-reviews/
+    SKILL.md
+    scripts/setup.sh
+    scripts/get_amazon_top_reviews.sh
+  amazon-price/
+    SKILL.md
+    scripts/setup.sh
+    scripts/get_amazon_price.sh
+  amazon-rufus-qa/
+    SKILL.md
+    scripts/setup.sh
+    scripts/get_amazon_rufus_qa.sh
   ebay-search/
     SKILL.md
     scripts/search_ebay.sh
@@ -112,6 +145,18 @@ skills/
     SKILL.md
     scripts/setup.sh
     scripts/search_x_topics.sh
+  publish-twitter-post/
+    SKILL.md
+    scripts/setup.sh
+    scripts/publish_twitter_post.sh
+  publish-facebook-post/
+    SKILL.md
+    scripts/setup.sh
+    scripts/publish_facebook_post.sh
+  publish-linkedin-post/
+    SKILL.md
+    scripts/setup.sh
+    scripts/publish_linkedin_post.sh
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
@@ -721,7 +766,7 @@ Optional input:
 - output file path
 
 The user can provide only `topic`. Default `fetchMode` to `quick` when the user does not provide it. Do not invent optional sort, count, cursor, reply, quote, media, scroll, minimum-count, or timeout fields when the user did not provide them.
-This skill uses the local Frevana daemon and Chrome login state, not `FREVANA_TOKEN`. The user must be logged in to X/Twitter in Chrome.
+This is a Chrome Extension skill. It uses the local Frevana daemon and Chrome Extension login state. The user must be logged in to X/Twitter in Chrome.
 
 ### Use `url-scrape`
 
@@ -729,7 +774,7 @@ Route here when the user wants:
 
 - to scrape any URL or web page
 - web page content as Markdown or text
-- Chrome-authenticated page scraping using the user's logged-in browser session
+- Chrome Extension-authenticated page scraping using the user's logged-in Chrome Extension session
 - to call the local Frevana `frevana_scrape` tool
 
 Required input:
@@ -743,11 +788,11 @@ Optional input:
 - output file path
 
 The user can provide only `url`. Default `provider` to `url` when the user does not provide it. Do not invent timeout values.
-This skill uses the local Frevana daemon and Chrome login state, not `FREVANA_TOKEN`. If a scrape returns login/auth content, tell the user to log in to that site in Chrome.
+This is a Chrome Extension skill. It uses the local Frevana daemon and Chrome Extension login state. If a scrape returns login/auth content, tell the user to log in to that site in Chrome.
 
 ### Use `google-search-extension`
 
-Route here when the user wants to search Google through Frevana using the local Chrome browser session, rather than using the HTTP API `google-search` skill.
+Route here when the user wants to search Google through Frevana using the Chrome Extension/local daemon session, rather than using the HTTP API `google-search` skill.
 
 Required input:
 
@@ -763,7 +808,7 @@ Always use provider `google`. Do not route browser-session Google Search request
 
 ### Use `chatgpt-ask`
 
-Route here when the user wants to ask ChatGPT a question through Frevana using Chrome login state.
+Route here when the user wants to ask ChatGPT a question through Frevana using Chrome Extension login state.
 
 Required input:
 
@@ -779,7 +824,7 @@ Always use provider `chatgpt`. Do not route ChatGPT requests through the generic
 
 ### Use `gemini-ask`
 
-Route here when the user wants to ask Gemini a question through Frevana using Chrome login state.
+Route here when the user wants to ask Gemini a question through Frevana using Chrome Extension login state.
 
 Required input:
 
@@ -795,7 +840,7 @@ Always use provider `gemini`. Do not route Gemini requests through the generic o
 
 ### Use `perplexity-ask`
 
-Route here when the user wants to ask Perplexity a question through Frevana using Chrome login state.
+Route here when the user wants to ask Perplexity a question through Frevana using Chrome Extension login state.
 
 Required input:
 
@@ -811,7 +856,7 @@ Always use provider `perplexity`. Do not route Perplexity requests through the g
 
 ### Use `deepseek-ask`
 
-Route here when the user wants to ask DeepSeek a question through Frevana using Chrome login state.
+Route here when the user wants to ask DeepSeek a question through Frevana using Chrome Extension login state.
 
 Required input:
 
@@ -827,7 +872,7 @@ Always use provider `deepseek`. Do not route DeepSeek requests through the gener
 
 ### Use `doubao-ask`
 
-Route here when the user wants to ask Doubao a question through Frevana using Chrome login state.
+Route here when the user wants to ask Doubao a question through Frevana using Chrome Extension login state.
 
 Required input:
 
@@ -840,6 +885,142 @@ Optional input:
 - output file path
 
 Always use provider `doubao`. Do not route Doubao requests through the generic old Frevana skill.
+
+### Use `amazon-rufus-ai`
+
+Route here when the user wants to ask Amazon Rufus AI a question about a specific product through the Chrome Extension/local daemon session.
+
+Required input:
+
+- full Amazon product page `url`
+- `question`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+The URL must contain `/dp/<ASIN>` or `/gp/product/<ASIN>`. Do not accept Amazon search pages, category pages, home pages, or bare product names. Always use provider `amazon-rufus`.
+
+### Use `amazon-product-info`
+
+Route here when the user wants product page details through the Chrome Extension/local daemon session and provides a full Amazon product URL.
+
+Required input:
+
+- full Amazon product page `url`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Use this for Chrome Extension product page extraction. Use the existing `amazon-product` skill instead when the user wants the Frevana HTTP API ASIN lookup.
+
+### Use `amazon-top-reviews`
+
+Route here when the user wants top helpful Amazon reviews for a product through the Chrome Extension/local daemon session.
+
+Required input:
+
+- full Amazon product page `url`
+
+Optional input:
+
+- `max_reviews`
+- `sort_by`
+- `reviewer_type`
+- `filter_by_star`
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+The URL must be a product page. Do not search Amazon to find a product URL. Optional review settings are appended as the JSON config expected by provider `amazon-product-reviews`.
+
+### Use `amazon-price`
+
+Route here when the user wants price, discount, or coupon info from an Amazon product page through the Chrome Extension/local daemon session.
+
+Required input:
+
+- full Amazon product page `url`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Always use provider `amazon-price`.
+
+### Use `amazon-rufus-qa`
+
+Route here when the user wants suggested Q&A pairs from the Amazon Rufus widget through the Chrome Extension/local daemon session.
+
+Required input:
+
+- full Amazon product page `url`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Always use provider `amazon-rufus-qa`.
+
+### Use `publish-twitter-post`
+
+Route here only when the user explicitly asks to publish a post to Twitter/X through Frevana using Chrome Extension login state.
+
+Required input:
+
+- final `text` or `text_file`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Publishing is a side effect. Do not route draft-writing, editing, or review requests here unless the user explicitly asks to publish the final post. Always use provider `twitter`.
+
+### Use `publish-facebook-post`
+
+Route here only when the user explicitly asks to publish a post to Facebook through Frevana using Chrome Extension login state.
+
+Required input:
+
+- final `text` or `text_file`
+
+Optional input:
+
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Publishing is a side effect. Do not route draft-writing, editing, or review requests here unless the user explicitly asks to publish the final post. Always use provider `facebook`.
+
+### Use `publish-linkedin-post`
+
+Route here only when the user explicitly asks to publish a LinkedIn post or article through Frevana using Chrome Extension login state.
+
+Required input:
+
+- final `text` or `text_file`
+
+Optional input:
+
+- `mode` (`post` or `article`, defaults to `post`)
+- `title` for article mode
+- `cover_image` for article mode
+- `timeout`
+- `format` (`text` or `json`, defaults to `text`)
+- output file path
+
+Publishing is a side effect. Do not route draft-writing, editing, or review requests here unless the user explicitly asks to publish the final post or article. Always use provider `linkedin`.
 
 ### Use `gpt-image-2`
 
@@ -1002,13 +1183,13 @@ For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-sea
 6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
-### X/Twitter local topic search
+### X/Twitter Chrome Extension topic search
 
 For `x-topic-search`:
 
 1. Extract `topic` and any user-provided optional fields.
 2. Prefer `scripts/search_x_topics.sh` over ad hoc `frevana call`.
-3. Do not use or request `FREVANA_TOKEN`; this workflow uses the local Frevana daemon and Chrome session.
+3. Use the local Frevana daemon and Chrome Extension session.
 4. Let `scripts/search_x_topics.sh` run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
    `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
 5. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
@@ -1017,14 +1198,14 @@ For `x-topic-search`:
 8. Return either the raw tool output or a summary, depending on what the user asked for.
 9. Save output with `--output` when a file is useful.
 
-### URL scrape through local Chrome
+### URL scrape through Chrome Extension
 
 For `url-scrape`:
 
 1. Extract `url` and any user-provided optional fields.
 2. Require an absolute URL starting with `http://` or `https://`.
 3. Prefer `scripts/scrape_url.sh` over ad hoc `frevana call`.
-4. Do not use or request `FREVANA_TOKEN`; this workflow uses the local Frevana daemon and Chrome session.
+4. Use the local Frevana daemon and Chrome Extension session.
 5. Let `scripts/scrape_url.sh` run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
    `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
 6. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
@@ -1033,19 +1214,51 @@ For `url-scrape`:
 9. Return either the raw scrape output or a summary, depending on what the user asked for.
 10. Save output with `--output` when a file is useful.
 
-### AI platform asks through local Chrome
+### AI platform asks through Chrome Extension
 
 For `google-search-extension`, `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`:
 
 1. Extract one or more prompts and any user-provided optional timeout/output format. Accept repeated `--prompt`/`--question` values or `--prompt-file` with one prompt per non-empty line.
 2. Use the matching fixed-provider script: `search_google_extension.sh`, `ask_chatgpt.sh`, `ask_gemini.sh`, `ask_perplexity.sh`, `ask_deepseek.sh`, or `ask_doubao.sh`.
-3. Do not use or request `FREVANA_TOKEN`; this workflow uses the local Frevana daemon and Chrome session.
+3. Use the local Frevana daemon and Chrome Extension session.
 4. Let the script run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
    `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
 5. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
 6. If the daemon health check still fails after setup, report that setup already ran but the daemon is not healthy.
 7. If the platform returns login/auth content or the call fails because that platform is unavailable, tell the user to log in to that platform in Chrome.
 8. Return text output by default. If the user asks for JSON, pass `--format json` and return structured JSON with `provider`, `count`, and `results`.
+9. Save output with `--output` when useful.
+
+### Amazon page research through Chrome Extension
+
+For `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`:
+
+1. Extract the full Amazon product page URL and any user-provided optional fields.
+2. Require a URL containing `/dp/<ASIN>` or `/gp/product/<ASIN>`. If the user gives only a product name, ASIN, search page, category page, or homepage, ask for the full product page URL.
+3. Use the matching fixed-provider script: `ask_amazon_rufus.sh`, `get_amazon_product_info.sh`, `get_amazon_top_reviews.sh`, `get_amazon_price.sh`, or `get_amazon_rufus_qa.sh`.
+4. Use the local Frevana daemon and Chrome Extension session.
+5. Let the script run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
+   `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
+6. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
+7. If the daemon health check still fails after setup, report that setup already ran but the daemon is not healthy.
+8. If Amazon returns login/auth content or the call fails because Amazon is unavailable, tell the user to log in to Amazon in Chrome.
+9. Amazon calls are slow. If a call errors or times out, report the error and do not immediately retry in the same turn.
+10. Return text output by default. If the user asks for JSON, pass `--format json` and return structured JSON with `provider`, `prompt`, and `answer`.
+11. Save output with `--output` when useful.
+
+### Social publishing through Chrome Extension
+
+For `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`:
+
+1. Confirm the user explicitly asked to publish, not just draft or edit.
+2. Extract final post `text` or `text_file`, and any LinkedIn article fields.
+3. Use the matching fixed-provider script: `publish_twitter_post.sh`, `publish_facebook_post.sh`, or `publish_linkedin_post.sh`.
+4. Use the local Frevana daemon and Chrome Extension session.
+5. Let the script run bundled `scripts/setup.sh` before every Frevana tool call, matching the original Frevana skill flow.
+   `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
+6. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
+7. If publishing fails because the platform is unavailable or not logged in, tell the user to log in to that platform in Chrome.
+8. Return text output by default. If the user asks for JSON, pass `--format json`.
 9. Save output with `--output` when useful.
 
 ### Frevana image skills
@@ -1091,7 +1304,7 @@ Needed:
 - `python3`
 - `FREVANA_TOKEN`
 
-### X/Twitter local topic search workflow
+### Chrome Extension workflows
 
 Needed:
 
@@ -1101,33 +1314,8 @@ Needed:
 - bundled `scripts/setup.sh`, which downloads and executes the latest official Frevana setup script
 - `frevana` local binary, or network access to GitHub Releases when setup needs to install it
 - Frevana local daemon
-- Chrome connected through Frevana
-- active X/Twitter login in Chrome
-
-### URL scrape local Chrome workflow
-
-Needed:
-
-- `bash`
-- `curl`
-- `python3`
-- bundled `scripts/setup.sh`, which downloads and executes the latest official Frevana setup script
-- `frevana` local binary, or network access to GitHub Releases when setup needs to install it
-- Frevana local daemon
-- Chrome connected through Frevana
-
-### AI platform ask local Chrome workflows
-
-Needed:
-
-- `bash`
-- `curl`
-- `python3`
-- bundled `scripts/setup.sh`, which downloads and executes the latest official Frevana setup script
-- `frevana` local binary, or network access to GitHub Releases when setup needs to install it
-- Frevana local daemon
-- Chrome connected through Frevana
-- active login in the target platform in Chrome
+- Chrome connected through the Frevana Chrome Extension
+- active login in the target site/platform in Chrome when the skill needs authenticated browser state
 
 ### Frevana image and report workflows
 
@@ -1138,7 +1326,7 @@ Needed:
 - `python3` for image scripts
 - `FREVANA_TOKEN`
 
-If `FREVANA_TOKEN` is missing in a non-interactive run, stop and tell the user to set `FREVANA_TOKEN` or pass `--token` explicitly when the script supports it.
+For token-backed workflows, if `FREVANA_TOKEN` is missing in a non-interactive run, stop and tell the user to set `FREVANA_TOKEN` or pass `--token` explicitly when the script supports it.
 
 Never echo bearer tokens back to the user.
 

@@ -76,7 +76,6 @@ This is an interactive CLI flow. Expect:
 ## Notes
 
 - Use this skill before other Frevana CLI workflows when the machine has not been authenticated yet.
-- This skill does not require `FREVANA_TOKEN`.
 - The wrapper script intentionally does not pre-check `frevana` before every run. It installs only after the login command proves unavailable.
 - The wrapper script does not rely on the CLI's internal default server. It explicitly uses `https://api.frevana.com` unless overridden.
 - If the current environment blocks global npm installs, request approval before running the install step.

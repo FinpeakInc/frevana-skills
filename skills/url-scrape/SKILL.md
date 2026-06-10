@@ -1,15 +1,15 @@
 ---
 name: url-scrape
-description: Use when the user wants to scrape any URL or web page as Markdown/text through the local Frevana Chrome-backed browser tool, including authenticated pages using the user's Chrome login session.
+description: Use when the user wants to scrape any URL or web page as Markdown/text through the local Frevana Chrome Extension-backed browser tool, including authenticated pages using the user's Chrome Extension login session.
 ---
 
 # URL Scrape
 
-Scrape any URL through the local Frevana daemon and Chrome session.
+Scrape any URL through the local Frevana daemon and Chrome Extension session.
 
 ## Purpose
 
-This skill is for **scraping a web page URL** using the Chrome-backed Frevana MCP tool `frevana_scrape`.
+This skill is for **scraping a web page URL** using the Chrome Extension-backed Frevana MCP tool `frevana_scrape`.
 
 Inputs:
 
@@ -28,12 +28,12 @@ Summarize the scraped content unless the user asks for the raw scrape output.
 - user-provided absolute `url`
 - bundled `scripts/setup.sh` wrapper, which downloads and runs the latest official Frevana setup script
 - Frevana local daemon running after setup, default port `12306`
-- Chrome connected through Frevana
+- Chrome connected through the Frevana Chrome Extension
 - `curl`
 - `bash`
 - `python3`
 
-This skill uses the local daemon and Chrome session. It does not use `FREVANA_TOKEN`.
+This is a Chrome Extension skill. It uses the local daemon and Chrome Extension session.
 
 ## Execution Order
 
@@ -112,7 +112,6 @@ Do not pass unsupported fields to `frevana_scrape`.
 - The script runs bundled `scripts/setup.sh` before every scrape, matching the original Frevana skill flow.
 - `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
 - If `frevana` is missing, the official setup script installs the Frevana binary before starting/checking the daemon.
-- Do not ask for or echo bearer tokens; this workflow is local-daemon based.
 
 ## Example Prompts
 

@@ -1,15 +1,15 @@
 ---
 name: perplexity-ask
-description: Use when the user wants to ask Perplexity a question through Frevana using the user's logged-in Chrome session.
+description: Use when the user wants to ask Perplexity a question through Frevana using the user's logged-in Chrome Extension session.
 ---
 
 # Perplexity Ask
 
-Ask Perplexity through the local Frevana daemon and Chrome session.
+Ask Perplexity through the local Frevana daemon and Chrome Extension session.
 
 ## Purpose
 
-This skill is for **asking Perplexity a prompt** using the Chrome-backed Frevana MCP tool `frevana_ask` with fixed provider `perplexity`.
+This skill is for **asking Perplexity a prompt** using the Chrome Extension-backed Frevana MCP tool `frevana_ask` with fixed provider `perplexity`.
 
 Inputs:
 
@@ -29,13 +29,13 @@ Return the answer directly unless the user asks for raw output or a saved file.
 - user-provided `prompt`
 - bundled `scripts/setup.sh` wrapper, which downloads and runs the latest official Frevana setup script
 - Frevana local daemon running after setup, default port `12306`
-- Chrome connected through Frevana
+- Chrome connected through the Frevana Chrome Extension
 - the user logged in to Perplexity in Chrome
 - `curl`
 - `bash`
 - `python3`
 
-This skill uses the local daemon and Chrome session. It does not use `FREVANA_TOKEN`.
+This is a Chrome Extension skill. It uses the local daemon and Chrome Extension session.
 
 ## Execution Order
 
@@ -104,7 +104,6 @@ Always send `provider: "perplexity"`. Do not pass unsupported fields.
 - `--format` must be `text` or `json`; default is `text`.
 - `--timeout` must be a positive integer when provided.
 - `scripts/setup.sh` downloads and executes the latest official setup script from `https://raw.githubusercontent.com/FinpeakInc/frevana-cli-releases/refs/heads/main/skills/frevana/scripts/setup.sh`.
-- Do not ask for or echo bearer tokens; this workflow is local-daemon based.
 
 ## Example Prompts
 

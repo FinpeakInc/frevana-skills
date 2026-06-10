@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Amazon research, eBay search, Home Depot search, Walmart search and product intelligence, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Immersive Product research, YouTube Search, URL scraping, AI platform asks, X/Twitter topic search, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -12,7 +12,7 @@ Install the skill pack:
 npx skills add FinpeakInc/frevana-skills
 ```
 
-For local script usage from this repository, set a Frevana bearer token:
+For API-backed script usage from this repository, set a Frevana bearer token:
 
 ```bash
 export FREVANA_TOKEN="your-bearer-token"
@@ -26,7 +26,7 @@ bash skills/walmart-search/scripts/search_walmart.sh --query "wireless earbuds"
 bash skills/home-depot-search/scripts/search_home_depot.sh --q "cordless drill"
 ```
 
-Most API-backed scripts validate the response as JSON, save it under `./out/`, and print the same JSON to stdout. Do not commit generated files from `out/` unless you intentionally need a fixture or example output.
+Most API-backed scripts validate the response as JSON, save it under `./out/`, and print the same JSON to stdout. Chrome Extension skills instead use the local Frevana daemon plus the user's logged-in Chrome Extension session, and run their bundled `scripts/setup.sh` before calling Frevana.
 
 ## Skill Index
 
@@ -36,6 +36,11 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Amazon | [`amazon-search`](skills/amazon-search/SKILL.md) | Amazon product search and discovery | keyword |
 | Amazon | [`amazon-product`](skills/amazon-product/SKILL.md) | Amazon product detail lookup | ASIN |
 | Amazon | [`amazon-keyword-search-volume`](skills/amazon-keyword-search-volume/SKILL.md) | Amazon keyword demand and comparison | one or more keywords |
+| Chrome Extension - Amazon | [`amazon-rufus-ai`](skills/amazon-rufus-ai/SKILL.md) | Ask Amazon Rufus AI about a product through Chrome Extension | product URL and question |
+| Chrome Extension - Amazon | [`amazon-product-info`](skills/amazon-product-info/SKILL.md) | Extract Amazon product page details through Chrome Extension | product URL |
+| Chrome Extension - Amazon | [`amazon-top-reviews`](skills/amazon-top-reviews/SKILL.md) | Fetch top helpful Amazon reviews through Chrome Extension | product URL |
+| Chrome Extension - Amazon | [`amazon-price`](skills/amazon-price/SKILL.md) | Extract Amazon price, discount, and coupon info through Chrome Extension | product URL |
+| Chrome Extension - Amazon | [`amazon-rufus-qa`](skills/amazon-rufus-qa/SKILL.md) | Extract Amazon Rufus suggested Q&A pairs through Chrome Extension | product URL |
 | Marketplace | [`ebay-search`](skills/ebay-search/SKILL.md) | eBay listing search by keyword or category | query or category ID |
 | Marketplace | [`home-depot-search`](skills/home-depot-search/SKILL.md) | Home Depot product search | query |
 | Walmart | [`walmart-search`](skills/walmart-search/SKILL.md) | Walmart product search and filtering | query |
@@ -52,14 +57,17 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
-| Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through local Frevana and Chrome | URL |
-| Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through local Frevana and Chrome | one or more queries |
-| AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through local Frevana and Chrome | one or more prompts |
-| AI | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through local Frevana and Chrome | one or more prompts |
-| AI | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through local Frevana and Chrome | one or more prompts |
-| AI | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through local Frevana and Chrome | one or more prompts |
-| AI | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through local Frevana and Chrome | one or more prompts |
-| Social Media | [`x-topic-search`](skills/x-topic-search/SKILL.md) | X/Twitter posts by topic through local Frevana and Chrome | topic |
+| Chrome Extension - Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through Chrome Extension | URL |
+| Chrome Extension - Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through Chrome Extension | one or more queries |
+| Chrome Extension - AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through Chrome Extension | one or more prompts |
+| Chrome Extension - AI | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through Chrome Extension | one or more prompts |
+| Chrome Extension - AI | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through Chrome Extension | one or more prompts |
+| Chrome Extension - AI | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through Chrome Extension | one or more prompts |
+| Chrome Extension - AI | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through Chrome Extension | one or more prompts |
+| Chrome Extension - Social | [`x-topic-search`](skills/x-topic-search/SKILL.md) | X/Twitter posts by topic through Chrome Extension | topic |
+| Chrome Extension - Social | [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) | Publish to Twitter/X through Chrome Extension | final text |
+| Chrome Extension - Social | [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) | Publish to Facebook through Chrome Extension | final text |
+| Chrome Extension - Social | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn through Chrome Extension | final text |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
@@ -67,6 +75,19 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
 Use the table to pick a skill quickly. Use the detailed sections below for options, defaults, and save behavior.
+
+## Chrome Extension Skills
+
+The Chrome Extension skills are:
+
+- `url-scrape`
+- `google-search-extension`
+- `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`
+- `x-topic-search`
+- `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`
+- `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
+
+These skills use the local Frevana daemon and the user's logged-in Chrome Extension session via the Frevana Chrome Extension. Each one runs its bundled `scripts/setup.sh` wrapper before calling Frevana; that wrapper downloads and executes the official Frevana setup script, installs the CLI when needed, starts/checks the daemon, and verifies Chrome Extension connectivity.
 
 ## Skill Details
 
@@ -138,6 +159,37 @@ Features:
 - defaults to `United States / English` when marketplace is not specified
 - supported marketplaces: Australia, Austria, Canada, Egypt, France, Germany, India, Italy, Mexico, Netherlands, Saudi Arabia, Singapore, Spain, United Arab Emirates, United Kingdom, United States
 - save results with `--output`
+
+### Amazon Chrome Extension Skills
+
+Use Amazon's product page and Rufus features through the local Frevana daemon and Chrome Extension session.
+
+Skills:
+
+- [`amazon-rufus-ai`](skills/amazon-rufus-ai/SKILL.md) uses provider `amazon-rufus`
+- [`amazon-product-info`](skills/amazon-product-info/SKILL.md) uses provider `amazon-product`
+- [`amazon-top-reviews`](skills/amazon-top-reviews/SKILL.md) uses provider `amazon-product-reviews`
+- [`amazon-price`](skills/amazon-price/SKILL.md) uses provider `amazon-price`
+- [`amazon-rufus-qa`](skills/amazon-rufus-qa/SKILL.md) uses provider `amazon-rufus-qa`
+
+Use when:
+
+- you have a full Amazon product page URL
+- you want Rufus answers, product page details, top reviews, price/coupon info, or suggested Q&A
+- you want local Frevana Chrome Extension automation using the user's Chrome Extension session
+
+Features:
+
+- requires a URL containing `/dp/<ASIN>` or `/gp/product/<ASIN>`
+- does not accept product names, Amazon search pages, category pages, or the Amazon homepage
+- `amazon-rufus-ai` also requires `--question`
+- `amazon-top-reviews` supports `--max-reviews`, `--sort-by`, `--reviewer-type`, and `--filter-by-star`
+- `--format` supports `text` or `json`, defaulting to `text`
+- optional `--timeout`
+- runs bundled `scripts/setup.sh` before every call, matching the original Frevana skill flow
+- setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- requires the local Frevana daemon, Chrome Extension connection, and Amazon login in Chrome
+- save output with `--output`
 
 ### [`ebay-search`](skills/ebay-search/SKILL.md)
 
@@ -423,7 +475,7 @@ Features:
 
 ### [`x-topic-search`](skills/x-topic-search/SKILL.md)
 
-Search X/Twitter posts by topic through the local Frevana daemon and Chrome session.
+Search X/Twitter posts by topic through the local Frevana daemon and Chrome Extension session.
 
 Use when:
 
@@ -438,18 +490,18 @@ Features:
 - optional flags for replies, quotes, and media metadata
 - runs bundled `scripts/setup.sh` before every search, matching the original Frevana skill flow
 - setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
-- requires the local Frevana daemon, Chrome connection, and X/Twitter login in Chrome
+- requires the local Frevana daemon, Chrome Extension connection, and X/Twitter login in Chrome
 - save output with `--output`
 
 ### [`url-scrape`](skills/url-scrape/SKILL.md)
 
-Scrape any URL through the local Frevana daemon and Chrome session.
+Scrape any URL through the local Frevana daemon and Chrome Extension session.
 
 Use when:
 
 - you want web page content from a URL
 - you want clean Markdown extraction from a page
-- you need Chrome-authenticated scraping using the user's logged-in browser session
+- you need Chrome Extension-authenticated scraping using the user's logged-in Chrome Extension session
 
 Features:
 
@@ -460,9 +512,9 @@ Features:
 - setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
 - save output with `--output`
 
-### AI Platform Ask Skills
+### AI Platform Chrome Extension Skills
 
-Ask AI platforms through the local Frevana daemon and Chrome session.
+Ask AI platforms through the local Frevana daemon and Chrome Extension session.
 
 Skills:
 
@@ -476,9 +528,9 @@ Skills:
 Use when:
 
 - you want to ask one of these AI platforms a prompt
-- you want to search Google through the user's Chrome browser session
-- you want to use the user's logged-in Chrome session
-- you want local Frevana browser automation rather than API-key access
+- you want to search Google through the user's Chrome Extension session
+- you want to use the user's logged-in Chrome Extension session
+- you want local Frevana Chrome Extension automation rather than API-key access
 
 Features:
 
@@ -489,6 +541,34 @@ Features:
 - each skill fixes the provider and does not ask for a provider value
 - runs bundled `scripts/setup.sh` before every ask, matching the original Frevana skill flow
 - setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- save output with `--output`
+
+### Social Publishing Chrome Extension Skills
+
+Publish to social platforms through the local Frevana daemon and Chrome Extension session.
+
+Skills:
+
+- [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) uses provider `twitter`
+- [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) uses provider `facebook`
+- [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) uses provider `linkedin`
+
+Use when:
+
+- the user explicitly asks to publish a final post
+- the target is Twitter/X, Facebook, or LinkedIn
+- you need to publish with the user's logged-in Chrome Extension session
+
+Features:
+
+- each skill fixes the provider and does not ask for a provider value
+- requires final `--text` or `--text-file`
+- `publish-linkedin-post` article mode supports `--mode article`, `--title`, and `--cover-image`
+- `--format` supports `text` or `json`, defaulting to `text`
+- optional `--timeout`
+- runs bundled `scripts/setup.sh` before every publish call, matching the original Frevana skill flow
+- setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- requires the local Frevana daemon, Chrome Extension connection, and target-platform login in Chrome
 - save output with `--output`
 
 ### [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md)
@@ -582,15 +662,13 @@ Features:
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
-- URL Scrape skill: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, and Chrome connection.
-- AI Platform Ask skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome connection, and login to the target platform in Chrome.
-- X Topic Search skill: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome connection, and X/Twitter login in Chrome.
+- Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
 
 - Prefer the script in each skill's `scripts/` directory over ad hoc API calls.
-- Let scripts read `FREVANA_TOKEN` from the environment unless you intentionally pass a one-time `--token`.
+- For API-backed scripts, let scripts read `FREVANA_TOKEN` from the environment unless you intentionally pass a one-time `--token`.
 - Treat bearer tokens as secrets. Do not paste them into logs, docs, or shared examples.
 - Most search scripts save successful responses to `./out/<skill>-<UTC timestamp>-<pid>.json` by default.
 - Use `--output` only when you need a deterministic result path.
