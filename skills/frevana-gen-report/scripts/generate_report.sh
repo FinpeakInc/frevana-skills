@@ -4,6 +4,7 @@ set -euo pipefail
 
 API_URL="https://ai-factory.frevana.com/report/generate"
 TARGET_PLATFORM="generate_auto_formating_content"
+DEFAULT_TEMPLATE_ID="mckinsey-style-report-2"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 
@@ -22,12 +23,12 @@ json_escape() {
 usage() {
   cat <<'EOF'
 Usage:
-  generate_report.sh (--content "report content" | --content-file /path/to/content.txt) --template-id "template id" [--output /path/to/report.html] [--token "bearer token"]
+  generate_report.sh (--content "report content" | --content-file /path/to/content.txt) [--template-id "template id"] [--output /path/to/report.html] [--token "bearer token"]
 
 Options:
   --content        Report content to send
   --content-file   Read report content from a file
-  --template-id    Frevana report template ID
+  --template-id    Frevana report template ID (default: mckinsey-style-report-2)
   --output         Optional file path for saving returned HTML
   --token          Optional Bearer token override for this run
   -h, --help       Show this help message
@@ -92,10 +93,7 @@ if [[ -n "$CONTENT_FILE" ]]; then
   CONTENT="$(<"$CONTENT_FILE")"
 fi
 
-if [[ -z "$TEMPLATE_ID" ]]; then
-  echo "Missing required argument: --template-id" >&2
-  exit 1
-fi
+TEMPLATE_ID="${TEMPLATE_ID:-$DEFAULT_TEMPLATE_ID}"
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required but was not found in PATH." >&2

@@ -1117,11 +1117,11 @@ Route here when the user wants:
 
 Required input:
 
-- `template_id`
 - exactly one of `content` or `content_file`
 
 Optional input:
 
+- `template_id` (defaults to `mckinsey-style-report-2` when omitted)
 - output HTML path
 - one-time token override
 
@@ -1153,7 +1153,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
-- If the user asks for Frevana report generation without `template_id`, ask for `template_id`.
+- If the user asks for Frevana report generation without `template_id`, use the default `mckinsey-style-report-2`.
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
 
 ## Execution Order Rules
@@ -1276,12 +1276,13 @@ For `gpt-image-2`, `nano-banana-2`, and `nano-banana-pro`:
 
 For `frevana-gen-report`:
 
-1. Confirm `template_id` and exactly one content source.
+1. Confirm exactly one content source.
 2. Prefer `scripts/generate_report.sh` over manual API calls.
-3. Let the script use `FREVANA_TOKEN` from the environment first.
-4. In non-interactive agent runs, fail fast if the token is missing.
-5. Extract the response JSON `content` field and treat it as the final HTML.
-6. Return that HTML unchanged unless the user asks for a later transformation.
+3. If the user does not provide `template_id`, let the script default to `mckinsey-style-report-2`.
+4. Let the script use `FREVANA_TOKEN` from the environment first.
+5. In non-interactive agent runs, fail fast if the token is missing.
+6. Extract the response JSON `content` field and treat it as the final HTML.
+7. Return that HTML unchanged unless the user asks for a later transformation.
 
 ## Dependency Rules
 
@@ -1796,7 +1797,6 @@ bash skills/nano-banana-pro/scripts/generate_image.sh \
 ```bash
 bash skills/frevana-gen-report/scripts/generate_report.sh \
   --content-file ./report-content.md \
-  --template-id "medium-article-template-v2" \
   --output ./out/frevana-report.html
 ```
 

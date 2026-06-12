@@ -13,7 +13,7 @@ This skill is for **Frevana HTML generation**.
 
 Inputs:
 - `content`
-- `template_id`
+- `template_id` (optional; defaults to `mckinsey-style-report-2`)
 
 Output:
 - final HTML extracted from the Frevana API response JSON's `content` field
@@ -23,7 +23,7 @@ The API returns JSON in the shape `{"content": "<html>..."}`. This skill extract
 ## What This Skill Needs
 
 - user-provided `content` or `content_file`
-- user-provided `template_id`
+- optional user-provided `template_id`; when omitted, use `mckinsey-style-report-2`
 - `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
@@ -32,14 +32,15 @@ The API returns JSON in the shape `{"content": "<html>..."}`. This skill extract
 
 Use this flow so the request stays simple and reliable:
 
-1. Confirm the user has provided `template_id` and either `content` or `content_file`.
+1. Confirm the user has provided either `content` or `content_file`.
 2. Prefer the script over ad hoc `curl` commands.
-3. Let the script read `FREVANA_TOKEN` first.
-4. In interactive shell usage, if `FREVANA_TOKEN` is missing, the script may prompt for it.
-5. In non-interactive or agent workflows, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token` explicitly.
-6. Parse the response JSON and extract its `content` field.
-7. Return that extracted HTML exactly as provided in `content`.
-8. When useful, also save it to an `.html` file.
+3. If the user does not provide `template_id`, let the script default to `mckinsey-style-report-2`.
+4. Let the script read `FREVANA_TOKEN` first.
+5. In interactive shell usage, if `FREVANA_TOKEN` is missing, the script may prompt for it.
+6. In non-interactive or agent workflows, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token` explicitly.
+7. Parse the response JSON and extract its `content` field.
+8. Return that extracted HTML exactly as provided in `content`.
+9. When useful, also save it to an `.html` file.
 
 ## Commands
 
@@ -47,8 +48,7 @@ Use this flow so the request stays simple and reliable:
 
 ```bash
 bash <skill-path>/scripts/generate_report.sh \
-  --content "report content" \
-  --template-id "report template id"
+  --content "report content"
 ```
 
 ### Content from file
@@ -57,8 +57,7 @@ Use this for long or multi-line content.
 
 ```bash
 bash <skill-path>/scripts/generate_report.sh \
-  --content-file ./report-content.md \
-  --template-id "report template id"
+  --content-file ./report-content.md
 ```
 
 ### Save returned HTML to a file
@@ -66,7 +65,6 @@ bash <skill-path>/scripts/generate_report.sh \
 ```bash
 bash <skill-path>/scripts/generate_report.sh \
   --content-file ./report-content.md \
-  --template-id "report template id" \
   --output ./out/frevana-report.html
 ```
 
@@ -88,7 +86,7 @@ The script sends this payload shape:
 ```json
 {
   "content": "report content",
-  "template_id": "report template id",
+  "template_id": "report template id or mckinsey-style-report-2 when omitted",
   "target_platform": "generate_auto_formating_content"
 }
 ```
@@ -117,7 +115,8 @@ This skill extracts `content` and returns only that HTML.
 ## Notes
 
 - Require exactly one of `--content` or `--content-file`
-- If either content input or `template_id` is missing, stop and ask for it
+- If content input is missing, stop and ask for it
+- If `template_id` is missing, default to `mckinsey-style-report-2`
 - If `curl` is missing, stop and tell the user to install `curl`
 - If `bash` is unavailable, stop and tell the user to run the script in a Bash environment
 - Do not echo the Bearer token back to the user
