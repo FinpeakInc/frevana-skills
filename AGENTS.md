@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
-- Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, and YouTube Search lookups through Frevana-backed HTTP APIs
+- Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, YouTube Search, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - Frevana AI Factory API workflows for image generation and HTML generation
 
@@ -24,6 +24,7 @@ The following skills are Chrome Extension skills:
 - `google-search-extension`
 - `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`
 - `x-topic-search`
+- `reddit-search`
 - `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`
 - `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
 
@@ -113,6 +114,10 @@ skills/
   youtube-search/
     SKILL.md
     scripts/search_youtube.sh
+  reddit-search/
+    SKILL.md
+    scripts/setup.sh
+    scripts/search_reddit.sh
   url-scrape/
     SKILL.md
     scripts/setup.sh
@@ -736,6 +741,31 @@ Optional input:
 
 The user can provide only `search_query`. Do not invent optional `sp`, country, or language fields when the user did not provide them.
 The Frevana endpoint schema currently exposes only `search_query`, `sp`, `hl`, and `gl`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+
+### Use `reddit-search`
+
+Route here when the user wants:
+
+- Reddit search results by keyword or query
+- recent Reddit link posts for a topic
+- top Reddit link posts for a topic
+- paginated Reddit search using an `after` token
+- to call `https://www.reddit.com/search.json`
+
+Required input:
+
+- `q` search query
+
+Optional input:
+
+- `sort` (`new` or `top`, defaults to `new`)
+- `limit` (defaults to `25`, max `100`)
+- `after`
+- output file path
+
+The user can provide only `q`. Always keep `type` fixed to `link`. Do not invent optional sort, limit, or pagination fields when the user did not provide them, except for the documented defaults `sort=new` and `limit=25`.
+The script uses the local Frevana daemon and Chrome Extension session through `frevana_scrape`; it does not require `FREVANA_TOKEN`. It supports only `q`, fixed `type=link`, `sort`, `limit`, `after`, timeout, and output path; do not pass unsupported Reddit Search fields.
+The script first scrapes `https://www.reddit.com/` to warm up the browser/extension session, then scrapes the `search.json` URL and extracts validated JSON. Do not ask the user to pass Reddit cookies manually.
 
 ### Use `x-topic-search`
 

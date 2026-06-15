@@ -57,6 +57,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
+| Chrome Extension - Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Reddit link-post search by query through Chrome Extension | query |
 | Chrome Extension - Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through Chrome Extension | URL |
 | Chrome Extension - Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through Chrome Extension | one or more queries |
 | Chrome Extension - AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through Chrome Extension | one or more prompts |
@@ -471,6 +472,27 @@ Features:
 
 - `search_query` is the only required input
 - optional `--sp`, `--hl`, and `--gl`
+- save results with `--output`
+
+### [`reddit-search`](skills/reddit-search/SKILL.md)
+
+Search Reddit link posts by query.
+
+Use when:
+
+- you want Reddit search results for a query
+- you want recent or top Reddit link posts
+- you have an `after` token from a previous Reddit Search response and want the next page
+
+Features:
+
+- `q` is the only required input
+- `type` is fixed to `link`
+- optional `--sort` supports `new` and `top`, defaulting to `new`
+- optional `--limit` defaults to `25` and is capped at `100`
+- optional `--after` continues pagination using `data.after` from the previous response
+- uses the local Frevana Chrome Extension session
+- first scrapes `https://www.reddit.com/` to warm up the browser session, then scrapes the `search.json` URL
 - save results with `--output`
 
 ### [`x-topic-search`](skills/x-topic-search/SKILL.md)
