@@ -1,0 +1,4 @@
+interface:
+  display_name: "SendGrid Send Email"
+  short_description: "Send transactional email with SendGrid Mail Send API."
+  default_prompt: "Send an email with SendGrid"

@@ -12,6 +12,7 @@ This repository contains reusable skills for four main workflow families:
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, YouTube Search, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
+- SendGrid Mail Send API workflows for transactional email sending
 - Frevana AI Factory API workflows for image generation and HTML generation
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -114,6 +115,10 @@ skills/
   youtube-search/
     SKILL.md
     scripts/search_youtube.sh
+  sendgrid-send-email/
+    SKILL.md
+    scripts/send_email.sh
+    scripts/query_email_logs.sh
   reddit-search/
     SKILL.md
     scripts/setup.sh
@@ -767,6 +772,65 @@ The user can provide only `q`. Always keep `type` fixed to `link`. Do not invent
 The script uses the local Frevana daemon and Chrome Extension session through `frevana_scrape`; it does not require `FREVANA_TOKEN`. It supports only `q`, fixed `type=link`, `sort`, `limit`, `after`, timeout, and output path; do not pass unsupported Reddit Search fields.
 The script first scrapes `https://www.reddit.com/` to warm up the browser/extension session, then scrapes the `search.json` URL and extracts validated JSON. Do not ask the user to pass Reddit cookies manually.
 
+### Use `sendgrid-send-email`
+
+Route here when the user wants:
+
+- to send transactional email through SendGrid
+- to call the Twilio SendGrid v3 Mail Send API
+- to query SendGrid Email Logs / send status by recipient, optional subject, sent-at lower bound, and message ID
+- a SendGrid dry-run payload before sending
+- SendGrid plain text, HTML, dynamic template, attachment, sandbox, or scheduled-send email
+
+Required input:
+
+- sender email through `--from`; this address should be a verified sender in the user's Twilio SendGrid account
+- one or more recipient emails
+- subject, unless provided by a dynamic template
+- message content through plain text, HTML, or `template_id`
+
+For status lookup:
+
+- `to_email`, `sent_at`, and `message_id` for lower-bound lookup plus fuzzy `sg_message_id` matching
+- optional `subject` to narrow Email Logs results
+- or raw Email Logs `query`
+
+Optional input:
+
+- cc or bcc recipients
+- reply-to
+- dynamic template data JSON
+- attachments
+- business correlation ID through `--business-id`; auto-generated when omitted
+- categories
+- custom args
+- `batch_id`
+- `send_at` Unix seconds
+- sandbox mode
+- private recipients
+- API region (`global` or `eu`)
+- output file path
+- one-time API key override
+
+Important behavior:
+
+- Use `SENDGRID_API_KEY`, not `FREVANA_TOKEN` and not Twilio Account SID/Auth Token credentials.
+- API key lookup order is `--api-key`, then `SENDGRID_API_KEY`, then the locally saved key at `~/.config/sendgrid-send-email/api_key`.
+- Require the user to provide `from`. This address should be a verified sender in the user's Twilio SendGrid account.
+- If no API key is available, the scripts prompt once in interactive runs and save the key locally for future runs. In non-interactive runs, guide the user to read `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration` to get the required configuration.
+- Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
+- Prefer `scripts/send_email.sh` over ad hoc `curl`.
+- For status lookup, prefer `scripts/query_email_logs.sh` over ad hoc `curl`.
+- The script dry-runs by default and requires `--send` to call SendGrid.
+- After a successful send with `x-message-id`, the script returns `status_query.prompt_example` as a concise user-facing example for querying Email Logs later, plus `status_query.query_params` for agent use. Do not display shell scripts unless the user asks.
+- For dynamic template sends, do not include `--subject` when querying Email Logs status. The template may override the request subject, so subject filtering can hide matching messages.
+- Every request includes `custom_args.business_id` for application-side correlation. Use `--business-id` when the user provides a business-specific ID; otherwise let the script generate one.
+- Do not pass `business_id` through `--custom-arg`; it is reserved for the generated or explicit business ID.
+- Confirm recipients, subject, and content before running with `--send`.
+- Treat HTTP `202` as queued, not delivered. Sandbox validation may return HTTP `200`.
+- Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
+- Use `--private-recipients` when multiple `to` recipients should not see each other.
+
 ### Use `x-topic-search`
 
 Route here when the user wants:
@@ -1184,6 +1248,7 @@ Use these rules to avoid bad assumptions:
 - If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
 - If the user asks for Frevana report generation without `template_id`, use the default `mckinsey-style-report-2`.
+- If the user asks to send SendGrid email without sender, recipient, or content details, ask for the missing fields before execution.
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
 
 ## Execution Order Rules
@@ -1212,6 +1277,30 @@ For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-sea
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
 6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
+
+### SendGrid email sending
+
+For `sendgrid-send-email`:
+
+1. Extract sender, recipients, subject, content, and any optional SendGrid fields. The sender should be a verified sender in the user's Twilio SendGrid account.
+2. Prefer `scripts/send_email.sh` over ad hoc `curl`.
+3. Run a dry run first unless the user has already explicitly approved the exact final send.
+4. Before using `--send`, confirm the final recipients, subject, content, sender, and whether sandbox mode is enabled.
+5. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key.
+6. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration`.
+7. Report SendGrid HTTP status, queued/sandbox status, business ID, `x-message-id`, and a concise prompt example for querying status when available.
+8. Do not present `202 Accepted` as delivery confirmation.
+
+For SendGrid status lookup:
+
+1. Extract `to_email`, `sent_at`, and `message_id`; include `subject` only when available.
+2. Prefer `scripts/query_email_logs.sh`.
+3. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key.
+4. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration`.
+5. Return matching Email Logs JSON or summarize `messages[].status`, `to_email`, `from_email`, `subject`, `reason`, and `sg_message_id`.
+6. Do not query by `custom_args.business_id`; use `--to`, `--sent-at`, and `--message-id` to narrow by recipient/time and fuzzy-match returned `sg_message_id`. Add `--subject` when available, except for template sends. Email Logs can append suffixes such as `.recvd-...` to `sg_message_id`, so treat the user-provided message ID as a prefix/substring match, not only an exact match.
+7. `--sent-at` is only a lower bound, but the script subtracts a 5-second default lookback before building `sg_message_id_created_at >= ...` to absorb SendGrid response/log timestamp skew. Do not use a time-window parameter.
+8. If Email Logs returns no data or no fuzzy `sg_message_id` match, ask the user to review `https://app.sendgrid.com/email_logs` manually.
 
 ### X/Twitter Chrome Extension topic search
 
@@ -1519,6 +1608,7 @@ bash skills/google-shopping-search/scripts/search_google_shopping.sh
 bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
 bash skills/google-immersive-product/scripts/search_google_immersive_product.sh
 bash skills/youtube-search/scripts/search_youtube.sh
+bash skills/sendgrid-send-email/scripts/send_email.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh

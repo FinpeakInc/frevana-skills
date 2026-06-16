@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -70,6 +70,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Chrome Extension - Social | [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) | Publish to Facebook through Chrome Extension | final text |
 | Chrome Extension - Social | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn through Chrome Extension | final text |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
+| Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -680,11 +681,35 @@ Features:
 - returns final HTML directly
 - supports saving the output with `--output`
 
+### [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md)
+
+Send transactional email through the Twilio SendGrid v3 Mail Send API.
+
+Use when:
+
+- you want to send email with a SendGrid API key
+- you need a dry-run payload preview before sending
+- you want plain text, HTML, dynamic template, attachment, sandbox, or scheduled-send fields
+
+Features:
+
+- calls `POST /v3/mail/send` directly with `SENDGRID_API_KEY` and a user-provided verified sender
+- dry-runs by default and requires `--send` for the actual side effect
+- can save the SendGrid API key locally after the first input, and supports later updates with `--api-key <key> --save-api-key`
+- automatically includes `custom_args.business_id` for application-side correlation, with `--business-id` override support
+- supports multiple recipients, cc, bcc, reply-to, categories, custom args, attachments, global region, and EU region
+- queries SendGrid Email Logs with `scripts/query_email_logs.sh` by recipient, optional subject, sent-at lower bound, status, and fuzzy `message_id` matching
+- subtracts a 5-second default lookback from `--sent-at` for Email Logs queries to handle SendGrid response/log timestamp skew
+- omits subject from suggested status lookups for template sends, because templates can override the final subject
+- reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
+- points users to <https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration> when SendGrid configuration is missing
+
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
+- SendGrid email skill: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
