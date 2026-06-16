@@ -14,6 +14,7 @@ This repository contains reusable skills for four main workflow families:
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
 - Frevana AI Factory API workflows for image generation and HTML generation
+- MySQL CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -119,6 +120,10 @@ skills/
     SKILL.md
     scripts/send_email.sh
     scripts/query_email_logs.sh
+  mysql-crud/
+    SKILL.md
+    agents/openai.yaml
+    scripts/mysql_crud.sh
   reddit-search/
     SKILL.md
     scripts/setup.sh
@@ -771,6 +776,43 @@ Optional input:
 The user can provide only `q`. Always keep `type` fixed to `link`. Do not invent optional sort, limit, or pagination fields when the user did not provide them, except for the documented defaults `sort=new` and `limit=25`.
 The script uses the local Frevana daemon and Chrome Extension session through `frevana_scrape`; it does not require `FREVANA_TOKEN`. It supports only `q`, fixed `type=link`, `sort`, `limit`, `after`, timeout, and output path; do not pass unsupported Reddit Search fields.
 The script first scrapes `https://www.reddit.com/` to warm up the browser/extension session, then scrapes the `search.json` URL and extracts validated JSON. Do not ask the user to pass Reddit cookies manually.
+
+### Use `mysql-crud`
+
+Route here when the user wants:
+
+- to configure and save reusable MySQL database connection profiles
+- MySQL schema inspection, table listing, or column listing
+- MySQL `select`, `insert`, `update`, or `delete` operations
+- safe MySQL CRUD with dry-run previews and explicit write execution
+- to connect directly to MySQL
+- to connect to MySQL through an SSH tunnel
+- to SSH to a remote server first, read a remote `.env` `DATABASE_URL`, and run the remote `mysql` client there
+- to SSH to a remote server, `cd` into an application directory, read `.env`, and then connect to MySQL
+- to query a production-style database through a saved SSH alias without re-entering connection details
+
+Required input:
+
+- for configuration: profile name and connection mode (`direct`, `ssh-tunnel`, or `ssh-remote`)
+- for `direct`: a MySQL URL or explicit MySQL host/database/user fields
+- for `ssh-tunnel`: SSH target plus MySQL host/database/user fields
+- for `ssh-remote`: SSH target plus either a remote `env_file`/`env_key`, a MySQL URL, or explicit MySQL fields; use `remote_cwd` when `.env` is relative to an application directory
+- for CRUD: a saved profile or an existing default profile
+
+Important behavior:
+
+- Prefer `skills/mysql-crud/scripts/mysql_crud.sh` over ad hoc `mysql`, SSH, or SQL commands.
+- Connection profiles are saved locally under `~/.config/mysql-crud/profiles/` with `0600` permissions; do not store secrets in this repository.
+- Do not print passwords or full database URLs. Use `list-profiles` for redacted profile output.
+- Use `readonly` profiles for production or sensitive databases by default.
+- `readonly` profiles block `insert`, `update`, `delete`, and raw write SQL.
+- `insert`, `update`, and `delete` dry-run by default. Run with `--execute` only after explicit user confirmation.
+- `update` and `delete` require `--where` unless the user explicitly confirms a full-table operation and `--allow-full-table` is passed.
+- Use named parameters in filters, such as `--where "email = :email" --param email=user@example.com`.
+- Do not invent table or column names. Run `schema` first when uncertain.
+- For `ssh-remote`, the remote server needs `bash` and the `mysql` client.
+- For `ssh-remote`, pass `--remote-cwd` when the `.env` file exists only after changing into a project directory; pass `--env-file .env` for a relative file or an absolute env path when no working directory is needed.
+- For `direct` and `ssh-tunnel`, the local `mysql` client is required.
 
 ### Use `sendgrid-send-email`
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MySQL CRUD"
+  short_description: "Safely query and change MySQL data."
+  default_prompt: "Use $mysql-crud to inspect a MySQL table and safely query rows."

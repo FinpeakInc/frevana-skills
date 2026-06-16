@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, MySQL CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -71,6 +71,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Chrome Extension - Social | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn through Chrome Extension | final text |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
+| Database | [`mysql-crud`](skills/mysql-crud/SKILL.md) | MySQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -704,12 +705,34 @@ Features:
 - reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
 - points users to <https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration> when SendGrid configuration is missing
 
+### [`mysql-crud`](skills/mysql-crud/SKILL.md)
+
+Inspect, query, and safely change MySQL data through saved profiles.
+
+Use when:
+
+- you want to save database connection details so they do not need to be re-entered
+- you need MySQL schema inspection, selects, inserts, updates, deletes, or read-only raw SQL
+- you need to connect directly, through an SSH tunnel, or by SSHing to a server and using its remote `DATABASE_URL`
+
+Features:
+
+- stores profiles locally under `~/.config/mysql-crud/profiles/` with `0600` permissions
+- supports `direct`, `ssh-tunnel`, and `ssh-remote` modes
+- supports remote `.env` lookup for `DATABASE_URL` in `ssh-remote` mode, including `cd` into a remote app directory first
+- redacts passwords and full database URLs from profile listings
+- blocks writes on `readonly` profiles
+- dry-runs `insert`, `update`, and `delete` by default and requires `--execute` for actual writes
+- requires `--where` for `update` and `delete` unless explicitly overridden
+- saves JSON results under `./out/mysql-crud-*.json`
+
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
 - SendGrid email skill: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
+- MySQL CRUD skill: `bash`; plus local `mysql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mysql` for `ssh-remote`.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
@@ -749,6 +772,9 @@ Fetch Google Immersive Product details with page_token eyJlaSI6Im5ZVmxaOX...
 Search Google Shopping Light for wireless earbuds with gl=US and hl=en
 Search YouTube for mrbeast with gl=us and hl=en
 Search Reddit for mentions of https://example.com
+Configure mysql-crud profile frevana-prod through SSH alias fr, cd to /server/frevana-server-prod, and use .env DATABASE_URL as readonly
+Use mysql-crud to inspect the users table schema
+Use mysql-crud to query users where email is test@example.com
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
