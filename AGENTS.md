@@ -14,7 +14,7 @@ This repository contains reusable skills for four main workflow families:
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
 - Frevana AI Factory API workflows for image generation and HTML generation
-- MySQL CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
+- MySQL and PostgreSQL CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -124,6 +124,10 @@ skills/
     SKILL.md
     agents/openai.yaml
     scripts/mysql_crud.sh
+  postgresql-crud/
+    SKILL.md
+    agents/openai.yaml
+    scripts/postgresql_crud.sh
   reddit-search/
     SKILL.md
     scripts/setup.sh
@@ -813,6 +817,51 @@ Important behavior:
 - For `ssh-remote`, the remote server needs `bash` and the `mysql` client.
 - For `ssh-remote`, pass `--remote-cwd` when the `.env` file exists only after changing into a project directory; pass `--env-file .env` for a relative file or an absolute env path when no working directory is needed.
 - For `direct` and `ssh-tunnel`, the local `mysql` client is required.
+
+### Use `postgresql-crud`
+
+Route here when the user wants:
+
+- to configure and save reusable PostgreSQL database connection profiles
+- PostgreSQL schema inspection, table listing, or column listing
+- PostgreSQL table listing across all non-system schemas
+- PostgreSQL `select`, `insert`, `update`, or `delete` operations
+- PostgreSQL table operations in a specific schema, defaulting to `public`
+- safe PostgreSQL CRUD with dry-run previews and explicit write execution
+- to connect directly to PostgreSQL
+- to connect to PostgreSQL through an SSH tunnel
+- to SSH to a remote server first, read a remote `.env` `DATABASE_URL`, and run the remote `psql` client there
+- to SSH to a remote server, `cd` into an application directory, read `.env`, and then connect to PostgreSQL
+- to query a production-style PostgreSQL database through a saved SSH alias without re-entering connection details
+
+Required input:
+
+- for configuration: profile name and connection mode (`direct`, `ssh-tunnel`, or `ssh-remote`)
+- for `direct`: a PostgreSQL URL or explicit PostgreSQL host/database/user fields
+- for `ssh-tunnel`: SSH target plus PostgreSQL host/database/user fields
+- for `ssh-remote`: SSH target plus either a remote `env_file`/`env_key`, a PostgreSQL URL, or explicit PostgreSQL fields; use `remote_cwd` when `.env` is relative to an application directory
+- for CRUD: a saved profile or an existing default profile
+
+Important behavior:
+
+- Prefer `skills/postgresql-crud/scripts/postgresql_crud.sh` over ad hoc `psql`, SSH, or SQL commands.
+- Connection profiles are saved locally under `~/.config/postgresql-crud/profiles/` with `0600` permissions; do not store secrets in this repository.
+- Do not print passwords or full database URLs. Use `list-profiles` for redacted profile output.
+- Use `readonly` profiles for production or sensitive databases by default.
+- `readonly` profiles block `insert`, `update`, `delete`, and raw write SQL.
+- `insert`, `update`, and `delete` dry-run by default. Run with `--execute` only after explicit user confirmation.
+- Raw write SQL requires both `--execute` and `--allow-raw-write`; do not treat `WITH` queries as read-only.
+- `update` and `delete` require `--where` unless the user explicitly confirms a full-table operation and `--allow-full-table` is passed.
+- Use named parameters in filters, such as `--where "email = :email" --param email=user@example.com`.
+- Do not invent schema, table, or column names. Run `schema` first when uncertain.
+- Default PostgreSQL CRUD operations to schema `public` when the user gives only a table name.
+- Use `--schema <name>` for non-public schemas, or accept schema-qualified tables such as `auth.users`.
+- Use `schema --all-schemas` for database-wide table discovery.
+- Use `configure --test-connection` when the user asks to verify a profile before saving/relying on it.
+- Preserve full PostgreSQL URLs by passing them to `psql`; query parameters such as `sslmode=require` should not be stripped.
+- For `ssh-remote`, the remote server needs `bash` and the `psql` client.
+- For `ssh-remote`, pass `--remote-cwd` when the `.env` file exists only after changing into a project directory; pass `--env-file .env` for a relative file or an absolute env path when no working directory is needed.
+- For `direct` and `ssh-tunnel`, the local `psql` client is required.
 
 ### Use `sendgrid-send-email`
 

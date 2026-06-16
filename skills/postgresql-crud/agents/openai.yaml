@@ -1,0 +1,4 @@
+interface:
+  display_name: "PostgreSQL CRUD"
+  short_description: "Safely query and change PostgreSQL data."
+  default_prompt: "Use $postgresql-crud to inspect a PostgreSQL table and safely query rows."
