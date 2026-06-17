@@ -13,6 +13,8 @@ This repository contains reusable skills for four main workflow families:
 - Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, YouTube Search, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
+- Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
+- Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
 - MySQL, PostgreSQL, and Redis CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
 
@@ -120,6 +122,15 @@ skills/
     SKILL.md
     scripts/send_email.sh
     scripts/query_email_logs.sh
+  instantly-send-email/
+    SKILL.md
+    scripts/lead.sh
+    scripts/campaign.sh
+    scripts/email.sh
+  klaviyo-send-email/
+    SKILL.md
+    scripts/campaign.sh
+    scripts/audience.sh
   mysql-crud/
     SKILL.md
     agents/openai.yaml
@@ -1009,6 +1020,110 @@ Important behavior:
 - Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
 - Use `--private-recipients` when multiple `to` recipients should not see each other.
 
+### Use `instantly-send-email`
+
+Route here when the user wants:
+
+- to send cold/outbound first-touch email through an existing Instantly campaign
+- to check whether an Instantly lead exists, create it if missing, then enroll or move it into a selected campaign
+- to list or create Instantly campaigns
+- to inspect campaign sending status after lead enrollment
+- to list a lead email address's Instantly emails and reply to the exact email chosen by the user
+
+Do not use this for:
+
+- SendGrid, SMTP, or generic transactional email
+- the Instantly test email endpoint `POST /api/v2/emails/test`
+- arbitrary direct sends without a campaign or existing email
+- forwarding, listing, patching, or deleting Unibox emails
+
+Required flow for cold outbound:
+
+1. Use `scripts/lead.sh list --email <email>` to check whether the lead exists.
+2. Use `scripts/campaign.sh list` to show campaigns and let the user choose, or `scripts/campaign.sh create` when the user wants a new campaign.
+3. If the lead is missing, use `scripts/lead.sh create --email <email> --campaign-id <campaign_id> [lead fields] --send` after dry-run and approval.
+4. If the lead exists, use `scripts/lead.sh move --email <email> --to-campaign-id <campaign_id> --send` after dry-run and approval.
+5. Use `scripts/campaign.sh sending-status --campaign-id <campaign_id>` to explain whether/when sending can proceed.
+
+Required flow for replies:
+
+1. Use `scripts/email.sh list --lead <email>` to fetch the lead email address's emails.
+2. Show the user a compact list and ask them to choose the exact email.
+3. Use `scripts/email.sh reply --reply-to-uuid <selected_email_id> ...` after dry-run and approval.
+
+Optional input:
+
+- lead first name, last name, company, title, website, phone, personalization, and custom variables
+- reply additional recipients, cc, bcc, reminder timestamp, and assigned user
+- output file path
+- one-time API key override
+
+Important behavior:
+
+- Use `INSTANTLY_API_KEY`, not `FREVANA_TOKEN` and not `SENDGRID_API_KEY`.
+- API key lookup order is `--api-key`, then `INSTANTLY_API_KEY`, then the locally saved key at `~/.config/instantly-send-email/api_key`.
+- For cold outbound, the API key should have one of these Instantly API V2 scopes: `leads:create`, `leads:all`, `all:create`, or `all:all`.
+- For replies, the API key should have `emails:create`; if using `thread_id` lookup, it also needs `emails:read`, or broader equivalent scopes.
+- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create an Instantly API V2 key by following `https://developer.instantly.ai/getting-started/getting-started`.
+- Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
+- Prefer `scripts/lead.sh`, `scripts/campaign.sh`, and `scripts/email.sh` over ad hoc `curl`.
+- Write actions dry-run by default and require `--send`; read actions call the API immediately.
+- Do not invent campaign IDs. Let the user select a campaign from `campaign.sh list` or explicitly ask to create one.
+- For campaign creation, collect required fields together before calling the script: `name` and `campaign_schedule`. Prefer a full `--campaign-json` when the user has sequences/templates/senders ready.
+- For lead creation in the send-email workflow, collect required fields together before calling the script: lead `email` and selected `campaign_id`; also ask for personalization fields such as first name, last name, company, title, website, and custom variables if the campaign templates need them.
+- For replies, `POST /api/v2/emails/reply` requires `reply_to_uuid`, which is an email `id`; list emails first and let the user choose.
+- Treat lead creation or movement as campaign enrollment, not immediate delivery confirmation. Sending depends on campaign status, schedule, sender accounts, duplicate checks, background job completion, and plan limits.
+- Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
+
+### Use `klaviyo-send-email`
+
+Route here when the user wants:
+
+- to manage Klaviyo marketing campaigns through the Klaviyo Campaign API
+- to list, get, create, update, delete, or clone Klaviyo campaigns
+- to send/schedule campaigns, check send status, or cancel scheduled sends
+- to assign email templates to campaign messages
+- to list, get, or update campaign messages
+- to refresh or get recipient estimations for campaigns
+- to create, get, or update campaign audiences
+- to send email through Klaviyo campaign workflows
+
+Required input:
+
+- for campaign listing: `--filter` (channel filter)
+- for campaign get/update/delete/clone/send/refresh-estimation/get-estimation/list-messages: campaign ID
+- for campaign create: `--name`, `--audience-json`, `--message-json`
+- for campaign clone: `--campaign-id`, `--name`
+- for assign-template: `--message-id`, `--template-id`
+- for send-status/cancel: send job ID
+- for get-message/update-message: message ID
+- for get-estimation-job: estimation job ID
+- for audience operations: audience ID or campaign ID plus definition JSON
+
+Optional input:
+
+- `--limit`, `--sort` for listing
+- `--send` for write actions (dry-run by default)
+- output file path
+- one-time API key override
+
+Important behavior:
+
+- Use `KLAVIVO_API_KEY`, not `FREVANA_TOKEN`, `INSTANTLY_API_KEY`, or `SENDGRID_API_KEY`.
+- API key lookup order is `--api-key`, then `KLAVIVO_API_KEY`, then the locally saved key at `~/.config/klaviyo-send-email/api_key`.
+- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create a Klaviyo API key by following `https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide`.
+- Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
+- Prefer `scripts/campaign.sh` and `scripts/audience.sh` over ad hoc `curl`.
+- Write actions dry-run by default and require `--send`; read actions call the API immediately.
+- The Klaviyo API uses `Klaviyo-API-Key` in the `Authorization` header (not `Bearer`).
+- Audience endpoints are in beta and require the `2026-04-15.pre` revision header. All campaign endpoints use stable `2026-04-15`.
+- For campaign creation, collect required fields together before calling the script: `name`, `audience-json` (included/excluded segment IDs), and `message-json` (subject, from_email, from_label).
+- For sending a campaign, the flow is: (1) `create` campaign with message, (2) `list-messages` to get message ID, (3) `assign-template` to add email template content, (4) optionally `refresh-estimation`, (5) `send` to schedule. Use `send-status` to check the async send job.
+- For campaign clone (needed after a cancelled send): `clone --campaign-id C --name NEWNAME --send`.
+- Do not invent campaign IDs, audience IDs, segment IDs, API keys, template IDs, or message IDs.
+- Treat campaign creation as campaign setup, not immediate delivery confirmation. Sending depends on campaign status and send strategy.
+- Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
+
 ### Use `x-topic-search`
 
 Route here when the user wants:
@@ -1480,6 +1595,34 @@ For SendGrid status lookup:
 7. `--sent-at` is only a lower bound, but the script subtracts a 5-second default lookback before building `sg_message_id_created_at >= ...` to absorb SendGrid response/log timestamp skew. Do not use a time-window parameter.
 8. If Email Logs returns no data or no fuzzy `sg_message_id` match, ask the user to review `https://app.sendgrid.com/email_logs` manually.
 
+### Instantly campaign enrollment and replies
+
+For `instantly-send-email`:
+
+1. Classify the user intent: cold outbound/campaign enrollment, reply to existing email, campaign management, or lead movement/removal.
+2. Prefer `scripts/lead.sh`, `scripts/campaign.sh`, and `scripts/email.sh` over ad hoc `curl`.
+3. For cold outbound, run `lead.sh list`, then `campaign.sh list` or `campaign.sh create`, then dry-run `lead.sh create` or `lead.sh move`.
+4. For replies, run `email.sh list --lead <email>`, ask the user to select the email, then dry-run `email.sh reply`.
+5. For moving/removing a lead from a campaign, use `lead.sh move`; the Instantly move API requires a destination campaign or list.
+6. Let the script use `--api-key`, `INSTANTLY_API_KEY`, or the locally saved key.
+7. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create an Instantly API V2 key by following `https://developer.instantly.ai/getting-started/getting-started`.
+8. Report Instantly HTTP status, response body, and the operational meaning: lead enrollment is not immediate delivery confirmation; reply response represents the created/sent email object; campaign sending status explains blockers and health.
+9. Do not use `POST /api/v2/emails/test` for user-requested sending.
+
+### Klaviyo campaign management
+
+For `klaviyo-send-email`:
+
+1. Classify the user intent: campaign listing/inspection, campaign creation, campaign update, or audience management.
+2. Prefer `scripts/campaign.sh` and `scripts/audience.sh` over ad hoc `curl`.
+3. For campaign listing, run `campaign.sh list --filter 'equals(messages.channel,"email")'` with optional `--sort` and `--limit`.
+4. For campaign creation, collect `name`, `audience-json` (included/excluded segment IDs), and `message-json` (subject, from_email, from_label, optional preview_text/reply_to/cc/bcc) together. Dry-run `campaign.sh create` first, then send with `--send` after approval.
+5. For campaign updates, use `campaign.sh update --campaign-id <id> --name <name> [--audience-json <json>]` with dry-run before `--send`.
+6. For audience management, use `audience.sh get/create/update` as appropriate. Audience endpoints use beta revision `2026-04-15.pre`.
+7. Let the script use `--api-key`, `KLAVIVO_API_KEY`, or the locally saved key.
+8. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create a Klaviyo API key by following `https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide`.
+9. Report Klaviyo HTTP status and the campaign/audience resource details. Campaign creation is campaign setup, not delivery confirmation.
+
 ### X/Twitter Chrome Extension topic search
 
 For `x-topic-search`:
@@ -1787,6 +1930,8 @@ bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
 bash skills/google-immersive-product/scripts/search_google_immersive_product.sh
 bash skills/youtube-search/scripts/search_youtube.sh
 bash skills/sendgrid-send-email/scripts/send_email.sh
+bash skills/klaviyo-send-email/scripts/campaign.sh
+bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh

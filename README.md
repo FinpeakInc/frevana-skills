@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid and Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -71,6 +71,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Chrome Extension - Social | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn through Chrome Extension | final text |
 | Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
+| Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
 | Database | [`mysql-crud`](skills/mysql-crud/SKILL.md) | MySQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`postgresql-crud`](skills/postgresql-crud/SKILL.md) | PostgreSQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`redis-crud`](skills/redis-crud/SKILL.md) | Redis key operations with saved profiles and SSH support | saved profile or connection details |
@@ -708,6 +709,32 @@ Features:
 - reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
 - points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
 
+### [`instantly-send-email`](skills/instantly-send-email/SKILL.md)
+
+Send through Instantly's real API V2 workflow paths.
+
+Use when:
+
+- you want cold/outbound first-touch email handled by a prebuilt Instantly campaign
+- you want to add a lead to a campaign with `POST /api/v2/leads`
+- you want to reply to an existing email with `POST /api/v2/emails/reply`
+- you need a dry-run payload preview before the side effect
+
+Features:
+
+- uses `scripts/lead.sh`, `scripts/campaign.sh`, and `scripts/email.sh`
+- checks existing leads with `POST /api/v2/leads/list`
+- lists or creates campaigns with `GET/POST /api/v2/campaigns`
+- creates missing leads with `POST /api/v2/leads`, or moves existing leads with `POST /api/v2/leads/move`
+- prompts for campaign `name` and `campaign_schedule` together when creating a campaign
+- prompts for lead `email` and selected `campaign_id` together when creating a campaign lead
+- checks campaign sending health with `GET /api/v2/campaigns/{id}/sending-status`
+- lists emails by lead address with `GET /api/v2/emails`, then replies with `POST /api/v2/emails/reply`
+- write actions dry-run by default and require `--send`
+- can save the Instantly API key locally after the first input, and supports later updates with `--api-key <key> --save-api-key`
+- points users to <https://developer.instantly.ai/getting-started/getting-started> when the Instantly API key is missing
+- explicitly does not use `POST /api/v2/emails/test` for user-requested sending
+
 ### [`mysql-crud`](skills/mysql-crud/SKILL.md)
 
 Inspect, query, and safely change MySQL data through saved profiles.
@@ -808,6 +835,7 @@ Features:
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
 - SendGrid email skill: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
+- Instantly email skill: `bash`, `curl`, `python3`, `INSTANTLY_API_KEY`.
 - MySQL CRUD skill: `bash`; plus local `mysql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mysql` for `ssh-remote`.
 - PostgreSQL CRUD skill: `bash`; plus local `psql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `psql` for `ssh-remote`.
 - Redis CRUD skill: `bash`; plus local `redis-cli` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `redis-cli` for `ssh-remote`.
