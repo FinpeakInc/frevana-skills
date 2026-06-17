@@ -1,0 +1,4 @@
+interface:
+  display_name: "MongoDB CRUD"
+  short_description: "Safely inspect and change MongoDB documents."
+  default_prompt: "Use $mongodb-crud to inspect MongoDB collections and safely modify documents."

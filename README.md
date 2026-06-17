@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, MySQL/PostgreSQL CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -73,6 +73,8 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
 | Database | [`mysql-crud`](skills/mysql-crud/SKILL.md) | MySQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`postgresql-crud`](skills/postgresql-crud/SKILL.md) | PostgreSQL CRUD with saved profiles and SSH support | saved profile or connection details |
+| Database | [`redis-crud`](skills/redis-crud/SKILL.md) | Redis key operations with saved profiles and SSH support | saved profile or connection details |
+| Database | [`mongodb-crud`](skills/mongodb-crud/SKILL.md) | MongoDB document operations with saved profiles and SSH support | saved profile or connection details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -753,6 +755,53 @@ Features:
 - requires `--where` for `update` and `delete` unless explicitly overridden
 - saves JSON results under `./out/postgresql-crud-*.json`
 
+### [`redis-crud`](skills/redis-crud/SKILL.md)
+
+Inspect and safely change Redis keys through saved profiles.
+
+Use when:
+
+- you want to save Redis connection details so they do not need to be re-entered
+- you need Redis `PING`, `GET`, `SET`, `DEL`, `HGET`, `HSET`, `HGETALL`, `SCAN`, or guarded raw commands
+- you need to connect directly, through an SSH tunnel, or by SSHing to a server and using its remote `REDIS_URL`
+
+Features:
+
+- stores profiles locally under `~/.config/redis-crud/profiles/` with `0600` permissions
+- supports `direct`, `ssh-tunnel`, and `ssh-remote` modes
+- supports remote `.env` lookup for `REDIS_URL` in `ssh-remote` mode, including `cd` into a remote app directory first
+- redacts passwords and full Redis URLs from profile listings
+- blocks writes on `readonly` profiles
+- dry-runs `SET`, `DEL`, and `HSET` by default and requires `--execute` for actual writes
+- requires both `--execute` and `--allow-raw-write` for raw write commands
+- supports paginated `SCAN` with `--cursor`, full scans with `--all`, and quoted raw command arguments with repeated `--arg`
+- avoids Bash `/dev/tcp`; SSH tunnel port checks use `nc`, `lsof`, `ss`, or `netstat` so macOS and Windows shell environments can work
+- can verify profiles with `configure --test-connection`
+- saves JSON results under `./out/redis-crud-*.json`
+
+### [`mongodb-crud`](skills/mongodb-crud/SKILL.md)
+
+Inspect and safely change MongoDB documents through saved profiles.
+
+Use when:
+
+- you want to save MongoDB connection details so they do not need to be re-entered
+- you need MongoDB `ping`, database listing, collection listing, `find`, `count`, `insert`, `update`, `delete`, or guarded raw JavaScript evaluation
+- you need to connect directly, through an SSH tunnel, or by SSHing to a server and using its remote `MONGODB_URI`
+
+Features:
+
+- stores profiles locally under `~/.config/mongodb-crud/profiles/` with `0600` permissions
+- supports `direct`, `ssh-tunnel`, and `ssh-remote` modes
+- supports remote `.env` lookup for `MONGODB_URI` in `ssh-remote` mode, including `cd` into a remote app directory first
+- redacts passwords and full MongoDB URIs from profile listings
+- blocks writes on `readonly` profiles
+- accepts MongoDB filters, documents, updates, projections, and sort options as JSON strings
+- dry-runs `insert`, `update`, and `delete` by default and requires `--execute` for actual writes
+- requires both `--execute` and `--allow-raw-write` for raw write JavaScript
+- can verify profiles with `configure --test-connection`
+- saves JSON results under `./out/mongodb-crud-*.json`
+
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
@@ -761,6 +810,8 @@ Features:
 - SendGrid email skill: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
 - MySQL CRUD skill: `bash`; plus local `mysql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mysql` for `ssh-remote`.
 - PostgreSQL CRUD skill: `bash`; plus local `psql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `psql` for `ssh-remote`.
+- Redis CRUD skill: `bash`; plus local `redis-cli` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `redis-cli` for `ssh-remote`.
+- MongoDB CRUD skill: `bash`; plus local `mongosh` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mongosh` for `ssh-remote`.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
@@ -807,6 +858,12 @@ Configure postgresql-crud profile prod through SSH alias app-prod, cd to /server
 Use postgresql-crud to inspect the public.users table schema
 Use postgresql-crud to query users where email is test@example.com
 Use postgresql-crud to query auth.users where email is test@example.com
+Configure redis-crud profile prod through SSH alias app-prod, cd to /server/app, and use .env REDIS_URL as readonly
+Use redis-crud to get session:123
+Use redis-crud to scan keys matching session:*
+Configure mongodb-crud profile prod through SSH alias app-prod, cd to /server/app, and use .env MONGODB_URI as readonly
+Use mongodb-crud to list collections in the app database
+Use mongodb-crud to find users where email is test@example.com
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image

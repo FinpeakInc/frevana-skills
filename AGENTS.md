@@ -14,7 +14,7 @@ This repository contains reusable skills for four main workflow families:
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
 - Frevana AI Factory API workflows for image generation and HTML generation
-- MySQL and PostgreSQL CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
+- MySQL, PostgreSQL, and Redis CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -128,6 +128,14 @@ skills/
     SKILL.md
     agents/openai.yaml
     scripts/postgresql_crud.sh
+  redis-crud/
+    SKILL.md
+    agents/openai.yaml
+    scripts/redis_crud.sh
+  mongodb-crud/
+    SKILL.md
+    agents/openai.yaml
+    scripts/mongodb_crud.sh
   reddit-search/
     SKILL.md
     scripts/setup.sh
@@ -862,6 +870,85 @@ Important behavior:
 - For `ssh-remote`, the remote server needs `bash` and the `psql` client.
 - For `ssh-remote`, pass `--remote-cwd` when the `.env` file exists only after changing into a project directory; pass `--env-file .env` for a relative file or an absolute env path when no working directory is needed.
 - For `direct` and `ssh-tunnel`, the local `psql` client is required.
+
+### Use `redis-crud`
+
+Route here when the user wants:
+
+- to configure and save reusable Redis connection profiles
+- Redis key inspection, string value lookup, hash lookup, or key scanning
+- Redis `GET`, `SET`, `DEL`, `HGET`, `HSET`, `HGETALL`, `SCAN`, or `PING`
+- safe Redis writes with dry-run previews and explicit write execution
+- to connect directly to Redis
+- to connect to Redis through an SSH tunnel
+- to SSH to a remote server first, read a remote `.env` `REDIS_URL`, and run the remote `redis-cli` there
+- to SSH to a remote server, `cd` into an application directory, read `.env`, and then connect to Redis
+- to query a production-style Redis instance through a saved SSH alias without re-entering connection details
+
+Required input:
+
+- for configuration: profile name and connection mode (`direct`, `ssh-tunnel`, or `ssh-remote`)
+- for `direct`: a Redis URL or explicit Redis host/port/db fields
+- for `ssh-tunnel`: SSH target plus Redis host/port/db fields
+- for `ssh-remote`: SSH target plus either a remote `env_file`/`env_key`, a Redis URL, or explicit Redis fields; use `remote_cwd` when `.env` is relative to an application directory
+- for key operations: a saved profile or existing default profile, plus the key/field/value required by the operation
+
+Important behavior:
+
+- Prefer `skills/redis-crud/scripts/redis_crud.sh` over ad hoc `redis-cli`, SSH, or Redis commands.
+- Connection profiles are saved locally under `~/.config/redis-crud/profiles/` with `0600` permissions; do not store secrets in this repository.
+- Do not print passwords or full Redis URLs. Use `list-profiles` for redacted profile output.
+- Use `readonly` profiles for production or sensitive Redis instances by default.
+- `readonly` profiles block `SET`, `DEL`, `HSET`, and raw write commands.
+- `SET`, `DEL`, and `HSET` dry-run by default. Run with `--execute` only after explicit user confirmation.
+- Raw write commands require both `--execute` and `--allow-raw-write`.
+- Prefer structured commands over `raw-command`.
+- Prefer repeated `raw-command --arg` values over `--command` when values contain spaces or complex quoting.
+- Use `scan --cursor <cursor>` for paginated scans, or `scan --all` only when the user explicitly wants to scan all matching keys.
+- Use `configure --test-connection` when the user asks to verify a profile before saving/relying on it.
+- Preserve full Redis URLs by passing them to `redis-cli`; username, password, database, and TLS-style forms supported by `redis-cli` should not be stripped.
+- `ssh-tunnel` port checks use `nc`, `lsof`, `ss`, or `netstat` fallbacks instead of Bash `/dev/tcp`, so the script can run on macOS and Windows shell environments such as Git Bash or WSL.
+- For `ssh-remote`, the remote server needs `bash` and `redis-cli`.
+- For `direct` and `ssh-tunnel`, the local `redis-cli` client is required.
+
+### Use `mongodb-crud`
+
+Route here when the user wants:
+
+- to configure and save reusable MongoDB connection profiles
+- MongoDB database or collection inspection
+- MongoDB document lookup, counting, insertion, update, or deletion
+- MongoDB `ping`, `databases`, `collections`, `find`, `count`, `insert`, `update`, `delete`, or guarded raw JavaScript evaluation
+- safe MongoDB writes with dry-run previews and explicit write execution
+- to connect directly to MongoDB
+- to connect to MongoDB through an SSH tunnel
+- to SSH to a remote server first, read a remote `.env` `MONGODB_URI`, and run the remote `mongosh` there
+- to SSH to a remote server, `cd` into an application directory, read `.env`, and then connect to MongoDB
+- to query a production-style MongoDB instance through a saved SSH alias without re-entering connection details
+
+Required input:
+
+- for configuration: profile name and connection mode (`direct`, `ssh-tunnel`, or `ssh-remote`)
+- for `direct`: a MongoDB URI or explicit MongoDB host/port/database fields
+- for `ssh-tunnel`: SSH target plus MongoDB host/port/database fields
+- for `ssh-remote`: SSH target plus either a remote `env_file`/`env_key`, a MongoDB URI, or explicit MongoDB fields; use `remote_cwd` when `.env` is relative to an application directory
+- for document operations: a saved profile or existing default profile, plus collection and JSON filter/document/update values required by the operation
+
+Important behavior:
+
+- Prefer `skills/mongodb-crud/scripts/mongodb_crud.sh` over ad hoc `mongosh`, SSH, or MongoDB commands.
+- Connection profiles are saved locally under `~/.config/mongodb-crud/profiles/` with `0600` permissions; do not store secrets in this repository.
+- Do not print passwords or full MongoDB URIs. Use `list-profiles` for redacted profile output.
+- Use `readonly` profiles for production or sensitive MongoDB instances by default.
+- `readonly` profiles block `insert`, `update`, `delete`, and raw write JavaScript.
+- `insert`, `update`, and `delete` dry-run by default. Run with `--execute` only after explicit user confirmation.
+- Raw write JavaScript requires both `--execute` and `--allow-raw-write`.
+- Prefer structured commands over `raw-eval`, especially when user input contains complex quoting.
+- Pass filters, documents, updates, projections, and sort options as JSON strings.
+- Use `configure --test-connection` when the user asks to verify a profile before saving/relying on it.
+- Preserve full MongoDB URIs by passing them to `mongosh`; query parameters such as `authSource`, `replicaSet`, `tls`, and `retryWrites` should not be stripped.
+- For `ssh-remote`, the remote server needs `bash` and `mongosh`.
+- For `direct` and `ssh-tunnel`, the local `mongosh` client is required.
 
 ### Use `sendgrid-send-email`
 

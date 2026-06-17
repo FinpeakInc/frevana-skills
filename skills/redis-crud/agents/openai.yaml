@@ -1,0 +1,4 @@
+interface:
+  display_name: "Redis CRUD"
+  short_description: "Safely inspect and change Redis keys."
+  default_prompt: "Use $redis-crud to inspect Redis keys and safely modify values."
