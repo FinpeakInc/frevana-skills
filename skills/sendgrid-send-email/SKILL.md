@@ -45,7 +45,7 @@ API key resolution order:
 2. `SENDGRID_API_KEY`
 3. locally saved key at `~/.config/sendgrid-send-email/api_key`
 
-If no API key is available and the script is running interactively, prompt once and save it locally for future runs. If no API key is available in a non-interactive run, guide the user to read the SendGrid integration guide: <https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration>.
+If no API key is available and the script is running interactively, prompt once and save it locally for future runs. If no API key is available in a non-interactive run, guide the user to read the SendGrid integration guide: <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration>.
 
 Users can update the saved API key with:
 
@@ -273,7 +273,7 @@ Optional fields are omitted when the user does not provide them. Require `--from
 - Use `query_email_logs.sh --to <email> --sent-at <iso-time> --message-id <x-message-id> [--subject <subject>]` to query send status through SendGrid Email Logs by recipient, optional subject, buffered sent-at lower bound, and fuzzy-match returned `sg_message_id`, including `sg_message_id` values with `.recvd-...` suffixes. The script subtracts 5 seconds from `--sent-at` by default; override with `--sent-at-lookback-seconds`. If the email was sent with `--template-id`, omit subject in status lookups because the template may override it.
 - After a successful send, the script returns `status_query.prompt_example` and `status_query.query_params` so the user can ask the agent to query status later without displaying shell scripts.
 - If Email Logs returns no data or no fuzzy `sg_message_id` match, direct the user to <https://app.sendgrid.com/email_logs> for manual review.
-- If `--api-key`, `SENDGRID_API_KEY`, and the locally saved key are all missing, tell the user to read <https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration> to get the required configuration.
+- If `--api-key`, `SENDGRID_API_KEY`, and the locally saved key are all missing, tell the user to read <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> to get the required configuration.
 - SendGrid returns `202 Accepted` for queued mail. That does not mean delivered.
 - Sandbox mode returns validation status and does not deliver.
 - For scheduled sends, `--send-at` must be Unix seconds, not JavaScript milliseconds.

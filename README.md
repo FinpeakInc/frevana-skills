@@ -706,7 +706,7 @@ Features:
 - subtracts a 5-second default lookback from `--sent-at` for Email Logs queries to handle SendGrid response/log timestamp skew
 - omits subject from suggested status lookups for template sends, because templates can override the final subject
 - reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
-- points users to <https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration> when SendGrid configuration is missing
+- points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
 
 ### [`mysql-crud`](skills/mysql-crud/SKILL.md)
 

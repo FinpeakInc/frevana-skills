@@ -995,7 +995,7 @@ Important behavior:
 - Use `SENDGRID_API_KEY`, not `FREVANA_TOKEN` and not Twilio Account SID/Auth Token credentials.
 - API key lookup order is `--api-key`, then `SENDGRID_API_KEY`, then the locally saved key at `~/.config/sendgrid-send-email/api_key`.
 - Require the user to provide `from`. This address should be a verified sender in the user's Twilio SendGrid account.
-- If no API key is available, the scripts prompt once in interactive runs and save the key locally for future runs. In non-interactive runs, guide the user to read `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration` to get the required configuration.
+- If no API key is available, the scripts prompt once in interactive runs and save the key locally for future runs. In non-interactive runs, guide the user to read `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration` to get the required configuration.
 - Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
 - Prefer `scripts/send_email.sh` over ad hoc `curl`.
 - For status lookup, prefer `scripts/query_email_logs.sh` over ad hoc `curl`.
@@ -1465,7 +1465,7 @@ For `sendgrid-send-email`:
 3. Run a dry run first unless the user has already explicitly approved the exact final send.
 4. Before using `--send`, confirm the final recipients, subject, content, sender, and whether sandbox mode is enabled.
 5. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key.
-6. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration`.
+6. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration`.
 7. Report SendGrid HTTP status, queued/sandbox status, business ID, `x-message-id`, and a concise prompt example for querying status when available.
 8. Do not present `202 Accepted` as delivery confirmation.
 
@@ -1474,7 +1474,7 @@ For SendGrid status lookup:
 1. Extract `to_email`, `sent_at`, and `message_id`; include `subject` only when available.
 2. Prefer `scripts/query_email_logs.sh`.
 3. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key.
-4. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration`.
+4. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration`.
 5. Return matching Email Logs JSON or summarize `messages[].status`, `to_email`, `from_email`, `subject`, `reason`, and `sg_message_id`.
 6. Do not query by `custom_args.business_id`; use `--to`, `--sent-at`, and `--message-id` to narrow by recipient/time and fuzzy-match returned `sg_message_id`. Add `--subject` when available, except for template sends. Email Logs can append suffixes such as `.recvd-...` to `sg_message_id`, so treat the user-provided message ID as a prefix/substring match, not only an exact match.
 7. `--sent-at` is only a lower bound, but the script subtracts a 5-second default lookback before building `sg_message_id_created_at >= ...` to absorb SendGrid response/log timestamp skew. Do not use a time-window parameter.

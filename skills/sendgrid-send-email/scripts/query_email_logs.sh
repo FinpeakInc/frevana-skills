@@ -4,7 +4,7 @@ set -euo pipefail
 
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
-CONFIG_DOC_URL="https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration"
+CONFIG_DOC_URL="https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration"
 
 usage() {
   cat <<'EOF'
@@ -39,7 +39,7 @@ Environment:
   SENDGRID_SEND_EMAIL_CONFIG_DIR Optional config directory override
 
 Setup guide:
-  https://wenjun.gitbook.io/wenjun-docs/sendgrid-integration
+  https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration
 EOF
 }
 
