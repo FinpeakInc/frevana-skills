@@ -16,7 +16,7 @@ This repository contains reusable skills for four main workflow families:
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
-- MySQL, PostgreSQL, and Redis CRUD workflows with saved local profiles, direct connections, SSH tunnels, and remote-server database access
+- MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -147,6 +147,10 @@ skills/
     SKILL.md
     agents/openai.yaml
     scripts/mongodb_crud.sh
+  sqlite-crud/
+    SKILL.md
+    agents/openai.yaml
+    scripts/sqlite_crud.sh
   reddit-search/
     SKILL.md
     scripts/setup.sh
@@ -961,6 +965,38 @@ Important behavior:
 - For `ssh-remote`, the remote server needs `bash` and `mongosh`.
 - For `direct` and `ssh-tunnel`, the local `mongosh` client is required.
 
+### Use `sqlite-crud`
+
+Route here when the user wants:
+
+- to configure and save reusable local SQLite database file profiles
+- SQLite table or column inspection
+- SQLite row lookup, insertion, update, or deletion
+- SQLite `schema`, `select`, `insert`, `update`, `delete`, or guarded raw SQL
+- safe SQLite writes with dry-run previews and explicit write execution
+- to query a local `.sqlite`, `.sqlite3`, or `.db` file without re-entering the file path
+
+Required input:
+
+- for configuration: profile name and local SQLite file path
+- for row operations: a saved profile, existing default profile, or explicit user-provided `--path`; plus table and filter/value details required by the operation
+
+Important behavior:
+
+- Prefer `skills/sqlite-crud/scripts/sqlite_crud.sh` over ad hoc `sqlite3` commands.
+- Connection profiles are saved locally under `~/.config/sqlite-crud/profiles/` with `0600` permissions; do not store database files or generated copies in this repository unless explicitly requested.
+- This skill supports local SQLite file paths only. Do not add SSH, remote `.env`, host, user, password, or tunnel behavior.
+- If no profile/default profile is configured, ask the user for the exact local database file path and pass it with `--path`; do not scan the repository, home directory, temp directory, or filesystem to discover SQLite files.
+- When `--path` is used, the script saves that path to the default profile for later commands.
+- Do not add `--readonly` by default; only use it when the user explicitly asks for a read-only profile.
+- `readonly` profiles block `insert`, `update`, `delete`, and raw write SQL.
+- `insert`, `update`, and `delete` dry-run by default. Run with `--execute` only after explicit user confirmation.
+- Raw write SQL requires both `--execute` and `--allow-raw-write`.
+- `update` and `delete` require `--where` unless the user explicitly confirms a full-table operation and `--allow-full-table` is passed.
+- Prefer structured commands over `raw-sql`.
+- Do not invent table or column names. Run `schema` first when uncertain.
+- The local `sqlite3` client is required and should support JSON output mode.
+
 ### Use `sendgrid-send-email`
 
 Route here when the user wants:
@@ -1064,7 +1100,7 @@ Important behavior:
 - API key lookup order is `--api-key`, then `INSTANTLY_API_KEY`, then the locally saved key at `~/.config/instantly-send-email/api_key`.
 - For cold outbound, the API key should have one of these Instantly API V2 scopes: `leads:create`, `leads:all`, `all:create`, or `all:all`.
 - For replies, the API key should have `emails:create`; if using `thread_id` lookup, it also needs `emails:read`, or broader equivalent scopes.
-- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create an Instantly API V2 key by following `https://developer.instantly.ai/getting-started/getting-started`.
+- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create an Instantly API V2 key by following `https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration`.
 - Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
 - Prefer `scripts/lead.sh`, `scripts/campaign.sh`, and `scripts/email.sh` over ad hoc `curl`.
 - Write actions dry-run by default and require `--send`; read actions call the API immediately.
@@ -1111,7 +1147,7 @@ Important behavior:
 
 - Use `KLAVIVO_API_KEY`, not `FREVANA_TOKEN`, `INSTANTLY_API_KEY`, or `SENDGRID_API_KEY`.
 - API key lookup order is `--api-key`, then `KLAVIVO_API_KEY`, then the locally saved key at `~/.config/klaviyo-send-email/api_key`.
-- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create a Klaviyo API key by following `https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide`.
+- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, tell the user to create a Klaviyo API key by following `https://frevana.gitbook.io/frevana-docs/email-integrations/klaviyo-integration`.
 - Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
 - Prefer `scripts/campaign.sh` and `scripts/audience.sh` over ad hoc `curl`.
 - Write actions dry-run by default and require `--send`; read actions call the API immediately.
@@ -1605,7 +1641,7 @@ For `instantly-send-email`:
 4. For replies, run `email.sh list --lead <email>`, ask the user to select the email, then dry-run `email.sh reply`.
 5. For moving/removing a lead from a campaign, use `lead.sh move`; the Instantly move API requires a destination campaign or list.
 6. Let the script use `--api-key`, `INSTANTLY_API_KEY`, or the locally saved key.
-7. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create an Instantly API V2 key by following `https://developer.instantly.ai/getting-started/getting-started`.
+7. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create an Instantly API V2 key by following `https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration`.
 8. Report Instantly HTTP status, response body, and the operational meaning: lead enrollment is not immediate delivery confirmation; reply response represents the created/sent email object; campaign sending status explains blockers and health.
 9. Do not use `POST /api/v2/emails/test` for user-requested sending.
 
@@ -1620,7 +1656,7 @@ For `klaviyo-send-email`:
 5. For campaign updates, use `campaign.sh update --campaign-id <id> --name <name> [--audience-json <json>]` with dry-run before `--send`.
 6. For audience management, use `audience.sh get/create/update` as appropriate. Audience endpoints use beta revision `2026-04-15.pre`.
 7. Let the script use `--api-key`, `KLAVIVO_API_KEY`, or the locally saved key.
-8. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create a Klaviyo API key by following `https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide`.
+8. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and tell the user to create a Klaviyo API key by following `https://frevana.gitbook.io/frevana-docs/email-integrations/klaviyo-integration`.
 9. Report Klaviyo HTTP status and the campaign/audience resource details. Campaign creation is campaign setup, not delivery confirmation.
 
 ### X/Twitter Chrome Extension topic search

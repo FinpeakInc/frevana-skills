@@ -40,7 +40,7 @@ API key resolution order for all scripts:
 
 Use `--api-key <key> --save-api-key`, `--configure-api-key`, or `--clear-api-key` with any script to manage the saved key.
 
-If no API key is available, point the user to this guide to create one: <https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide>.
+If no API key is available, point the user to this guide to create one: <https://frevana.gitbook.io/frevana-docs/email-integrations/klaviyo-integration>.
 
 ## Workflow A: List and Inspect Campaigns
 
@@ -513,7 +513,7 @@ Definition JSON fields:
 - If you cancel a campaign and want to resend it, clone the campaign first (creates a draft), then send again.
 - To send an email campaign: (0) list campaigns and let user pick one, (1) if needed create campaign with message, (2) `list-messages` to get message ID, (3) `assign-template` to add email template, (4) `send` to schedule.
 - **Always** list existing campaigns first when the user asks to send an email — ask them to pick an existing campaign or create a new one. Never skip this step.
-- For missing API key in non-interactive runs, tell the user to create a Klaviyo API key by following <https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide>.
+- For missing API key in non-interactive runs, tell the user to create a Klaviyo API key by following <https://frevana.gitbook.io/frevana-docs/email-integrations/klaviyo-integration>.
 
 ## Complete Send Flow
 

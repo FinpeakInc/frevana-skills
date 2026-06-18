@@ -6,7 +6,7 @@ API_BASE_URL="https://a.klaviyo.com/api"
 CONFIG_NAME="klaviyo-send-email"
 CONNECT_TIMEOUT="10"
 MAX_TIME="120"
-API_KEY_HELP_URL="https://developers.klaviyo.com/en/docs/getting-started#quick-start-guide"
+API_KEY_HELP_URL="https://frevana.gitbook.io/frevana-docs/email-integrations/klaviyo-integration"
 BETA_REVISION="2026-04-15.pre"
 
 usage() {

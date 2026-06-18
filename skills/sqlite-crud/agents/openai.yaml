@@ -1,0 +1,4 @@
+interface:
+  display_name: "SQLite CRUD"
+  short_description: "Safely inspect and change local SQLite files."
+  default_prompt: "Use $sqlite-crud to inspect a local SQLite database file and safely query rows."

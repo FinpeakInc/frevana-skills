@@ -36,7 +36,7 @@ API key resolution order for all scripts:
 
 Use `--api-key <key> --save-api-key`, `--configure-api-key`, or `--clear-api-key` with any script to manage the saved key.
 
-If no API key is available, point the user to this article to create one: <https://developer.instantly.ai/getting-started/getting-started>.
+If no API key is available, point the user to this article to create one: <https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration>.
 
 ## Workflow A: Cold / First Email
 
@@ -177,7 +177,7 @@ For campaign creation, collect these fields together before calling the script:
 - Never print API keys. If the user shares a key in chat, advise rotation.
 - For user choice steps, show a compact numbered list and wait for the user's selection before write actions.
 - Treat lead creation or movement as campaign enrollment, not delivery confirmation.
-- For missing API key in non-interactive runs, tell the user to create an Instantly API V2 key by following <https://developer.instantly.ai/getting-started/getting-started>.
+- For missing API key in non-interactive runs, tell the user to create an Instantly API V2 key by following <https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration>.
 
 ## Example Prompts
 

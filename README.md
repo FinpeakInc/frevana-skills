@@ -76,6 +76,7 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 | Database | [`postgresql-crud`](skills/postgresql-crud/SKILL.md) | PostgreSQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`redis-crud`](skills/redis-crud/SKILL.md) | Redis key operations with saved profiles and SSH support | saved profile or connection details |
 | Database | [`mongodb-crud`](skills/mongodb-crud/SKILL.md) | MongoDB document operations with saved profiles and SSH support | saved profile or connection details |
+| Database | [`sqlite-crud`](skills/sqlite-crud/SKILL.md) | SQLite local file CRUD with saved profiles | local SQLite file path |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -732,7 +733,7 @@ Features:
 - lists emails by lead address with `GET /api/v2/emails`, then replies with `POST /api/v2/emails/reply`
 - write actions dry-run by default and require `--send`
 - can save the Instantly API key locally after the first input, and supports later updates with `--api-key <key> --save-api-key`
-- points users to <https://developer.instantly.ai/getting-started/getting-started> when the Instantly API key is missing
+- points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration> when the Instantly API key is missing
 - explicitly does not use `POST /api/v2/emails/test` for user-requested sending
 
 ### [`mysql-crud`](skills/mysql-crud/SKILL.md)
@@ -829,6 +830,31 @@ Features:
 - can verify profiles with `configure --test-connection`
 - saves JSON results under `./out/mongodb-crud-*.json`
 
+### [`sqlite-crud`](skills/sqlite-crud/SKILL.md)
+
+Inspect and safely change local SQLite database files through saved profiles.
+
+Use when:
+
+- you want to save a local SQLite file path so it does not need to be re-entered
+- you need SQLite table/column inspection, selects, inserts, updates, deletes, or read-only raw SQL
+- you only need local file access, without SSH, remote `.env`, host, user, password, or tunnel behavior
+
+Features:
+
+- stores profiles locally under `~/.config/sqlite-crud/profiles/` with `0600` permissions
+- supports local SQLite file paths only
+- does not add `--readonly` by default; writes are allowed only after dry-run plus explicit `--execute`
+- supports explicit `--path` usage when no profile/default profile exists, and saves that path to the default profile for later commands
+- never scans the repository, home directory, temp directory, or filesystem to discover SQLite files; the user must provide the path
+- requires the configured file to exist, avoiding accidental empty database creation from a mistyped path
+- blocks writes on `readonly` profiles
+- dry-runs `insert`, `update`, and `delete` by default and requires `--execute` for actual writes
+- requires both `--execute` and `--allow-raw-write` for raw write SQL
+- requires `--where` for `update` and `delete` unless explicitly overridden
+- can verify profiles with `configure --test-connection`
+- saves JSON results under `./out/sqlite-crud-*.json`
+
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
@@ -840,6 +866,7 @@ Features:
 - PostgreSQL CRUD skill: `bash`; plus local `psql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `psql` for `ssh-remote`.
 - Redis CRUD skill: `bash`; plus local `redis-cli` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `redis-cli` for `ssh-remote`.
 - MongoDB CRUD skill: `bash`; plus local `mongosh` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mongosh` for `ssh-remote`.
+- SQLite CRUD skill: `bash`; plus local `sqlite3` with JSON output support.
 - Frevana image/report skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 
 ## Local Script Conventions
@@ -892,6 +919,9 @@ Use redis-crud to scan keys matching session:*
 Configure mongodb-crud profile prod through SSH alias app-prod, cd to /server/app, and use .env MONGODB_URI as readonly
 Use mongodb-crud to list collections in the app database
 Use mongodb-crud to find users where email is test@example.com
+Configure sqlite-crud profile local with path /Users/me/app/data.sqlite
+Use sqlite-crud to inspect tables
+Use sqlite-crud to query users where email is test@example.com
 Generate an image with gpt-image-2 for a matte black espresso machine
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image

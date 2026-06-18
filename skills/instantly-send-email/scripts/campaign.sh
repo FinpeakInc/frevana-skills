@@ -6,7 +6,7 @@ API_BASE_URL="https://api.instantly.ai"
 CONFIG_NAME="instantly-send-email"
 CONNECT_TIMEOUT="10"
 MAX_TIME="120"
-API_KEY_HELP_URL="https://developer.instantly.ai/getting-started/getting-started"
+API_KEY_HELP_URL="https://frevana.gitbook.io/frevana-docs/email-integrations/instantly-integration"
 
 usage() {
   cat <<'EOF'
