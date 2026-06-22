@@ -45,6 +45,12 @@ EOF
 Q=""; LL=""; LOCATION=""; LAT=""; LON=""; Z=""; M=""; NEARBY=""; TYPE=""; DATA=""; PLACE_ID=""; DATA_CID=""; GOOGLE_DOMAIN=""; HL=""; GL=""; MIN_PRICE=""; MAX_PRICE=""; MIN_RATING=""; OPEN_STATE=""; OPEN_ON_DAY=""; OPEN_AT_HOUR=""; START=""; OUTPUT_PATH=""; TOKEN_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
+  # Normalize --option=value to --option value so every value option accepts
+  # both common CLI forms. This is especially useful for negative coordinates.
+  if [[ "$1" == --*=* ]]; then
+    set -- "${1%%=*}" "${1#*=}" "${@:2}"
+  fi
+
   case "$1" in
     --q|--query) Q="${2:-}"; shift 2 ;;
     --ll) LL="${2:-}"; shift 2 ;;
@@ -76,7 +82,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 fail() { echo "$1" >&2; exit 1; }
-is_number() { [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]; }
+is_number() { [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]; }
 is_int() { [[ "$1" =~ ^[0-9]+$ ]]; }
 
 [[ -n "$PLACE_ID" && -n "$DATA_CID" ]] && fail "--place-id and --data-cid cannot be used together."
