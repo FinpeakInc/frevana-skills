@@ -30,72 +30,101 @@ Most API-backed scripts validate the response as JSON, save it under `./out/`, a
 
 ## Skill Index
 
+Choose a top-level group first: [Data Skills](#data-skills) for retrieving or managing data, [Action Skills](#action-skills) for performing a task, and [Chrome Extension Skills](#chrome-extension-skills) for workflows that use the local Frevana daemon and a logged-in Chrome session.
+
+### Data Skills
+
+#### Commerce and marketplaces
+
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
-| Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Amazon | [`amazon-search`](skills/amazon-search/SKILL.md) | Amazon product search and discovery | keyword |
 | Amazon | [`amazon-product`](skills/amazon-product/SKILL.md) | Amazon product detail lookup | ASIN |
 | Amazon | [`amazon-keyword-search-volume`](skills/amazon-keyword-search-volume/SKILL.md) | Amazon keyword demand and comparison | one or more keywords |
-| Chrome Extension - Amazon | [`amazon-rufus-ai`](skills/amazon-rufus-ai/SKILL.md) | Ask Amazon Rufus AI about a product through Chrome Extension | product URL and question |
-| Chrome Extension - Amazon | [`amazon-product-info`](skills/amazon-product-info/SKILL.md) | Extract Amazon product page details through Chrome Extension | product URL |
-| Chrome Extension - Amazon | [`amazon-top-reviews`](skills/amazon-top-reviews/SKILL.md) | Fetch top helpful Amazon reviews through Chrome Extension | product URL |
-| Chrome Extension - Amazon | [`amazon-price`](skills/amazon-price/SKILL.md) | Extract Amazon price, discount, and coupon info through Chrome Extension | product URL |
-| Chrome Extension - Amazon | [`amazon-rufus-qa`](skills/amazon-rufus-qa/SKILL.md) | Extract Amazon Rufus suggested Q&A pairs through Chrome Extension | product URL |
 | Marketplace | [`ebay-search`](skills/ebay-search/SKILL.md) | eBay listing search by keyword or category | query or category ID |
 | Marketplace | [`home-depot-search`](skills/home-depot-search/SKILL.md) | Home Depot product search | query |
 | Walmart | [`walmart-search`](skills/walmart-search/SKILL.md) | Walmart product search and filtering | query |
 | Walmart | [`walmart-product-reviews`](skills/walmart-product-reviews/SKILL.md) | Walmart reviews for a known product | product ID / `us_item_id` |
 | Walmart | [`walmart-product-sellers`](skills/walmart-product-sellers/SKILL.md) | Walmart seller offers for a known product | product ID / `us_item_id` |
-| Google SERP | [`google-search`](skills/google-search/SKILL.md) | Regular Google web search / SERP results | query |
-| Google SERP | [`google-forums-search`](skills/google-forums-search/SKILL.md) | Forum-style Google results | query |
-| Google SERP | [`google-related-questions`](skills/google-related-questions/SKILL.md) | Expand People Also Ask / related questions | `next_page_token` |
-| Google SERP | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
-| Google SERP | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
-| Google Commerce | [`google-shopping-search`](skills/google-shopping-search/SKILL.md) | Google Shopping product search | query |
-| Google Commerce | [`google-shopping-light-search`](skills/google-shopping-light-search/SKILL.md) | Lightweight Google Shopping product search | query |
-| Google Commerce | [`google-immersive-product`](skills/google-immersive-product/SKILL.md) | Google Shopping immersive product details | page token |
+
+#### Search, research, and social data
+
+| Family | Skill | Use for | Required input |
+| --- | --- | --- | --- |
+| Google Search | [`google-search`](skills/google-search/SKILL.md) | Regular Google web search / SERP results | query |
+| Google Search | [`google-forums-search`](skills/google-forums-search/SKILL.md) | Forum-style Google results | query |
+| Google Search | [`google-related-questions`](skills/google-related-questions/SKILL.md) | Expand People Also Ask / related questions | `next_page_token` |
+| Google News | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
+| Google Maps | [`google-maps-search`](skills/google-maps-search/SKILL.md) | Google Maps place search and lookup | search query with type, or place ID / CID |
+| Google Trends | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
+| Google Shopping | [`google-shopping-search`](skills/google-shopping-search/SKILL.md) | Google Shopping product search | query |
+| Google Shopping | [`google-shopping-light-search`](skills/google-shopping-light-search/SKILL.md) | Lightweight Google Shopping product search | query |
+| Google Shopping | [`google-immersive-product`](skills/google-immersive-product/SKILL.md) | Google Shopping immersive product details | page token |
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
-| Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
+| Google Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
-| Chrome Extension - Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Reddit link-post search by query through Chrome Extension | query |
-| Chrome Extension - Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through Chrome Extension | URL |
-| Chrome Extension - Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through Chrome Extension | one or more queries |
-| Chrome Extension - AI | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through Chrome Extension | one or more prompts |
-| Chrome Extension - AI | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through Chrome Extension | one or more prompts |
-| Chrome Extension - AI | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through Chrome Extension | one or more prompts |
-| Chrome Extension - AI | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through Chrome Extension | one or more prompts |
-| Chrome Extension - AI | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through Chrome Extension | one or more prompts |
-| Chrome Extension - Social | [`x-topic-search`](skills/x-topic-search/SKILL.md) | X/Twitter posts by topic through Chrome Extension | topic |
-| Chrome Extension - Social | [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) | Publish to Twitter/X through Chrome Extension | final text |
-| Chrome Extension - Social | [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) | Publish to Facebook through Chrome Extension | final text |
-| Chrome Extension - Social | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn through Chrome Extension | final text |
-| Social Media | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
-| Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
-| Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
+| Facebook | [`facebook-profile`](skills/facebook-profile/SKILL.md) | Facebook profile lookup | profile ID or username |
+| Reddit | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
+
+#### Databases
+
+| Family | Skill | Use for | Required input |
+| --- | --- | --- | --- |
 | Database | [`mysql-crud`](skills/mysql-crud/SKILL.md) | MySQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`postgresql-crud`](skills/postgresql-crud/SKILL.md) | PostgreSQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`redis-crud`](skills/redis-crud/SKILL.md) | Redis key operations with saved profiles and SSH support | saved profile or connection details |
 | Database | [`mongodb-crud`](skills/mongodb-crud/SKILL.md) | MongoDB document operations with saved profiles and SSH support | saved profile or connection details |
 | Database | [`sqlite-crud`](skills/sqlite-crud/SKILL.md) | SQLite local file CRUD with saved profiles | local SQLite file path |
+
+### Action Skills
+
+| Family | Skill | Use for | Required input |
+| --- | --- | --- | --- |
+| Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
+| Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
+| Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
+| Email | [`klaviyo-send-email`](skills/klaviyo-send-email/SKILL.md) | Manage Klaviyo campaigns and audiences | campaign or audience details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
-Use the table to pick a skill quickly. Use the detailed sections below for options, defaults, and save behavior.
+### Chrome Extension Skills
 
-## Chrome Extension Skills
+These skills use the local Frevana daemon and the user's logged-in Chrome Extension session.
 
-The Chrome Extension skills are:
+#### Amazon
 
-- `url-scrape`
-- `google-search-extension`
-- `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`
-- `x-topic-search`
-- `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`
-- `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
+| Skill | Use for | Required input |
+| --- | --- | --- |
+| [`amazon-rufus-ai`](skills/amazon-rufus-ai/SKILL.md) | Ask Amazon Rufus AI about a product | product URL and question |
+| [`amazon-product-info`](skills/amazon-product-info/SKILL.md) | Extract Amazon product page details | product URL |
+| [`amazon-top-reviews`](skills/amazon-top-reviews/SKILL.md) | Fetch top helpful Amazon reviews | product URL |
+| [`amazon-price`](skills/amazon-price/SKILL.md) | Extract Amazon price, discount, and coupon info | product URL |
+| [`amazon-rufus-qa`](skills/amazon-rufus-qa/SKILL.md) | Extract Amazon Rufus suggested Q&A pairs | product URL |
 
-These skills use the local Frevana daemon and the user's logged-in Chrome Extension session via the Frevana Chrome Extension. Each one runs its bundled `scripts/setup.sh` wrapper before calling Frevana; that wrapper downloads and executes the official Frevana setup script, installs the CLI when needed, starts/checks the daemon, and verifies Chrome Extension connectivity.
+#### Browser, AI platforms, and social
+
+| Family | Skill | Use for | Required input |
+| --- | --- | --- | --- |
+| Browser | [`url-scrape`](skills/url-scrape/SKILL.md) | Scrape any URL through Chrome Extension | URL |
+| Browser | [`google-search-extension`](skills/google-search-extension/SKILL.md) | Search Google through Chrome Extension | one or more queries |
+| AI Platform | [`chatgpt-ask`](skills/chatgpt-ask/SKILL.md) | Ask ChatGPT through Chrome Extension | one or more prompts |
+| AI Platform | [`gemini-ask`](skills/gemini-ask/SKILL.md) | Ask Gemini through Chrome Extension | one or more prompts |
+| AI Platform | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through Chrome Extension | one or more prompts |
+| AI Platform | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through Chrome Extension | one or more prompts |
+| AI Platform | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through Chrome Extension | one or more prompts |
+| Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Search Reddit link posts by query | query |
+| Social | [`x-topic-search`](skills/x-topic-search/SKILL.md) | Search X/Twitter posts by topic | topic |
+| Social publishing | [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) | Publish to Twitter/X | final text |
+| Social publishing | [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) | Publish to Facebook | final text |
+| Social publishing | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn | final text |
+
+Use the index to choose a skill quickly. Use the detailed sections below for options, defaults, and save behavior.
+
+## Chrome Extension Setup
+
+Every skill in the [Chrome Extension Skills](#chrome-extension-skills) group runs its bundled `scripts/setup.sh` wrapper before calling Frevana. The wrapper downloads and executes the official Frevana setup script, installs the CLI when needed, starts/checks the daemon, and verifies Chrome Extension connectivity.
 
 ## Skill Details
 
@@ -306,6 +335,33 @@ Features:
 - optional `--gl` and `--hl`
 - optional Google News token filters
 - save results with `--output`
+
+### [`google-maps-search`](skills/google-maps-search/SKILL.md)
+
+Search Google Maps places or retrieve a known place.
+
+Use when:
+
+- you want Google Maps results for a query
+- you need location-, coordinate-, rating-, price-, opening-state-, or pagination-filtered results
+- you have a Google Maps `place_id` or `data_cid`
+
+Features:
+
+- accepts Google Maps search, map-origin, and place-filter fields
+- supports `search` and `place` request types
+- supports `FREVANA_API_BASE_URL` to override the default API host
+- saves results with `--output`
+
+### [`facebook-profile`](skills/facebook-profile/SKILL.md)
+
+Retrieve a Facebook profile by profile ID or username.
+
+Features:
+
+- requires `--profile-id`
+- supports `FREVANA_API_BASE_URL` to override the default API host
+- saves results with `--output`
 
 ### [`google-search`](skills/google-search/SKILL.md)
 

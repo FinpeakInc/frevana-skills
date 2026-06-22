@@ -97,6 +97,12 @@ skills/
   google-news-search/
     SKILL.md
     scripts/search_google_news.sh
+  google-maps-search/
+    SKILL.md
+    scripts/search_google_maps.sh
+  facebook-profile/
+    SKILL.md
+    scripts/get_facebook_profile.sh
   google-ads-transparency-center/
     SKILL.md
     scripts/search_google_ads_transparency_center.sh
@@ -599,6 +605,48 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional country, language, or token fields when the user did not provide them.
+
+### Use `google-maps-search`
+
+Route here when the user wants:
+
+- Google Maps place search results
+- Google Maps results biased by a location, coordinates, or nearby area
+- Google Maps price, rating, opening-state, or pagination filtering
+- a Google Maps place lookup from `place_id` or `data_cid`
+
+Required input:
+
+- for a search: `q` and `type=search`
+- for a direct place lookup: `place_id` or `data_cid`
+
+Optional input:
+
+- `ll`, `location`, `lat`, `lon`, `z`, `m`, `nearby`
+- `data`, `google_domain`, `hl`, `gl`
+- `min_price`, `max_price`, `min_rating`
+- `open_state`, `open_on_day`, `open_at_hour`, `start`
+- output file path and one-time token override
+
+Do not invent optional map origin or filter values. `place_id` and `data_cid` are mutually exclusive. A location or latitude/longitude origin needs `z` or `m`; latitude and longitude must be supplied together. `open_state` cannot be combined with `open_on_day` or `open_at_hour`.
+
+### Use `facebook-profile`
+
+Route here when the user wants:
+
+- a Facebook profile lookup by ID
+- a Facebook profile lookup by username
+
+Required input:
+
+- `profile_id`
+
+Optional input:
+
+- output file path
+- one-time token override
+
+Do not guess a Facebook profile ID or username when the user does not provide one.
 
 ### Use `google-ads-transparency-center`
 
@@ -1595,9 +1643,9 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
@@ -1958,6 +2006,8 @@ bash skills/google-search/scripts/search_google.sh
 bash skills/google-forums-search/scripts/search_google_forums.sh
 bash skills/google-patents-search/scripts/search_google_patents.sh
 bash skills/google-news-search/scripts/search_google_news.sh
+bash skills/google-maps-search/scripts/search_google_maps.sh
+bash skills/facebook-profile/scripts/get_facebook_profile.sh
 bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
 bash skills/google-trends/scripts/search_google_trends.sh
@@ -2141,6 +2191,24 @@ bash skills/google-news-search/scripts/search_google_news.sh \
   --q "artificial intelligence" \
   --gl US \
   --hl en
+```
+
+### Google Maps search
+
+```bash
+bash skills/google-maps-search/scripts/search_google_maps.sh \
+  --q "coffee shops" \
+  --type search \
+  --location "San Francisco, CA" \
+  --z 12 \
+  --open-state now
+```
+
+### Facebook profile
+
+```bash
+bash skills/facebook-profile/scripts/get_facebook_profile.sh \
+  --profile-id "zuck"
 ```
 
 ### Google Ads Transparency Center search
