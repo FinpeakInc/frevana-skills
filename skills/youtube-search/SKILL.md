@@ -30,7 +30,7 @@ This skill validates that the response is JSON and returns it unchanged. Do **no
 - optional `sp`
 - optional `hl`
 - optional `gl`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

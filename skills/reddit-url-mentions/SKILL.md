@@ -26,7 +26,7 @@ This skill validates that the response is JSON and returns it unchanged. Do **no
 
 - user-provided `targets` (array of URLs, max 10)
 - optional `tag`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

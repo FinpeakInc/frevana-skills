@@ -29,7 +29,7 @@ This skill validates that the response is JSON and returns it unchanged. Do **no
 
 - user-provided `keywords`
 - optional `location_code`, `location_name`, `language_code`, `language_name`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

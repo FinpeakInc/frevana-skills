@@ -31,7 +31,7 @@ The required `product_id` is the Walmart `us_item_id` from Walmart Search result
 - optional page number
 - optional sort value
 - optional rating filter
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

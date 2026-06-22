@@ -24,7 +24,7 @@ The API returns JSON in the shape `{"content": "<html>..."}`. This skill extract
 
 - user-provided `content` or `content_file`
 - optional user-provided `template_id`; when omitted, use `mckinsey-style-report-2`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 

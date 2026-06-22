@@ -14,7 +14,7 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 - user-provided `prompt` or `contents`
 - optional reference image inputs: `--image`, `--image-url`, `--image-dir`, `--mask`
 - optional Frevana image options: `n`, `size`, `quality`, `background`, `output_format`, `output_compression`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

@@ -30,7 +30,7 @@ This skill validates that the response is JSON and returns it unchanged. Do **no
 
 - user-provided `asin`
 - optional `amazon_domain`, `gl`, `hl`, `customer_zipcode`, `force_refresh`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

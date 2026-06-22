@@ -27,7 +27,7 @@ The required `product_id` is the Walmart `us_item_id` from Walmart Search result
 
 - user-provided `product_id` / Walmart `us_item_id`
 - optional Walmart `store_id`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

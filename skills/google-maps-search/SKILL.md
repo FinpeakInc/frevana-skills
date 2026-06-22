@@ -27,7 +27,7 @@ The script validates that the response is JSON and returns it unchanged. Do not 
 ## What This Skill Needs
 
 - a search query with `--type search`, or a `--place-id` / `--data-cid`
-- `FREVANA_TOKEN` in the environment, or `--token` for the current run
+- `FREVANA_TOKEN` in the environment variables, or `--token` for the current run
 - `curl`, `bash`, and `python3`
 
 ## Commands

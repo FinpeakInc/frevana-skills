@@ -29,7 +29,7 @@ This skill validates that the response is JSON, saves it to disk, and returns it
 
 - user-provided `advertiser_id`, `text`, or `next_page_token`
 - optional filters listed above
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

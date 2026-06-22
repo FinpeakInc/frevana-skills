@@ -46,7 +46,7 @@ FREVANA_API_BASE_URL="https://api-dev.frevana.com" \
 ## What This Skill Needs
 
 - `--profile-id` (or `--profile_id`), a Facebook profile ID or username
-- `FREVANA_TOKEN` in the environment, or `--token` for the current run
+- `FREVANA_TOKEN` in the environment variables, or `--token` for the current run
 - `curl`, `bash`, and `python3`
 
 The API base URL defaults to `https://ai-factory.frevana.com`. Set `FREVANA_API_BASE_URL` to point at another host.

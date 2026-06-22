@@ -19,7 +19,7 @@ This skill returns the validated API response JSON unchanged. Treat `generated_i
 
 - user-provided `prompt` or `contents`
 - optional Frevana image config fields: `seed`, `maxOutputTokens`, `responseModalities`, `imageConfig.aspectRatio`, `imageConfig.imageSize`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

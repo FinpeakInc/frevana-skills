@@ -24,7 +24,7 @@ This endpoint follows the Frevana Google Related Questions API. It is not a keyw
 ## What This Skill Needs
 
 - user-provided `next_page_token`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`

@@ -39,7 +39,7 @@ This skill validates that the response is JSON, saves it to disk, and returns it
 - optional `facet`
 - optional `min_price`
 - optional `max_price`
-- `FREVANA_TOKEN` in the environment, or an explicit `--token` override for the current run
+- `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
 - `python3`
