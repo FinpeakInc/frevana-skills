@@ -28,6 +28,7 @@ The following skills are Chrome Extension skills:
 - `google-search-extension`
 - `chatgpt-ask`, `gemini-ask`, `perplexity-ask`, `deepseek-ask`, and `doubao-ask`
 - `x-topic-search`
+- `meta-ads-search`
 - `reddit-search`
 - `amazon-rufus-ai`, `amazon-product-info`, `amazon-top-reviews`, `amazon-price`, and `amazon-rufus-qa`
 - `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
@@ -193,6 +194,10 @@ skills/
     SKILL.md
     scripts/setup.sh
     scripts/search_x_topics.sh
+  meta-ads-search/
+    SKILL.md
+    scripts/setup.sh
+    scripts/search_meta_ads.sh
   publish-twitter-post/
     SKILL.md
     scripts/setup.sh
@@ -1238,6 +1243,30 @@ Optional input:
 
 The user can provide only `topic`. Default `fetchMode` to `quick` when the user does not provide it. Do not invent optional sort, count, cursor, reply, quote, media, scroll, minimum-count, or timeout fields when the user did not provide them.
 This is a Chrome Extension skill. It uses the local Frevana daemon and Chrome Extension login state. The user must be logged in to X/Twitter in Chrome.
+
+### Use `meta-ads-search`
+
+Route here when the user wants:
+
+- Meta Ads Library or Facebook ad records by keyword, brand, or advertiser text
+- Meta Ads Library results filtered by country, active status, or date range
+- Chrome Extension-backed Meta advertising research through the local Frevana daemon
+
+Required input:
+
+- `keyword`
+
+Optional input:
+
+- `country` (`ALL` by default, or an uppercase ISO 3166-1 alpha-2 code)
+- `active_status` (defaults to `active`; `inactive` or `all` when specified)
+- `date_from`
+- `date_to`
+- `maxResults` (defaults to 20; 1 through 500)
+- `timeout`
+- output file path
+
+The user can provide only `keyword`; the script searches active ads in all countries and returns up to 20 ads by default. Let a user-provided `country`, `active_status`, or `maxResults` override those defaults. Do not invent optional date range or timeout values. This is a Chrome Extension skill: it uses the local Frevana daemon and the user's connected Chrome session.
 
 ### Use `url-scrape`
 

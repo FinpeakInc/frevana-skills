@@ -116,6 +116,7 @@ These skills use the local Frevana daemon and the user's logged-in Chrome Extens
 | AI Platform | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through Chrome Extension | one or more prompts |
 | Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Search Reddit link posts by query | query |
 | Social | [`x-topic-search`](skills/x-topic-search/SKILL.md) | Search X/Twitter posts by topic | topic |
+| Social | [`meta-ads-search`](skills/meta-ads-search/SKILL.md) | Search Meta Ads Library ads by keyword or advertiser text | keyword |
 | Social publishing | [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) | Publish to Twitter/X | final text |
 | Social publishing | [`publish-facebook-post`](skills/publish-facebook-post/SKILL.md) | Publish to Facebook | final text |
 | Social publishing | [`publish-linkedin-post`](skills/publish-linkedin-post/SKILL.md) | Publish to LinkedIn | final text |
@@ -576,6 +577,27 @@ Features:
 - runs bundled `scripts/setup.sh` before every search, matching the original Frevana skill flow
 - setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
 - requires the local Frevana daemon, Chrome Extension connection, and X/Twitter login in Chrome
+- save output with `--output`
+
+### [`meta-ads-search`](skills/meta-ads-search/SKILL.md)
+
+Search Meta Ads Library through the local Frevana daemon and Chrome Extension session.
+
+Use when:
+
+- you want Meta/Facebook ad records for a keyword, brand, or advertiser text
+- you want to filter Meta Ads Library results by country, active status, or date range
+- you want Chrome Extension-backed ad research through the user's connected Chrome session
+
+Features:
+
+- `--keyword` is the only required input; `--query`, `--q`, and `--text` are accepted aliases
+- defaults to 20 active ads across all countries (`--country ALL`, `--active-status active`); use `--max-results`, `--country`, or `--active-status` to override those defaults
+- optional `--date-from`, `--date-to`, and `--timeout`
+- `--country` accepts `ALL` or a two-letter uppercase country code; `--active-status` accepts `active`, `inactive`, or `all`
+- runs bundled `scripts/setup.sh` before every search, matching the original Frevana skill flow
+- setup downloads and executes the latest official Frevana setup script, which installs the CLI if missing and starts/checks the daemon
+- requires the local Frevana daemon and Chrome Extension connection
 - save output with `--output`
 
 ### [`url-scrape`](skills/url-scrape/SKILL.md)
