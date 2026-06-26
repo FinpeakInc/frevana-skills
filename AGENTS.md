@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
-- Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, YouTube Search, and Reddit Search lookups
+- Google Ads Transparency Center, Google Ads Search, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
@@ -110,6 +110,48 @@ skills/
   google-related-questions/
     SKILL.md
     scripts/search_google_related_questions.sh
+  google-events-search/
+    SKILL.md
+    scripts/search_google_events.sh
+  google-images-search/
+    SKILL.md
+    scripts/search_google_images.sh
+  google-ai-mode/
+    SKILL.md
+    scripts/search_google_ai_mode.sh
+  google-ai-overview/
+    SKILL.md
+    scripts/get_google_ai_overview.sh
+  google-ads-search/
+    SKILL.md
+    scripts/search_google_ads.sh
+  google-autocomplete/
+    SKILL.md
+    scripts/search_google_autocomplete.sh
+  google-maps-reviews/
+    SKILL.md
+    scripts/get_google_maps_reviews.sh
+  google-local-services-search/
+    SKILL.md
+    scripts/search_google_local_services.sh
+  google-short-videos-search/
+    SKILL.md
+    scripts/search_google_short_videos.sh
+  google-videos-search/
+    SKILL.md
+    scripts/search_google_videos.sh
+  bing-search/
+    SKILL.md
+    scripts/search_bing.sh
+  youtube-video/
+    SKILL.md
+    scripts/get_youtube_video.sh
+  youtube-video-transcript/
+    SKILL.md
+    scripts/get_youtube_video_transcript.sh
+  instagram-profile/
+    SKILL.md
+    scripts/get_instagram_profile.sh
   google-trends/
     SKILL.md
     scripts/search_google_trends.sh

@@ -54,6 +54,20 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Google Search | [`google-search`](skills/google-search/SKILL.md) | Regular Google web search / SERP results | query |
 | Google Search | [`google-forums-search`](skills/google-forums-search/SKILL.md) | Forum-style Google results | query |
 | Google Search | [`google-related-questions`](skills/google-related-questions/SKILL.md) | Expand People Also Ask / related questions | `next_page_token` |
+| Google Search | [`google-events-search`](skills/google-events-search/SKILL.md) | Google Events search | query |
+| Google Search | [`google-images-search`](skills/google-images-search/SKILL.md) | Google Images search and filters | query |
+| Google Search | [`google-ai-mode`](skills/google-ai-mode/SKILL.md) | Google AI Mode answers | query |
+| Google Search | [`google-ai-overview`](skills/google-ai-overview/SKILL.md) | Google AI Overview by page token | page token |
+| Google Search | [`google-autocomplete`](skills/google-autocomplete/SKILL.md) | Google Autocomplete suggestions | query prefix |
+| Google Search | [`google-short-videos-search`](skills/google-short-videos-search/SKILL.md) | Google Short Videos results | query |
+| Google Search | [`google-videos-search`](skills/google-videos-search/SKILL.md) | Google Videos results | query |
+| Google Ads | [`google-ads-search`](skills/google-ads-search/SKILL.md) | Google sponsored search ads | query and location |
+| Google Maps | [`google-maps-reviews`](skills/google-maps-reviews/SKILL.md) | Google Maps place reviews | data ID or place ID |
+| Google Local Services | [`google-local-services-search`](skills/google-local-services-search/SKILL.md) | Google Local Services results | query and data CID |
+| Bing | [`bing-search`](skills/bing-search/SKILL.md) | Bing web search results | query |
+| YouTube | [`youtube-video`](skills/youtube-video/SKILL.md) | YouTube video details | video ID |
+| YouTube | [`youtube-video-transcript`](skills/youtube-video-transcript/SKILL.md) | YouTube video transcripts | video ID |
+| Instagram | [`instagram-profile`](skills/instagram-profile/SKILL.md) | Instagram profile lookup | profile ID |
 | Google News | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
 | Google Maps | [`google-maps-search`](skills/google-maps-search/SKILL.md) | Google Maps place search and lookup | search query with type, or place ID / CID |
 | Google Trends | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
