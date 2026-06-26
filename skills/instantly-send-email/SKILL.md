@@ -1,6 +1,6 @@
 ---
 name: instantly-send-email
-description: Use when the user wants to send email through Instantly API V2 using the normal Instantly workflow: check/create leads, choose or create a campaign, move/enroll leads into campaigns, inspect campaign sending status, list a lead's emails, and reply to an existing selected email. Uses separate lead.sh, campaign.sh, and email.sh scripts. Do not use the Instantly test-email endpoint, SendGrid, SMTP, or a nonexistent direct send API.
+description: "Use when the user wants to send email through Instantly API V2 using the normal Instantly workflow: check/create leads, choose or create a campaign, move/enroll leads into campaigns, inspect campaign sending status, list a lead's emails, and reply to an existing selected email. Uses separate lead.sh, campaign.sh, and email.sh scripts. Do not use the Instantly test-email endpoint, SendGrid, SMTP, or a nonexistent direct send API."
 ---
 
 # Instantly Send Email

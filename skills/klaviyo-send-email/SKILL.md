@@ -1,6 +1,6 @@
 ---
 name: klaviyo-send-email
-description: Use when the user wants to manage Klaviyo campaigns through the Klaviyo Campaign API: list, get, create, update, delete, clone, or send campaigns; assign email templates to campaign messages; list, get, or update campaign messages; refresh or get recipient estimations; or create, get, or update campaign audiences. Uses campaign.sh and audience.sh scripts. Uses Klaviyo-API-Key authorization.
+description: "Use when the user wants to manage Klaviyo campaigns through the Klaviyo Campaign API: list, get, create, update, delete, clone, or send campaigns; assign email templates to campaign messages; list, get, or update campaign messages; refresh or get recipient estimations; or create, get, or update campaign audiences. Uses campaign.sh and audience.sh scripts. Uses Klaviyo-API-Key authorization."
 ---
 
 # Klaviyo Send Email
