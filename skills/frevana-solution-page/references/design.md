@@ -422,7 +422,7 @@ Required slots:
 
 Image direction should stay compatible with the current `/individual` page:
 
-- Transparent-background product collage asset, compatible with a white page.
+- White-background product illustration collage asset, compatible with a white page. Never render checkerboard patterns, transparency-preview grids, or alpha-channel preview backgrounds.
 - White rounded UI cards with thin dark navy/black outlines, soft shadows, and bold black labels.
 - Frevana green highlights plus one or two flat geometric overlays in green, teal, orange, yellow, light cyan, or soft pink.
 - Hero may include a tasteful cropped lifestyle/product-photo fragment blended into the collage.
@@ -430,3 +430,12 @@ Image direction should stay compatible with the current `/individual` page:
 - Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, or full-bleed stock-photo scenes.
 
 If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
+
+
+### Header/Footer Source Parity
+
+Standalone HTML output should translate `frevana-web/components/Header.tsx` and `frevana-web/components/Footer.tsx` into static HTML/CSS/JS equivalents. Preserve the logo asset, Solutions dropdown structure, Case Study dropdown links, Docs/Articles/Pricing/News destinations, Login and Start free trial links, mobile drawer behavior, dark footer grid, social icon links, footer link list, and Download App click behavior.
+
+### AEO Team Tabs
+
+The AEO team/module section uses a horizontal tab strip like the original `/individual` page. The selected tab has dark text and a bottom underline. The content below uses an illustration/product-collage image on the left and text on the right. On mobile, tabs remain horizontal and scrollable instead of becoming a vertical rail.

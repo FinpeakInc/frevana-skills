@@ -65,16 +65,16 @@ def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
     return (
         "Create a Frevana solution-page image asset for the "
         f"{slot} slot, matching the current Frevana /individual page. "
-        "Visual system: transparent-background editorial product collage, not a full-bleed photo. "
+        "Visual system: white-background product illustration collage, not a full-bleed photo. "
         "Use oversized white rounded UI cards with thin dark navy outlines, soft shadows, "
         "bold black UI text, Frevana green accents (#3D9040), and one or two flat geometric "
         "decorative shapes in green, teal, orange, yellow, light cyan, or soft pink. "
         "The asset should feel like a clean product illustration or UI sticker sheet placed on a white page. "
-        "Use object-contain composition with generous transparent margins and no rectangular photo frame. "
+        "Use object-contain composition with generous clean white negative space margins and no rectangular photo frame. "
         "Hero may include a tasteful cropped lifestyle/product-photo element blended with graphic overlays; "
         "feature and module slots should primarily be UI-card collage illustrations. "
         "Avoid generic SaaS screenshots, stock-photo office scenes, purple AI gradients, dark cyberpunk, "
-        "3D mascots, fake brand logos, tiny unreadable paragraphs, and busy backgrounds. "
+        "3D mascots, fake brand logos, tiny unreadable paragraphs, busy backgrounds, checkerboard patterns, transparency preview grids, and alpha-channel preview backgrounds. "
         f"Page copy context: {content}"
     )
 
@@ -82,10 +82,10 @@ def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
 def style_wrapped_prompt(slot: str, prompt: str) -> str:
     return (
         "Render this as a Frevana /individual page visual asset. "
-        "Required style: transparent PNG/WebP-like product collage, white rounded UI cards, "
+        "Required style: white-background product illustration collage, white rounded UI cards, "
         "thin dark navy outlines, soft shadows, bold black UI labels, Frevana green #3D9040 accents, "
         "flat geometric overlays, object-contain composition, clean white-page compatibility. "
-        "Do not create a normal photo, full dashboard screenshot, purple AI graphic, or dark background. "
+        "Do not create a normal photo, full dashboard screenshot, purple AI graphic, dark background, checkerboard pattern, transparency preview grid, or alpha-channel preview background. "
         f"Slot: {slot}. Content brief: {prompt}"
     )
 

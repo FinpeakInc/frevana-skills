@@ -7,7 +7,7 @@ description: Generate Frevana solution-style landing pages from natural-language
 
 Create single-file HTML landing pages that match Frevana's solution-page visual system. The user can describe the page in natural language; do not require them to hand-write JSON.
 
-The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, transparent product-collage images, and a dark slate footer.
+The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, white-background product-collage illustrations, and a dark slate footer.
 
 ## Workflow
 
@@ -33,7 +33,7 @@ The Agent should create a JSON input file from the conversation. The user does n
     "body": "描述产品价值和目标用户。",
     "cta_text": "立即开始",
     "cta_url": "/zh-CN/signup",
-    "image_prompt": "Transparent Frevana-style product collage showing an AI visibility report..."
+    "image_prompt": "White-background Frevana-style product illustration collage showing an AI visibility report..."
   },
   "intro": {
     "eyebrow": "为什么选择 Frevana",
@@ -46,13 +46,13 @@ The Agent should create a JSON input file from the conversation. The user does n
       "body": "说明该模块如何帮助用户增长。",
       "cta_text": "立即开始",
       "cta_url": "/zh-CN/signup",
-      "image_prompt": "Transparent Frevana-style UI collage of user questions and search prompts..."
+      "image_prompt": "White-background Frevana-style UI-card illustration collage of user questions and search prompts..."
     }
   ],
   "module": {
     "eyebrow": "您将获得",
     "title": "助力您增长的 AEO 团队",
-    "image_prompt": "Transparent Frevana-style UI collage of modular AEO agents...",
+    "image_prompt": "White-background Frevana-style UI-card illustration collage of modular AEO agents...",
     "tabs": [
       {
         "label": "问题研究员",
@@ -113,9 +113,9 @@ Standard slots:
 - `section-4`
 - `module`
 
-Image style must match the current Frevana `/individual` page assets:
+Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail:
 
-- Prefer transparent-background product collage assets, not full-bleed stock photos.
+- Prefer white-background product illustration collage assets, not full-bleed stock photos, checkerboard patterns, transparency-preview grids, or alpha-channel preview backgrounds.
 - Use white rounded UI cards, thin dark outlines, soft shadows, bold black UI labels, Frevana green accents, and flat geometric overlays.
 - Hero may blend a cropped lifestyle/product-photo element with graphic overlays, but feature and module images should primarily be UI-card collage illustrations.
 - Avoid generic SaaS dashboard screenshots, purple AI gradients, dark AI art, and ordinary office photography.
@@ -129,8 +129,19 @@ Preserve these default behaviors:
 - Logo links to `/zh-CN`.
 - Solutions dropdown remains available.
 - Docs, Articles, Pricing, News, Login, and Start free trial links remain present.
+- Header/Footer should follow the static HTML/CSS/JS equivalent of `frevana-web/components/Header.tsx` and `frevana-web/components/Footer.tsx`: logo image, Solutions dropdown, Case study dropdown, Docs/Articles/Pricing/News links, Login/Start free trial, mobile drawer, dark footer, social icons, footer links, and Download App behavior.
 - Language selector stays visually present; static display is acceptable in single-file output.
 - Hero, feature, and final CTAs default to `/zh-CN/signup`.
 - If the user provides a CTA URL, use that override.
 - Hero and final primary CTAs should render as dark charcoal filled buttons.
 - Feature-row CTAs should render as green inline text links with arrows, not green filled buttons.
+
+
+## Module Layout Policy
+
+The AEO team/module area must match the current Frevana solution-page layout:
+
+- Desktop: centered eyebrow/title, then a horizontal tab strip with the selected tab underlined.
+- Desktop content: illustration on the left, copy on the right.
+- Mobile: keep tabs horizontal and scrollable; do not convert them to a vertical sidebar.
+- Do not use card-like vertical tab rails for this section.
