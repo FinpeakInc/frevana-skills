@@ -592,7 +592,7 @@
       object-position: center;
       border-radius: 0;
       border: 0;
-      filter: drop-shadow(0 22px 28px rgba(15, 23, 42, 0.12));
+      filter: none;
     }}
 
     .intro {{
@@ -676,8 +676,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: clamp(24px, 4vw, 72px);
-      margin-bottom: 68px;
+      gap: clamp(22px, 3.4vw, 58px);
+      margin-bottom: 54px;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
@@ -690,15 +690,15 @@
     .module__tab {{
       position: relative;
       flex: 0 0 auto;
-      min-height: 58px;
-      padding: 0 0 16px;
+      min-height: 44px;
+      padding: 0 0 12px;
       border: 0;
-      border-bottom: 3px solid transparent;
+      border-bottom: 2px solid transparent;
       border-radius: 0;
       background: transparent;
       color: #9ca3af;
       text-align: center;
-      font: 700 26px/1.4 var(--font-body);
+      font: 700 18px/1.4 var(--font-body);
       cursor: pointer;
       white-space: nowrap;
     }}
@@ -711,8 +711,8 @@
 
     .module__content {{
       display: grid;
-      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
-      gap: clamp(48px, 8vw, 112px);
+      grid-template-columns: minmax(0, 0.74fr) minmax(0, 1fr);
+      gap: clamp(52px, 7vw, 104px);
       align-items: center;
       padding: 0;
     }}
@@ -736,6 +736,9 @@
     }}
 
     .module__image {{
+      justify-self: center;
+      max-width: 560px;
+      width: 100%;
       border-radius: 0;
       box-shadow: none;
     }}
@@ -746,7 +749,7 @@
       object-fit: contain;
       object-position: center;
       border-radius: 0;
-      filter: drop-shadow(0 24px 34px rgba(15, 23, 42, 0.14));
+      filter: none;
     }}
 
     .final-cta {{
@@ -987,9 +990,9 @@
       }}
 
       .module__tab {{
-        min-height: 44px;
-        padding-bottom: 10px;
-        font-size: 18px;
+        min-height: 40px;
+        padding-bottom: 9px;
+        font-size: 16px;
       }}
 
       .module__content {{

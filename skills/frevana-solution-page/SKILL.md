@@ -7,7 +7,7 @@ description: Generate Frevana solution-style landing pages from natural-language
 
 Create single-file HTML landing pages that match Frevana's solution-page visual system. The user can describe the page in natural language; do not require them to hand-write JSON.
 
-The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, white-background product-collage illustrations, and a dark slate footer.
+The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, transparent-background spot illustrations, and a dark slate footer.
 
 ## Workflow
 
@@ -98,7 +98,7 @@ Images are generated through:
 ../gpt-image-2/scripts/generate_image.sh
 ```
 
-The script requires `FREVANA_TOKEN` unless `--skip-images` is used. Generated image responses are cached by slot and prompt hash under:
+The script requires `FREVANA_TOKEN` unless `--skip-images` is used. It calls `gpt-image-2` with `--background transparent --output-format png` by default. Generated image responses are cached by slot, prompt hash, output options, and background under:
 
 ```text
 cache/images/<slot>-<hash>.json
@@ -115,12 +115,12 @@ Standard slots:
 
 Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail:
 
-- Generate simple white-background spot illustrations, not information posters or dense SaaS dashboards.
-- Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, soft shadows, Frevana green accents, and optional tiny icon badges.
+- Generate simple transparent-background spot illustrations with real alpha, not information posters or dense SaaS dashboards.
+- Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, flat layers, no image drop shadow, no cast shadow, and optional tiny icon badges. Use a richer pastel palette: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color. Do not draw a white page or white rectangular background behind the artwork.
 - Use at most two short English labels, each 2-4 words. Do not copy page headlines, section body text, bullets, or long user copy into the image.
 - Hero may use an abstract object/workspace photo crop with geometric overlays, but no visible faces, no portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module images should primarily be simple UI-card + geometric-shape illustrations, not photos.
-- Avoid checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
+- Avoid checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, white background plates, heavy shadows, glossy 3D depth, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
 
 ## Header, Footer, And CTA Policy
 
@@ -143,7 +143,7 @@ Preserve these default behaviors:
 
 The AEO team/module area must match the current Frevana solution-page layout:
 
-- Desktop: centered eyebrow/title, then a horizontal tab strip with the selected tab underlined.
-- Desktop content: illustration on the left, copy on the right.
+- Desktop: centered eyebrow/title, then a compact horizontal tab strip with the selected tab underlined. Tab labels should be around 16-18px, not oversized.
+- Desktop content: restrained illustration on the left, capped around 560px wide, copy on the right.
 - Mobile: keep tabs horizontal and scrollable; do not convert them to a vertical sidebar.
 - Do not use card-like vertical tab rails for this section.

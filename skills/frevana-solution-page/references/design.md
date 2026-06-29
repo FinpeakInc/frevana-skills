@@ -422,13 +422,13 @@ Required slots:
 
 Image direction should stay compatible with the current `/individual` page:
 
-- Use simple white-background spot illustrations, not information posters. The image is a visual accent, not a second copy area.
-- Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, and soft shadows.
+- Use simple transparent-background spot illustrations with real alpha, not information posters. The image is a visual accent, not a second copy area.
+- Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, flat layers, no image drop shadow, and no cast shadow. Do not draw a white page or white rectangular background behind the artwork.
 - Text inside images must be minimal: at most two short English labels, each 2-4 words. Never copy page headlines, section body text, bullets, or long user copy into artwork.
 - Hero may include an abstract object/workspace photo crop with geometric overlays, but no visible faces, no real portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module slots should be simple UI-card + geometric-shape illustrations, not photos, full dashboards, or dense product collages.
-- Frevana green highlights may be paired with one or two flat shapes in teal, yellow, light cyan, soft pink, or blue.
-- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, checkerboard patterns, transparency-preview grids, and alpha-channel preview backgrounds.
+- Use a richer pastel palette across illustrations: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color.
+- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, white background plates, heavy shadows, and glossy 3D depth.
 
 If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
 
@@ -439,4 +439,4 @@ Standalone HTML output should translate `frevana-web/components/Header.tsx` and 
 
 ### AEO Team Tabs
 
-The AEO team/module section uses a horizontal tab strip like the original `/individual` page. The selected tab has dark text and a bottom underline. The content below uses an illustration/product-collage image on the left and text on the right. On mobile, tabs remain horizontal and scrollable instead of becoming a vertical rail.
+The AEO team/module section uses a horizontal tab strip like the original `/individual` page. Use compact tab typography around `{typography.tab}` (16-18px), not oversized labels. The selected tab has dark text and a bottom underline. The content below uses a restrained illustration/product-collage image on the left, capped around 560px wide on desktop, and text on the right. On mobile, tabs remain horizontal and scrollable instead of becoming a vertical rail.

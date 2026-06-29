@@ -16,6 +16,7 @@ from typing import Any
 DEFAULT_SIZE = "1536x1024"
 DEFAULT_QUALITY = "high"
 DEFAULT_FORMAT = "png"
+DEFAULT_BACKGROUND = "transparent"
 
 
 class ImageGenerationError(RuntimeError):
@@ -64,7 +65,7 @@ def resolve_gpt_image_script() -> Path:
     return script
 
 
-def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: str) -> str:
+def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: str, background: str) -> str:
     payload = json.dumps(
         {
             "slot": slot,
@@ -72,6 +73,7 @@ def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: 
             "size": size,
             "quality": quality,
             "output_format": output_format,
+            "background": background,
         },
         ensure_ascii=False,
         sort_keys=True,
@@ -90,16 +92,18 @@ def style_wrapped_prompt(slot: str, prompt: str) -> str:
         "Render a simple Frevana /individual style spot illustration, not an information poster. "
         "Use the brief only as a loose visual theme; do not copy the brief text into the image. "
         f"{_slot_visual_pattern(slot)}"
-        "Composition rules: white canvas, generous empty space, 1 large pastel geometric shape "
-        "(semi-circle, triangle, pill, ring, starburst, or folded corner), 1-2 white rounded UI cards, "
-        "thin light-gray or dark-navy outlines, very soft shadows, Frevana green #3D9040 accents, "
-        "and optional tiny icon badges. "
+        "Composition rules: true transparent alpha background, generous empty space around the objects, 1 large pastel geometric shape "
+        "(semi-circle, triangle, pill, ring, starburst, folded corner, or rounded blob), 1-2 white rounded UI cards, "
+        "thin light-gray or dark-navy outlines, flat layers with no cast shadow and no drop shadow. "
+        "Use a richer pastel palette: choose 2-3 colors from coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green; "
+        "Frevana green #3D9040 should be a small accent, not the dominant color. "
+        "Optional tiny icon badges are allowed. Do not draw a white rectangle, white page, checkerboard, or any background fill. "
         "Text rules: at most two short English labels, each 2-4 words; no paragraphs, no bullet lists, "
         "no copied landing-page headline/body text, no dense dashboard tables. "
         "Strictly avoid: product logos, Frevana logo, brand logos, platform logos, real human faces, "
         "real human portraits, detailed people, normal office stock photos for feature/module slots, "
         "busy UI collages, complex flowcharts, checkerboard patterns, transparency preview grids, "
-        "alpha-channel preview backgrounds, purple AI art, dark backgrounds, 3D mascots, and tiny unreadable text. "
+        "alpha-channel preview backgrounds, purple AI art, dark backgrounds, 3D mascots, heavy shadows, glossy 3D depth, and tiny unreadable text. "
         f"Slot: {slot}. Brief: {brief}"
     )
 
@@ -167,11 +171,12 @@ def generate_slot_image(
     size: str = DEFAULT_SIZE,
     quality: str = DEFAULT_QUALITY,
     output_format: str = DEFAULT_FORMAT,
+    background: str = DEFAULT_BACKGROUND,
 ) -> dict[str, Any]:
     slot = slot_data["slot"]
     prompt = slot_data["prompt"]
     cache_dir.mkdir(parents=True, exist_ok=True)
-    digest = prompt_hash(slot, prompt, size, quality, output_format)
+    digest = prompt_hash(slot, prompt, size, quality, output_format, background)
     cache_path = cache_dir / f"{slot}-{digest}.json"
 
     if cache_path.exists():
@@ -197,6 +202,8 @@ def generate_slot_image(
         quality,
         "--output-format",
         output_format,
+        "--background",
+        background,
     ]
     result = subprocess.run(command, check=False, capture_output=True, text=True)
     if result.returncode != 0:
@@ -227,6 +234,7 @@ def generate_slot_image(
         "prompt": prompt,
         "alt": slot_data.get("alt", ""),
         "image_url": image_url,
+        "background": background,
         "provider_response": response,
         "from_cache": False,
         "cache_path": str(cache_path),
@@ -242,6 +250,7 @@ def render_images_for_page(
     size: str = DEFAULT_SIZE,
     quality: str = DEFAULT_QUALITY,
     output_format: str = DEFAULT_FORMAT,
+    background: str = DEFAULT_BACKGROUND,
 ) -> dict[str, dict[str, Any]]:
     manifest: dict[str, dict[str, Any]] = {}
     for slot_data in collect_image_slots(page_data):
@@ -251,6 +260,7 @@ def render_images_for_page(
             size=size,
             quality=quality,
             output_format=output_format,
+            background=background,
         )
         manifest[slot_data["slot"]] = generated
     return manifest
@@ -264,6 +274,7 @@ def main() -> int:
     parser.add_argument("--size", default=DEFAULT_SIZE)
     parser.add_argument("--quality", default=DEFAULT_QUALITY)
     parser.add_argument("--output-format", default=DEFAULT_FORMAT)
+    parser.add_argument("--background", default=DEFAULT_BACKGROUND, choices=["transparent", "opaque", "auto"])
     args = parser.parse_args()
 
     page_path = Path(args.input)
@@ -275,6 +286,7 @@ def main() -> int:
         size=args.size,
         quality=args.quality,
         output_format=args.output_format,
+        background=args.background,
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
