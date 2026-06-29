@@ -111,16 +111,26 @@ Standard slots:
 - `section-2`
 - `section-3`
 - `section-4`
+- `section-N` for any additional user-provided feature sections
 - `module`
 
 Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail. The script passes `--background transparent`; image prompts should describe floating cutout artwork and should avoid wording that makes the model draw gray tile artifacts:
 
 - Generate simple floating spot illustrations with API-controlled transparent output, not information posters or dense SaaS dashboards.
 - Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, flat layers, no image drop shadow, no cast shadow, and optional tiny icon badges. Use a richer pastel palette: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color. Do not draw a white page or white rectangular background behind the artwork.
-- Use at most two short English labels, each 2-4 words. Do not copy page headlines, section body text, bullets, or long user copy into the image.
+- Each image slot must use a different composition, silhouette, card arrangement, and accent-color mix. Do not reuse the same search-bar/status-chip illustration across Hero and feature sections.
+- Prefer gray placeholder lines over text. If text is necessary, use at most two short generic English labels, each 1-3 words. Do not use Chinese text or copy page headlines, section body text, bullets, or long user copy into the image.
 - Hero may use an abstract object/workspace photo crop with geometric overlays, but no visible faces, no portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module images should primarily be simple UI-card + geometric-shape illustrations, not photos.
 - Avoid repeating gray tile artifacts, white background plates, heavy shadows, glossy 3D depth, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
+
+Visual variety:
+
+- Do not permanently bind a specific illustration structure to `section-1`, `section-2`, or any other section number.
+- For each generated page, assign section images from a reusable motif pool so that images on the same page have visibly different silhouettes, card arrangements, and accent-color mixes.
+- The motif pool can include question chips, document stacks, checklist/course cards, compact charts, agent cards, search/input cards, dashboard tiles, content preview cards, and report cards.
+- If the user provides more than four sections, continue rendering every section and keep assigning varied motifs instead of dropping, merging, or repeating the same structure.
+- Hero and module images use their own small motif pools so they remain appropriate for their page roles; feature sections use a dynamic section motif pool and are not bound to section numbers.
 
 ## Header, Footer, And CTA Policy
 

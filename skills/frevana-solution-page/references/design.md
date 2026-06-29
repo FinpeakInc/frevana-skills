@@ -424,11 +424,20 @@ Image direction should stay compatible with the current `/individual` page. The 
 
 - Use simple floating spot illustrations with API-controlled transparent output, not information posters. The image is a visual accent, not a second copy area.
 - Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, flat layers, no image drop shadow, and no cast shadow. Do not draw a white page or white rectangular background behind the artwork.
-- Text inside images must be minimal: at most two short English labels, each 2-4 words. Never copy page headlines, section body text, bullets, or long user copy into artwork.
+- Each image slot must use a different composition, silhouette, card arrangement, and accent-color mix. Avoid repeating the same search-bar/status-chip formula across the page.
+- Text inside images must be minimal. Prefer gray placeholder lines; if text is necessary, use at most two short generic English labels, each 1-3 words. Never use Chinese text or copy page headlines, section body text, bullets, or long user copy into artwork.
 - Hero may include an abstract object/workspace photo crop with geometric overlays, but no visible faces, no real portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module slots should be simple UI-card + geometric-shape illustrations, not photos, full dashboards, or dense product collages.
 - Use a richer pastel palette across illustrations: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color.
 - Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, repeating gray tile artifacts, white background plates, heavy shadows, and glossy 3D depth.
+
+Visual variety system:
+
+- Do not permanently bind a specific illustration structure to `section-1`, `section-2`, or any other section number.
+- For each generated page, assign section images from a reusable motif pool so that images on the same page have visibly different silhouettes, card arrangements, and accent-color mixes.
+- The motif pool can include question chips, document stacks, checklist/course cards, compact charts, agent cards, search/input cards, dashboard tiles, content preview cards, and report cards.
+- If the user provides more than four sections, continue rendering every section and keep assigning varied motifs instead of dropping, merging, or repeating the same structure.
+- Hero and module images use their own small motif pools so they remain appropriate for their page roles; feature sections use a dynamic section motif pool and are not bound to section numbers.
 
 If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
 

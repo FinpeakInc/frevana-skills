@@ -34,15 +34,61 @@ def _compact_brief(value: Any, *, limit: int = 72) -> str:
     return brief[:limit].rstrip(" ，。,.;；:")
 
 
-def _slot_visual_pattern(slot: str) -> str:
-    if slot == "hero":
-        return (
-            "Hero pattern: one rounded-corner abstract workspace or object photo crop is allowed, "
-            "but no visible faces, no portraits, no readable brand marks; combine it with one oversized simple geometric backdrop. "
-        )
+HERO_VISUAL_MOTIFS = [
+    "a broad acquisition-channel visual with one wide search/input card, two small status chips, a coral rectangle, a blue ring, and one teal rounded block",
+    "an abstract workspace-object crop with layered pastel geometric overlays, one small insight card, and no visible faces or logos",
+    "a compact AI visibility command bar with two floating result chips, one folded corner shape, one ring, and one large soft mint backdrop",
+]
+
+SECTION_VISUAL_MOTIFS = [
+    "three staggered short question chips over a cyan concentric-circle or target motif, with one tiny arrow button",
+    "two overlapping document cards with gray placeholder lines, a small sparkle badge, and yellow plus soft-pink circles",
+    "a checklist or course card, a dotted route line, a small flag or book icon, and a sky-blue frame or mint blob",
+    "a compact chart card, a donut or pie segment, one report pill, and a lavender or cyan semicircle",
+    "three small horizontal agent cards connected to a central node, with one rounded mint backdrop and one warm-yellow accent",
+    "one compact search/input card plus two floating query chips, a coral folded corner, and a thin blue ring",
+    "a simple dashboard tile with one line chart, a tiny check badge, a lavender circle, and a salmon semicircle",
+    "a content preview card with skeleton lines, a small magic/spark icon, and overlapping yellow and cyan geometric blocks",
+    "a small report document card with a link pill, a soft blue arch, and a peach vertical stripe",
+]
+
+MODULE_VISUAL_MOTIFS = [
+    "three small horizontal agent cards connected to a central node, with one rounded mint backdrop and one warm-yellow accent",
+    "a compact tabbed module card with three tiny role chips, a central sparkle badge, and soft cyan plus lavender geometric accents",
+]
+
+
+def _page_visual_offset(page_data: dict[str, Any], pool_size: int, salt: str) -> int:
+    seed_parts = [
+        salt,
+        _text(page_data.get("page_title")),
+        _text((page_data.get("hero") or {}).get("title")),
+        *[_text(section.get("title")) for section in page_data.get("sections") or []],
+        _text((page_data.get("module") or {}).get("title")),
+    ]
+    seed = "|".join(part for part in seed_parts if part)
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) % pool_size
+
+
+def _visual_direction(page_data: dict[str, Any], ordinal: int, *, kind: str = "section") -> str:
+    if kind == "hero":
+        pool = HERO_VISUAL_MOTIFS
+        salt = "hero"
+    elif kind == "module":
+        pool = MODULE_VISUAL_MOTIFS
+        salt = "module"
+    else:
+        pool = SECTION_VISUAL_MOTIFS
+        salt = "section"
+
+    index = (_page_visual_offset(page_data, len(pool), salt) + ordinal) % len(pool)
+    cycle = ordinal // len(pool)
+    variant = "" if cycle == 0 else f" Use a visibly different scale, rotation, and spacing variant #{cycle + 1}."
     return (
-        "Feature/module pattern: no photo; use one or two simple white UI cards, one large geometric shape, "
-        "and one small icon badge. "
+        f"Assigned visual motif: {pool[index]}. "
+        "This motif is assigned dynamically for this page; do not treat the section number as a fixed design type."
+        f"{variant} "
     )
 
 
@@ -86,23 +132,24 @@ def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
     return _compact_brief(title or extra or body or slot)
 
 
-def style_wrapped_prompt(slot: str, prompt: str) -> str:
+def style_wrapped_prompt(slot: str, prompt: str, visual_direction: str) -> str:
     brief = _compact_brief(prompt, limit=84)
     return (
         "Render a simple Frevana /individual style spot illustration, not an information poster. "
         "Use the brief only as a loose visual theme; do not copy the brief text into the image. "
-        f"{_slot_visual_pattern(slot)}"
-        "Composition rules: floating cutout artwork with generous empty space around the objects, 1 large pastel geometric shape "
-        "(semi-circle, triangle, pill, ring, starburst, folded corner, or rounded blob), 1-2 white rounded UI cards, "
+        "Every image slot must have a clearly different composition, silhouette, card arrangement, and accent-color mix from the other slots. "
+        f"{visual_direction}"
+        "General composition rules: floating cutout artwork with generous empty space around the objects, 1 large pastel geometric shape "
+        "plus 1-2 white rounded UI cards unless the slot pattern says otherwise. Use simple shapes such as semi-circle, triangle, pill, ring, starburst, folded corner, or rounded blob. "
         "thin light-gray or dark-navy outlines, flat layers with no cast shadow and no drop shadow. "
         "Use a richer pastel palette: choose 2-3 colors from coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green; "
         "Frevana green #3D9040 should be a small accent, not the dominant color. "
         "Optional tiny icon badges are allowed. Do not draw any page, canvas, rectangular plate, tiled pattern, or background fill behind the artwork. "
-        "Text rules: at most two short English labels, each 2-4 words; no paragraphs, no bullet lists, "
-        "no copied landing-page headline/body text, no dense dashboard tables. "
+        "Text rules: use gray placeholder lines whenever possible. If text is necessary, use at most two short generic English labels, each 1-3 words; "
+        "no Chinese text, no paragraphs, no bullet lists, no copied landing-page headline/body text, no dense dashboard tables. "
         "Strictly avoid: product logos, Frevana logo, brand logos, platform logos, real human faces, "
         "real human portraits, detailed people, normal office stock photos for feature/module slots, "
-        "busy UI collages, complex flowcharts, repeating gray tile artifacts, "
+        "busy UI collages, complex flowcharts, repeating gray tile artifacts, reused hero layouts, repeated compositions across slots, "
         "purple AI art, dark backgrounds, 3D mascots, heavy shadows, glossy 3D depth, and tiny unreadable text. "
         f"Slot: {slot}. Brief: {brief}"
     )
@@ -110,6 +157,7 @@ def style_wrapped_prompt(slot: str, prompt: str) -> str:
 
 def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
     slots: list[dict[str, str]] = []
+    section_visual_ordinal = 0
     hero = page_data.get("hero") or {}
     if not _text(hero.get("image_url")):
         slots.append(
@@ -119,14 +167,13 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
                     "hero",
                     _text(hero.get("image_prompt"))
                     or build_prompt("hero", _text(hero.get("title")), _text(hero.get("body"))),
+                    _visual_direction(page_data, 0, kind="hero"),
                 ),
                 "alt": _text(hero.get("image_alt")) or _text(hero.get("title")) or "Frevana hero visual",
             }
         )
 
     for index, section in enumerate(page_data.get("sections") or [], start=1):
-        if index > 4:
-            break
         if _text(section.get("image_url")):
             continue
         slot = f"section-{index}"
@@ -137,10 +184,12 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
                     slot,
                     _text(section.get("image_prompt"))
                     or build_prompt(slot, _text(section.get("title")), _text(section.get("body"))),
+                    _visual_direction(page_data, section_visual_ordinal, kind="section"),
                 ),
                 "alt": _text(section.get("image_alt")) or _text(section.get("title")) or f"Frevana {slot} visual",
             }
         )
+        section_visual_ordinal += 1
 
     module = page_data.get("module") or {}
     if module and not _text(module.get("image_url")):
@@ -156,6 +205,7 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
                         _text(module.get("title")) or _text(active_tab.get("title")),
                         _text(active_tab.get("body")),
                     ),
+                    _visual_direction(page_data, 0, kind="module"),
                 ),
                 "alt": _text(module.get("image_alt")) or _text(module.get("title")) or "Frevana module visual",
             }

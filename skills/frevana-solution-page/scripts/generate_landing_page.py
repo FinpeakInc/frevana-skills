@@ -345,7 +345,7 @@ def render_features(page_data: dict[str, Any], image_manifest: dict[str, dict[st
         return ""
 
     feature_html: list[str] = []
-    for index, section in enumerate(sections[:4], start=1):
+    for index, section in enumerate(sections, start=1):
         title = text(section.get("title"), f"Feature {index}")
         slot = f"section-{index}"
         image_url, image_alt = image_for(section, slot, image_manifest, title)
