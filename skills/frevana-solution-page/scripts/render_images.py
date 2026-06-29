@@ -17,6 +17,7 @@ DEFAULT_SIZE = "1536x1024"
 DEFAULT_QUALITY = "high"
 DEFAULT_FORMAT = "png"
 DEFAULT_BACKGROUND = "transparent"
+DEFAULT_VISUAL_SEED = "frevana-individual-cn-reference-style-v4"
 
 
 class ImageGenerationError(RuntimeError):
@@ -32,6 +33,49 @@ def _compact_brief(value: Any, *, limit: int = 72) -> str:
     if len(brief) <= limit:
         return brief
     return brief[:limit].rstrip(" ，。,.;；:")
+
+
+def _has_any(value: str, needles: tuple[str, ...]) -> bool:
+    return any(needle in value for needle in needles)
+
+
+def _canonical_visual_theme(slot: str, *values: Any) -> str:
+    raw = " ".join(_text(value) for value in values if _text(value))
+    normalized = raw.lower()
+    rules = [
+        (
+            ("question", "query", "queries", "ask", "asking", "intent", "问题", "查询", "提问", "意图"),
+            "question discovery and search intent",
+        ),
+        (
+            ("content", "article", "blog", "page", "faq", "answer", "citation", "cite", "引用", "内容", "文章", "页面", "问答", "答案"),
+            "ai-readable content creation",
+        ),
+        (
+            ("agent", "team", "module", "assistant", "团队", "模块", "智能体", "助手"),
+            "ai agent team and modular workflow",
+        ),
+        (
+            ("course", "learn", "learning", "workflow", "guide", "practice", "best practice", "课程", "学习", "流程", "指南", "实践"),
+            "learning workflow and best-practice guidance",
+        ),
+        (
+            ("report", "insight", "analysis", "benchmark", "competitor", "ranking", "报告", "洞察", "分析", "竞品", "排名"),
+            "report insight and benchmark analysis",
+        ),
+        (
+            ("visibility", "growth", "recommend", "recommendation", "acquisition", "client", "lead", "可见度", "增长", "推荐", "获客", "客户", "线索"),
+            "ai visibility growth and client acquisition",
+        ),
+    ]
+    for needles, theme in rules:
+        if _has_any(normalized, needles):
+            return theme
+    if slot == "hero":
+        return "ai visibility growth and client acquisition"
+    if slot == "module":
+        return "ai agent team and modular workflow"
+    return "simple frevana solution feature"
 
 
 HERO_VISUAL_MOTIFS = [
@@ -59,12 +103,12 @@ MODULE_VISUAL_MOTIFS = [
 
 
 def _page_visual_offset(page_data: dict[str, Any], pool_size: int, salt: str) -> int:
+    sections = page_data.get("sections") or []
     seed_parts = [
         salt,
-        _text(page_data.get("page_title")),
-        _text((page_data.get("hero") or {}).get("title")),
-        *[_text(section.get("title")) for section in page_data.get("sections") or []],
-        _text((page_data.get("module") or {}).get("title")),
+        _text(page_data.get("visual_seed")) or DEFAULT_VISUAL_SEED,
+        str(len(sections)),
+        str(bool(page_data.get("module"))),
     ]
     seed = "|".join(part for part in seed_parts if part)
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
@@ -128,15 +172,17 @@ def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: 
 
 
 def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
-    # The image should hint at the topic only; never reproduce page copy inside the artwork.
-    return _compact_brief(title or extra or body or slot)
+    # Use a canonical theme so localized Chinese/English page copy does not steer image style differently.
+    return _canonical_visual_theme(slot, extra, title, body)
 
 
 def style_wrapped_prompt(slot: str, prompt: str, visual_direction: str) -> str:
-    brief = _compact_brief(prompt, limit=84)
+    theme = _canonical_visual_theme(slot, prompt)
     return (
-        "Render a simple Frevana /individual style spot illustration, not an information poster. "
-        "Use the brief only as a loose visual theme; do not copy the brief text into the image. "
+        "Render a simple spot illustration that matches the current Chinese Frevana /individual reference page style. "
+        "Use the same airy, open, lightweight illustration style for every page language, including English pages. "
+        "This is not an information poster, not a SaaS dashboard screenshot, and not an app mockup inside a large frame. "
+        "Use the canonical visual theme only as a loose concept cue; do not copy user-provided wording into the image. "
         "Every image slot must have a clearly different composition, silhouette, card arrangement, and accent-color mix from the other slots. "
         f"{visual_direction}"
         "General composition rules: floating cutout artwork with generous empty space around the objects, 1 large pastel geometric shape "
@@ -144,14 +190,15 @@ def style_wrapped_prompt(slot: str, prompt: str, visual_direction: str) -> str:
         "thin light-gray or dark-navy outlines, flat layers with no cast shadow and no drop shadow. "
         "Use a richer pastel palette: choose 2-3 colors from coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green; "
         "Frevana green #3D9040 should be a small accent, not the dominant color. "
-        "Optional tiny icon badges are allowed. Do not draw any page, canvas, rectangular plate, tiled pattern, or background fill behind the artwork. "
-        "Text rules: use gray placeholder lines whenever possible. If text is necessary, use at most two short generic English labels, each 1-3 words; "
-        "no Chinese text, no paragraphs, no bullet lists, no copied landing-page headline/body text, no dense dashboard tables. "
+        "Optional tiny icon badges are allowed. Do not draw any page, canvas, rectangular plate, tiled pattern, background fill, "
+        "large enclosing white card, browser frame, dashboard container, app window, bottom label pills, or platform-name chips behind or around the artwork. "
+        "Text rules: avoid readable text; use gray placeholder lines whenever possible. If text is absolutely necessary, use at most one short generic English label of 1-2 words. "
+        "No Chinese text, no paragraphs, no bullet lists, no copied landing-page headline/body text, no platform names, no dense dashboard tables. "
         "Strictly avoid: product logos, Frevana logo, brand logos, platform logos, real human faces, "
         "real human portraits, detailed people, normal office stock photos for feature/module slots, "
-        "busy UI collages, complex flowcharts, repeating gray tile artifacts, reused hero layouts, repeated compositions across slots, "
+        "busy UI collages, complex flowcharts, repeating gray tile artifacts, big white presentation cards, reused hero layouts, repeated compositions across slots, "
         "purple AI art, dark backgrounds, 3D mascots, heavy shadows, glossy 3D depth, and tiny unreadable text. "
-        f"Slot: {slot}. Brief: {brief}"
+        f"Slot: {slot}. Canonical visual theme: {theme}"
     )
 
 
