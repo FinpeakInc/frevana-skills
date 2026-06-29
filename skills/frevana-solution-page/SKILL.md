@@ -33,7 +33,7 @@ The Agent should create a JSON input file from the conversation. The user does n
     "body": "描述产品价值和目标用户。",
     "cta_text": "立即开始",
     "cta_url": "/zh-CN/signup",
-    "image_prompt": "White-background Frevana-style product illustration collage showing an AI visibility report..."
+    "image_prompt": "Simple Frevana-style spot illustration: abstract AI visibility cards and green geometry"
   },
   "intro": {
     "eyebrow": "为什么选择 Frevana",
@@ -46,13 +46,13 @@ The Agent should create a JSON input file from the conversation. The user does n
       "body": "说明该模块如何帮助用户增长。",
       "cta_text": "立即开始",
       "cta_url": "/zh-CN/signup",
-      "image_prompt": "White-background Frevana-style UI-card illustration collage of user questions and search prompts..."
+      "image_prompt": "Simple UI card illustration: short question labels and geometric shapes"
     }
   ],
   "module": {
     "eyebrow": "您将获得",
     "title": "助力您增长的 AEO 团队",
-    "image_prompt": "White-background Frevana-style UI-card illustration collage of modular AEO agents...",
+    "image_prompt": "Simple module illustration: two UI cards, icon badge, green geometry",
     "tabs": [
       {
         "label": "问题研究员",
@@ -115,10 +115,12 @@ Standard slots:
 
 Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail:
 
-- Prefer white-background product illustration collage assets, not full-bleed stock photos, checkerboard patterns, transparency-preview grids, or alpha-channel preview backgrounds.
-- Use white rounded UI cards, thin dark outlines, soft shadows, bold black UI labels, Frevana green accents, and flat geometric overlays.
-- Hero may blend a cropped lifestyle/product-photo element with graphic overlays, but feature and module images should primarily be UI-card collage illustrations.
-- Avoid generic SaaS dashboard screenshots, purple AI gradients, dark AI art, and ordinary office photography.
+- Generate simple white-background spot illustrations, not information posters or dense SaaS dashboards.
+- Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, soft shadows, Frevana green accents, and optional tiny icon badges.
+- Use at most two short English labels, each 2-4 words. Do not copy page headlines, section body text, bullets, or long user copy into the image.
+- Hero may use an abstract object/workspace photo crop with geometric overlays, but no visible faces, no portraits, no product logos, no Frevana logo, and no brand/platform logos.
+- Feature and module images should primarily be simple UI-card + geometric-shape illustrations, not photos.
+- Avoid checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
 
 ## Header, Footer, And CTA Policy
 

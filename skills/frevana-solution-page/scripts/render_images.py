@@ -26,6 +26,25 @@ def _text(value: Any) -> str:
     return str(value or "").strip()
 
 
+def _compact_brief(value: Any, *, limit: int = 72) -> str:
+    brief = " ".join(_text(value).split())
+    if len(brief) <= limit:
+        return brief
+    return brief[:limit].rstrip(" ，。,.;；:")
+
+
+def _slot_visual_pattern(slot: str) -> str:
+    if slot == "hero":
+        return (
+            "Hero pattern: one rounded-corner abstract workspace or object photo crop is allowed, "
+            "but no visible faces, no portraits, no readable brand marks; combine it with one oversized simple geometric backdrop. "
+        )
+    return (
+        "Feature/module pattern: no photo; use one or two simple white UI cards, one large geometric shape, "
+        "and one small icon badge. "
+    )
+
+
 def _skill_dir() -> Path:
     return Path(__file__).resolve().parents[1]
 
@@ -61,32 +80,27 @@ def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: 
 
 
 def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
-    content = " ".join(part for part in [title, body, extra] if part).strip()
-    return (
-        "Create a Frevana solution-page image asset for the "
-        f"{slot} slot, matching the current Frevana /individual page. "
-        "Visual system: white-background product illustration collage, not a full-bleed photo. "
-        "Use oversized white rounded UI cards with thin dark navy outlines, soft shadows, "
-        "bold black UI text, Frevana green accents (#3D9040), and one or two flat geometric "
-        "decorative shapes in green, teal, orange, yellow, light cyan, or soft pink. "
-        "The asset should feel like a clean product illustration or UI sticker sheet placed on a white page. "
-        "Use object-contain composition with generous clean white negative space margins and no rectangular photo frame. "
-        "Hero may include a tasteful cropped lifestyle/product-photo element blended with graphic overlays; "
-        "feature and module slots should primarily be UI-card collage illustrations. "
-        "Avoid generic SaaS screenshots, stock-photo office scenes, purple AI gradients, dark cyberpunk, "
-        "3D mascots, fake brand logos, tiny unreadable paragraphs, busy backgrounds, checkerboard patterns, transparency preview grids, and alpha-channel preview backgrounds. "
-        f"Page copy context: {content}"
-    )
+    # The image should hint at the topic only; never reproduce page copy inside the artwork.
+    return _compact_brief(title or extra or body or slot)
 
 
 def style_wrapped_prompt(slot: str, prompt: str) -> str:
+    brief = _compact_brief(prompt, limit=84)
     return (
-        "Render this as a Frevana /individual page visual asset. "
-        "Required style: white-background product illustration collage, white rounded UI cards, "
-        "thin dark navy outlines, soft shadows, bold black UI labels, Frevana green #3D9040 accents, "
-        "flat geometric overlays, object-contain composition, clean white-page compatibility. "
-        "Do not create a normal photo, full dashboard screenshot, purple AI graphic, dark background, checkerboard pattern, transparency preview grid, or alpha-channel preview background. "
-        f"Slot: {slot}. Content brief: {prompt}"
+        "Render a simple Frevana /individual style spot illustration, not an information poster. "
+        "Use the brief only as a loose visual theme; do not copy the brief text into the image. "
+        f"{_slot_visual_pattern(slot)}"
+        "Composition rules: white canvas, generous empty space, 1 large pastel geometric shape "
+        "(semi-circle, triangle, pill, ring, starburst, or folded corner), 1-2 white rounded UI cards, "
+        "thin light-gray or dark-navy outlines, very soft shadows, Frevana green #3D9040 accents, "
+        "and optional tiny icon badges. "
+        "Text rules: at most two short English labels, each 2-4 words; no paragraphs, no bullet lists, "
+        "no copied landing-page headline/body text, no dense dashboard tables. "
+        "Strictly avoid: product logos, Frevana logo, brand logos, platform logos, real human faces, "
+        "real human portraits, detailed people, normal office stock photos for feature/module slots, "
+        "busy UI collages, complex flowcharts, checkerboard patterns, transparency preview grids, "
+        "alpha-channel preview backgrounds, purple AI art, dark backgrounds, 3D mascots, and tiny unreadable text. "
+        f"Slot: {slot}. Brief: {brief}"
     )
 
 

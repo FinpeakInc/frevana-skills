@@ -422,12 +422,13 @@ Required slots:
 
 Image direction should stay compatible with the current `/individual` page:
 
-- White-background product illustration collage asset, compatible with a white page. Never render checkerboard patterns, transparency-preview grids, or alpha-channel preview backgrounds.
-- White rounded UI cards with thin dark navy/black outlines, soft shadows, and bold black labels.
-- Frevana green highlights plus one or two flat geometric overlays in green, teal, orange, yellow, light cyan, or soft pink.
-- Hero may include a tasteful cropped lifestyle/product-photo fragment blended into the collage.
-- Feature and module slots should primarily be UI-card collage illustrations, not office photos.
-- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, or full-bleed stock-photo scenes.
+- Use simple white-background spot illustrations, not information posters. The image is a visual accent, not a second copy area.
+- Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, and soft shadows.
+- Text inside images must be minimal: at most two short English labels, each 2-4 words. Never copy page headlines, section body text, bullets, or long user copy into artwork.
+- Hero may include an abstract object/workspace photo crop with geometric overlays, but no visible faces, no real portraits, no product logos, no Frevana logo, and no brand/platform logos.
+- Feature and module slots should be simple UI-card + geometric-shape illustrations, not photos, full dashboards, or dense product collages.
+- Frevana green highlights may be paired with one or two flat shapes in teal, yellow, light cyan, soft pink, or blue.
+- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, checkerboard patterns, transparency-preview grids, and alpha-channel preview backgrounds.
 
 If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
 
