@@ -420,15 +420,15 @@ Required slots:
 - `section-4`
 - `module`
 
-Image direction should stay compatible with the current `/individual` page:
+Image direction should stay compatible with the current `/individual` page. The renderer supplies transparent output through the image API, so the natural-language prompt should describe the artwork as a floating cutout and should avoid wording that makes the model draw gray tile artifacts:
 
-- Use simple transparent-background spot illustrations with real alpha, not information posters. The image is a visual accent, not a second copy area.
+- Use simple floating spot illustrations with API-controlled transparent output, not information posters. The image is a visual accent, not a second copy area.
 - Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, flat layers, no image drop shadow, and no cast shadow. Do not draw a white page or white rectangular background behind the artwork.
 - Text inside images must be minimal: at most two short English labels, each 2-4 words. Never copy page headlines, section body text, bullets, or long user copy into artwork.
 - Hero may include an abstract object/workspace photo crop with geometric overlays, but no visible faces, no real portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module slots should be simple UI-card + geometric-shape illustrations, not photos, full dashboards, or dense product collages.
 - Use a richer pastel palette across illustrations: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color.
-- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, white background plates, heavy shadows, and glossy 3D depth.
+- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, full-bleed stock-photo scenes, repeating gray tile artifacts, white background plates, heavy shadows, and glossy 3D depth.
 
 If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
 

@@ -113,14 +113,14 @@ Standard slots:
 - `section-4`
 - `module`
 
-Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail:
+Image style must match the current Frevana `/individual` page assets. Module tabs must match the original horizontal tab strip, not a left-side vertical rail. The script passes `--background transparent`; image prompts should describe floating cutout artwork and should avoid wording that makes the model draw gray tile artifacts:
 
-- Generate simple transparent-background spot illustrations with real alpha, not information posters or dense SaaS dashboards.
+- Generate simple floating spot illustrations with API-controlled transparent output, not information posters or dense SaaS dashboards.
 - Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, flat layers, no image drop shadow, no cast shadow, and optional tiny icon badges. Use a richer pastel palette: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color. Do not draw a white page or white rectangular background behind the artwork.
 - Use at most two short English labels, each 2-4 words. Do not copy page headlines, section body text, bullets, or long user copy into the image.
 - Hero may use an abstract object/workspace photo crop with geometric overlays, but no visible faces, no portraits, no product logos, no Frevana logo, and no brand/platform logos.
 - Feature and module images should primarily be simple UI-card + geometric-shape illustrations, not photos.
-- Avoid checkerboard patterns, transparency-preview grids, alpha-channel preview backgrounds, white background plates, heavy shadows, glossy 3D depth, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
+- Avoid repeating gray tile artifacts, white background plates, heavy shadows, glossy 3D depth, complex flowcharts, crowded UI collages, purple AI gradients, dark AI art, and ordinary office photography.
 
 ## Header, Footer, And CTA Policy
 
