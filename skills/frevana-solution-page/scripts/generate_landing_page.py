@@ -41,22 +41,31 @@ def placeholder_svg(label: str) -> str:
     safe_label = html.escape(label or "Frevana visual")
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="1024" viewBox="0 0 1536 1024">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#effdf4"/>
-      <stop offset="0.58" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#dcefdc"/>
-    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
   </defs>
-  <rect width="1536" height="1024" rx="72" fill="url(#bg)"/>
-  <rect x="168" y="156" width="1200" height="712" rx="56" fill="#ffffff" stroke="#cfe9d1" stroke-width="5"/>
-  <rect x="232" y="238" width="510" height="44" rx="22" fill="#3d9040" opacity="0.9"/>
-  <rect x="232" y="324" width="820" height="30" rx="15" fill="#111827" opacity="0.88"/>
-  <rect x="232" y="382" width="680" height="24" rx="12" fill="#6b7280" opacity="0.36"/>
-  <rect x="232" y="448" width="384" height="260" rx="34" fill="#effdf4" stroke="#cfe9d1" stroke-width="4"/>
-  <rect x="664" y="448" width="552" height="260" rx="34" fill="#f7faf6" stroke="#e5e7eb" stroke-width="4"/>
-  <circle cx="1096" cy="280" r="76" fill="#3d9040" opacity="0.18"/>
-  <circle cx="1192" cy="300" r="38" fill="#3d9040" opacity="0.32"/>
-  <text x="232" y="792" fill="#3d9040" font-family="Open Sans, sans-serif" font-size="42" font-weight="800">{safe_label}</text>
+  <rect width="1536" height="1024" fill="none"/>
+  <path d="M176 204h286l-143 214z" fill="#72bf56" opacity="0.88"/>
+  <path d="M884 94h398v300H884z" fill="#ff5b22" opacity="0.92" transform="rotate(8 1083 244)"/>
+  <path d="M1018 674c155-70 285-50 390 64v184h-390z" fill="#54bdb8"/>
+  <circle cx="1120" cy="250" r="158" fill="none" stroke="#5da1ed" stroke-width="34"/>
+  <g filter="url(#shadow)">
+    <rect x="138" y="312" width="1260" height="188" rx="38" fill="#ffffff" stroke="#111827" stroke-width="5"/>
+    <text x="222" y="432" fill="#111827" font-family="Open Sans, sans-serif" font-size="58" font-weight="800">{safe_label}</text>
+    <rect x="1270" y="357" width="78" height="78" rx="18" fill="#111827"/>
+    <path d="M1309 411V374m0 0l-18 19m18-19l18 19" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="360" y="560" width="410" height="112" rx="30" fill="#ffffff" stroke="#111827" stroke-width="4"/>
+    <text x="412" y="630" fill="#111827" font-family="Open Sans, sans-serif" font-size="34" font-weight="800">AI Visibility</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="848" y="612" width="430" height="152" rx="32" fill="#ffffff" stroke="#111827" stroke-width="4"/>
+    <circle cx="918" cy="688" r="26" fill="#3d9040"/>
+    <path d="M906 688l11 12 24-31" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="970" y="698" fill="#111827" font-family="Open Sans, sans-serif" font-size="34" font-weight="800">Answer-ready</text>
+  </g>
 </svg>"""
     return "data:image/svg+xml;charset=utf-8," + quote(svg)
 
@@ -232,7 +241,7 @@ def render_features(page_data: dict[str, Any], image_manifest: dict[str, dict[st
         cta_html = ""
         if cta_text:
             cta_html = (
-                f'<a class="button button--green" href="{esc(normalize_cta_url(section.get("cta_url")))}">'
+                f'<a class="text-link-arrow" href="{esc(normalize_cta_url(section.get("cta_url")))}">'
                 f'{esc(cta_text)} <span aria-hidden="true">→</span></a>'
             )
         feature_html.append(
@@ -362,7 +371,7 @@ def render_final_cta(page_data: dict[str, Any]) -> str:
           <span class="eyebrow">{esc(final_cta.get("eyebrow"), "准备开始")}</span>
           <h2 id="final-cta-title">{esc(final_cta.get("title"), "准备好赢得 AI 流量了吗？")}</h2>
           <p>{esc(final_cta.get("body"), "用 Frevana 创建您的下一批 AI 可引用页面。")}</p>
-          <a class="button button--green" href="{esc(normalize_cta_url(final_cta.get("cta_url")))}">{esc(final_cta.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
+          <a class="button" href="{esc(normalize_cta_url(final_cta.get("cta_url")))}">{esc(final_cta.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>""".strip()

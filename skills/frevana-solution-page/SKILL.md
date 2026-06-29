@@ -7,6 +7,8 @@ description: Generate Frevana solution-style landing pages from natural-language
 
 Create single-file HTML landing pages that match Frevana's solution-page visual system. The user can describe the page in natural language; do not require them to hand-write JSON.
 
+The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, transparent product-collage images, and a dark slate footer.
+
 ## Workflow
 
 1. Read `references/design.md` before generating the page.
@@ -31,7 +33,7 @@ The Agent should create a JSON input file from the conversation. The user does n
     "body": "描述产品价值和目标用户。",
     "cta_text": "立即开始",
     "cta_url": "/zh-CN/signup",
-    "image_prompt": "A founder reviewing an AI visibility dashboard..."
+    "image_prompt": "Transparent Frevana-style product collage showing an AI visibility report..."
   },
   "intro": {
     "eyebrow": "为什么选择 Frevana",
@@ -44,13 +46,13 @@ The Agent should create a JSON input file from the conversation. The user does n
       "body": "说明该模块如何帮助用户增长。",
       "cta_text": "立即开始",
       "cta_url": "/zh-CN/signup",
-      "image_prompt": "A SaaS question research dashboard..."
+      "image_prompt": "Transparent Frevana-style UI collage of user questions and search prompts..."
     }
   ],
   "module": {
     "eyebrow": "您将获得",
     "title": "助力您增长的 AEO 团队",
-    "image_prompt": "A modular AI team dashboard...",
+    "image_prompt": "Transparent Frevana-style UI collage of modular AEO agents...",
     "tabs": [
       {
         "label": "问题研究员",
@@ -111,6 +113,13 @@ Standard slots:
 - `section-4`
 - `module`
 
+Image style must match the current Frevana `/individual` page assets:
+
+- Prefer transparent-background product collage assets, not full-bleed stock photos.
+- Use white rounded UI cards, thin dark outlines, soft shadows, bold black UI labels, Frevana green accents, and flat geometric overlays.
+- Hero may blend a cropped lifestyle/product-photo element with graphic overlays, but feature and module images should primarily be UI-card collage illustrations.
+- Avoid generic SaaS dashboard screenshots, purple AI gradients, dark AI art, and ordinary office photography.
+
 ## Header, Footer, And CTA Policy
 
 Keep Header and Footer as fixed website-level components unless the user explicitly asks for body-only output.
@@ -123,4 +132,5 @@ Preserve these default behaviors:
 - Language selector stays visually present; static display is acceptable in single-file output.
 - Hero, feature, and final CTAs default to `/zh-CN/signup`.
 - If the user provides a CTA URL, use that override.
-
+- Hero and final primary CTAs should render as dark charcoal filled buttons.
+- Feature-row CTAs should render as green inline text links with arrows, not green filled buttons.

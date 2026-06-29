@@ -63,15 +63,30 @@ def prompt_hash(slot: str, prompt: str, size: str, quality: str, output_format: 
 def build_prompt(slot: str, title: str, body: str, extra: str = "") -> str:
     content = " ".join(part for part in [title, body, extra] if part).strip()
     return (
-        "Create a realistic Frevana solution-page visual for the "
-        f"{slot} slot. Scene: real founder, marketer, operator, or small team "
-        "using a laptop with a clean SaaS dashboard for AEO and AI visibility. "
-        "Visual style: bright white interface, deep charcoal typography, Frevana "
-        "green accents (#3D9040), calm natural light, premium but practical "
-        "startup workspace, realistic photography blended with crisp product UI. "
-        "Avoid abstract AI blobs, dark cyberpunk, purple gradients, fake logos, "
-        "and unreadable tiny text. "
+        "Create a Frevana solution-page image asset for the "
+        f"{slot} slot, matching the current Frevana /individual page. "
+        "Visual system: transparent-background editorial product collage, not a full-bleed photo. "
+        "Use oversized white rounded UI cards with thin dark navy outlines, soft shadows, "
+        "bold black UI text, Frevana green accents (#3D9040), and one or two flat geometric "
+        "decorative shapes in green, teal, orange, yellow, light cyan, or soft pink. "
+        "The asset should feel like a clean product illustration or UI sticker sheet placed on a white page. "
+        "Use object-contain composition with generous transparent margins and no rectangular photo frame. "
+        "Hero may include a tasteful cropped lifestyle/product-photo element blended with graphic overlays; "
+        "feature and module slots should primarily be UI-card collage illustrations. "
+        "Avoid generic SaaS screenshots, stock-photo office scenes, purple AI gradients, dark cyberpunk, "
+        "3D mascots, fake brand logos, tiny unreadable paragraphs, and busy backgrounds. "
         f"Page copy context: {content}"
+    )
+
+
+def style_wrapped_prompt(slot: str, prompt: str) -> str:
+    return (
+        "Render this as a Frevana /individual page visual asset. "
+        "Required style: transparent PNG/WebP-like product collage, white rounded UI cards, "
+        "thin dark navy outlines, soft shadows, bold black UI labels, Frevana green #3D9040 accents, "
+        "flat geometric overlays, object-contain composition, clean white-page compatibility. "
+        "Do not create a normal photo, full dashboard screenshot, purple AI graphic, or dark background. "
+        f"Slot: {slot}. Content brief: {prompt}"
     )
 
 
@@ -82,8 +97,11 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
         slots.append(
             {
                 "slot": "hero",
-                "prompt": _text(hero.get("image_prompt"))
-                or build_prompt("hero", _text(hero.get("title")), _text(hero.get("body"))),
+                "prompt": style_wrapped_prompt(
+                    "hero",
+                    _text(hero.get("image_prompt"))
+                    or build_prompt("hero", _text(hero.get("title")), _text(hero.get("body"))),
+                ),
                 "alt": _text(hero.get("image_alt")) or _text(hero.get("title")) or "Frevana hero visual",
             }
         )
@@ -97,8 +115,11 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
         slots.append(
             {
                 "slot": slot,
-                "prompt": _text(section.get("image_prompt"))
-                or build_prompt(slot, _text(section.get("title")), _text(section.get("body"))),
+                "prompt": style_wrapped_prompt(
+                    slot,
+                    _text(section.get("image_prompt"))
+                    or build_prompt(slot, _text(section.get("title")), _text(section.get("body"))),
+                ),
                 "alt": _text(section.get("image_alt")) or _text(section.get("title")) or f"Frevana {slot} visual",
             }
         )
@@ -109,11 +130,14 @@ def collect_image_slots(page_data: dict[str, Any]) -> list[dict[str, str]]:
         slots.append(
             {
                 "slot": "module",
-                "prompt": _text(module.get("image_prompt"))
-                or build_prompt(
+                "prompt": style_wrapped_prompt(
                     "module",
-                    _text(module.get("title")) or _text(active_tab.get("title")),
-                    _text(active_tab.get("body")),
+                    _text(module.get("image_prompt"))
+                    or build_prompt(
+                        "module",
+                        _text(module.get("title")) or _text(active_tab.get("title")),
+                        _text(active_tab.get("body")),
+                    ),
                 ),
                 "alt": _text(module.get("image_alt")) or _text(module.get("title")) or "Frevana module visual",
             }
@@ -249,4 +273,3 @@ if __name__ == "__main__":
     except ImageGenerationError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         raise SystemExit(2)
-

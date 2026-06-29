@@ -1,411 +1,432 @@
 ---
 version: alpha
-name: Frevana-solution-page-design
-description: "A Frevana solution-page design system for AEO and AI visibility landing pages. The style anchors on a white canvas, deep charcoal typography, Frevana green CTAs, soft-green emphasis surfaces, Host Grotesk display headings, and Open Sans body text. The page pattern is website Header/Footer, left-copy/right-visual hero, alternating feature sections, tabbed AEO team module, and a final signup CTA. Images should combine realistic work scenes with clean SaaS dashboard UI and Frevana green accents."
+name: Frevana-individual-landing-design-analysis
+description: A clean SaaS landing page that trades loud gradients for a neutral editorial shell — bright white canvas, near-black CTAs, soft green proof chips, oversized Host Grotesk headlines, and alternating product-illustration feature rows.
 
 colors:
-  primary: "#3d9040"
-  primary-active: "#2f7632"
-  primary-soft: "#effdf4"
-  primary-soft-strong: "#dff5e4"
-  primary-border: "#cfe9d1"
-  ink: "#111827"
-  ink-soft: "#1f2937"
-  body: "#4b5563"
-  body-muted: "#6b7280"
-  muted: "#9ca3af"
-  hairline: "#e5e7eb"
-  hairline-soft: "#eef0ed"
   canvas: "#ffffff"
-  canvas-warm: "#fafbf8"
-  surface-soft: "#f7faf6"
-  surface-card: "#ffffff"
-  surface-green-card: "#f3fbf5"
-  surface-dark: "#202124"
-  surface-dark-active: "#000000"
-  on-primary: "#ffffff"
-  on-dark: "#ffffff"
-  success: "#3d9040"
-  warning: "#d4a017"
-  error: "#c64545"
+  ink: "#111827"
+  ink-hero: "#1C1F25"
+  ink-body: "#565656"
+  ink-muted: "#717171"
+  ink-subtle: "#6B7280"
+  ink-disabled: "#9CA3AF"
+  border-soft: "#EDEEF1"
+  border-ui: "#D1D5DB"
+  surface-success: "#EFFDF4"
+  success: "#3D9040"
+  cta: "#212121"
+  footer: "#283137"
+  footer-border: "#3a4149"
+  footer-muted: "#b0b0b0"
+  white: "#ffffff"
 
 typography:
   display-xl:
-    fontFamily: "Host Grotesk, Open Sans, sans-serif"
-    fontSize: 84px
+    fontFamily: "Host Grotesk, Inter, system-ui, sans-serif"
+    fontSize: 58px
     fontWeight: 800
-    lineHeight: 0.98
-    letterSpacing: "-0.075em"
+    lineHeight: 77px
+    letterSpacing: 0
   display-lg:
-    fontFamily: "Host Grotesk, Open Sans, sans-serif"
-    fontSize: 64px
-    fontWeight: 800
-    lineHeight: 1.04
-    letterSpacing: "-0.065em"
-  display-md:
-    fontFamily: "Host Grotesk, Open Sans, sans-serif"
-    fontSize: 50px
-    fontWeight: 800
-    lineHeight: 1.05
-    letterSpacing: "-0.06em"
-  display-sm:
-    fontFamily: "Host Grotesk, Open Sans, sans-serif"
-    fontSize: 36px
-    fontWeight: 800
-    lineHeight: 1.08
-    letterSpacing: "-0.05em"
-  title-lg:
-    fontFamily: "Host Grotesk, Open Sans, sans-serif"
+    fontFamily: "Host Grotesk, Inter, system-ui, sans-serif"
+    fontSize: 48px
+    fontWeight: 600
+    lineHeight: 64px
+    letterSpacing: 0
+  display-mobile:
+    fontFamily: "Host Grotesk, Inter, system-ui, sans-serif"
     fontSize: 28px
     fontWeight: 800
-    lineHeight: 1.1
-    letterSpacing: "-0.04em"
-  title-md:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 20px
-    fontWeight: 700
-    lineHeight: 1.4
+    lineHeight: 36px
     letterSpacing: 0
-  title-sm:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 16px
+  section-title:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 24px
     fontWeight: 700
-    lineHeight: 1.4
+    lineHeight: 1.35
     letterSpacing: 0
   body-lg:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 21px
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 20px
     fontWeight: 400
-    lineHeight: 1.7
+    lineHeight: 1.6
     letterSpacing: 0
   body-md:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 18px
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 16px
     fontWeight: 400
-    lineHeight: 1.65
+    lineHeight: 1.6
     letterSpacing: 0
-  body-sm:
-    fontFamily: "Open Sans, sans-serif"
+  nav:
+    fontFamily: "Open Sans, system-ui, sans-serif"
     fontSize: 15px
     fontWeight: 400
-    lineHeight: 1.55
-    letterSpacing: 0
-  caption:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 14px
-    fontWeight: 700
     lineHeight: 1.4
     letterSpacing: 0
-  nav-link:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 17px
+  eyebrow:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 20px
     fontWeight: 600
     lineHeight: 1.4
     letterSpacing: 0
-  button:
-    fontFamily: "Open Sans, sans-serif"
-    fontSize: 16px
-    fontWeight: 800
+  eyebrow-mobile:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 14px
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: 0
+  button-lg:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 18px
+    fontWeight: 700
     lineHeight: 1
+    letterSpacing: 0
+  button-md:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 16px
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: 0
+  tab:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 16px
+    fontWeight: 600
+    lineHeight: 1.4
+    letterSpacing: 0
+  link-cta:
+    fontFamily: "Open Sans, system-ui, sans-serif"
+    fontSize: 20px
+    fontWeight: 600
+    lineHeight: 1.4
     letterSpacing: 0
 
 rounded:
-  xs: 6px
-  sm: 10px
-  md: 13px
-  lg: 22px
-  xl: 34px
-  xxl: 40px
+  xs: 4px
+  sm: 6px
+  md: 12px
   pill: 9999px
-  full: 9999px
 
 spacing:
-  xxs: 4px
   xs: 8px
   sm: 12px
   md: 16px
   lg: 24px
   xl: 32px
-  xxl: 48px
-  xxxl: 64px
-  section: 104px
-  section-tight: 76px
-  container-x: 40px
-  container-x-mobile: 20px
-
-layout:
-  maxWidth: 1220px
-  maxWidthRange: "1180px-1280px"
-  desktopHeroGrid: "0.98fr 0.82fr"
-  desktopFeatureGrid: "0.92fr 0.88fr"
-  moduleGrid: "0.42fr 1fr"
-  tabletBreakpoint: 1100px
-  mobileBreakpoint: 760px
-
-shadow:
-  soft: "0 24px 80px rgba(17, 24, 39, 0.08)"
-  card: "0 18px 48px rgba(17, 24, 39, 0.10)"
-  cta: "0 18px 36px rgba(61, 144, 64, 0.24)"
-  dark-cta: "0 18px 36px rgba(17, 24, 39, 0.18)"
+  xxl: 40px
+  section: 96px
+  section-lg: 150px
+  container-pad: 40px
+  hero-top: 103px
+  feature-gap: 60px
+  feature-gap-xl: 110px
+  footer-max: 1320px
 
 components:
-  top-nav:
-    backgroundColor: "rgba(255, 255, 255, 0.92)"
-    textColor: "{colors.body}"
-    typography: "{typography.nav-link}"
-    height: 82px
-    borderBottom: "1px solid rgba(229, 231, 235, 0.9)"
-    backdropFilter: "blur(18px)"
-  brand-wordmark:
-    textColor: "{colors.ink}"
-    typography: "{typography.title-lg}"
-    markBackground: "linear-gradient(135deg, #61b968, {colors.primary})"
-  solutions-dropdown:
+  header-bar:
     backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    mutedTextColor: "{colors.muted}"
-    border: "1px solid {colors.hairline}"
-    rounded: "{rounded.lg}"
-    padding: "38px 48px"
-    shadow: "{shadow.card}"
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: "0 24px"
-    height: 54px
-    shadow: "{shadow.cta}"
-  button-primary-active:
-    backgroundColor: "{colors.primary-active}"
-    textColor: "{colors.on-primary}"
-  button-dark:
-    backgroundColor: "{colors.surface-dark}"
-    textColor: "{colors.on-dark}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: "0 24px"
-    height: 54px
-    shadow: "{shadow.dark-cta}"
-  eyebrow-pill:
-    backgroundColor: "{colors.primary-soft}"
-    textColor: "{colors.primary}"
-    typography: "{typography.caption}"
+    textColor: "{colors.ink-body}"
+    borderBottom: "1px solid {colors.border-soft}"
+    layout: "fixed top navigation"
+    height: "58px mobile / 70px desktop"
+  hero-split:
+    backgroundColor: "{colors.canvas}"
+    titleColor: "{colors.ink-hero}"
+    bodyColor: "{colors.ink-muted}"
+    layout: "2-column split"
+    gap: "{spacing.feature-gap} to {spacing.feature-gap-xl}"
+  success-chip:
+    backgroundColor: "{colors.surface-success}"
+    textColor: "{colors.success}"
+    typography: "{typography.eyebrow}"
     rounded: "{rounded.pill}"
-    border: "1px solid {colors.primary-border}"
-    padding: "0 14px"
-    height: 36px
-  hero-band:
+    padding: "8px 24px"
+  primary-button:
+    backgroundColor: "{colors.cta}"
+    textColor: "{colors.white}"
+    typography: "{typography.button-lg}"
+    rounded: "{rounded.sm}"
+    height: "56px desktop / 48px mobile"
+    padding: "0 24px"
+  feature-row:
     backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.display-xl}"
-    paddingBlock: "96px 110px"
-    grid: "{layout.desktopHeroGrid}"
-  hero-visual-card:
-    backgroundColor: "{colors.surface-card}"
-    border: "1px solid {colors.primary-border}"
-    rounded: "{rounded.xl}"
-    padding: 16px
-    shadow: "{shadow.soft}"
-  feature-section:
+    titleColor: "{colors.ink}"
+    bodyColor: "{colors.ink}"
+    layout: "alternating text + product illustration"
+    gap: "{spacing.feature-gap} to {spacing.feature-gap-xl}"
+  tab-strip:
     backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    grid: "{layout.desktopFeatureGrid}"
-    gap: 76px
-    paddingBlock: 66px
-  module-panel:
-    backgroundColor: "{colors.canvas}"
-    border: "1px solid {colors.hairline}"
-    rounded: "{rounded.xl}"
-    padding: 18px
-    shadow: "{shadow.soft}"
-  module-tab-active:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.primary}"
-    border: "1px solid {colors.primary-border}"
-    shadow: "0 10px 24px rgba(17, 24, 39, 0.06)"
-  final-cta-card:
-    backgroundColor: "{colors.surface-green-card}"
-    textColor: "{colors.ink}"
-    border: "1px solid {colors.primary-border}"
-    rounded: "{rounded.xxl}"
-    padding: "74px 32px"
-    shadow: "{shadow.soft}"
-  footer:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.body}"
-    typography: "{typography.body-sm}"
-    borderTop: "1px solid {colors.hairline}"
-    paddingBlock: "54px 44px"
-
-links:
-  home: "/zh-CN"
-  signup: "/zh-CN/signup"
-  login: "/zh-CN/login"
-  caseStudy: "/zh-CN/case-study"
-  docs: "https://frevana.gitbook.io/frevana-docs"
-  articles: "/zh-CN/articles"
-  pricing: "/zh-CN/homepage#pricing"
-  news: "https://frevana.substack.com/"
-  download: "/zh-CN/download"
-
-image:
-  providerSkill: "gpt-image-2"
-  script: "../gpt-image-2/scripts/generate_image.sh"
-  defaultSize: "1536x1024"
-  defaultQuality: "high"
-  defaultFormat: "png"
-  cachePattern: "cache/images/<slot>-<hash>.json"
-  slots:
-    - hero
-    - section-1
-    - section-2
-    - section-3
-    - section-4
-    - module
+    activeColor: "{colors.ink}"
+    inactiveColor: "{colors.ink-disabled}"
+    typography: "{typography.tab}"
+    activeBorder: "2px solid {colors.ink}"
+  footer-band:
+    backgroundColor: "{colors.footer}"
+    textColor: "{colors.white}"
+    mutedColor: "{colors.footer-muted}"
+    borderTop: "1px solid {colors.footer-border}"
 ---
 
 ## Overview
 
-Frevana solution pages are clean, spacious, and growth-oriented. The base canvas is pure white (`{colors.canvas}`), while Frevana green (`{colors.primary}`) carries conversion energy through CTAs, eyebrow pills, active module tabs, and subtle visual accents.
+This page presents Frevana for individuals through a **clean, neutral SaaS landing-page system** that avoids bright startup gradients and instead leans on restraint: a white `{colors.canvas}` background, near-black typography, one dark charcoal CTA, and soft green utility chips that signal momentum without taking over the page. The impression is polished, calm, and conversion-minded rather than playful or highly branded.
 
-The signature contrast is **white canvas + deep charcoal text + green action accents**. Do not drift into purple AI gradients, generic blue SaaS dashboards, or dark-mode-first visuals. Large rounded visual cards and generous whitespace create the polished Frevana feel.
+The visual identity is carried mostly by **scale and spacing**. Large `{typography.display-xl}` Host Grotesk headlines do the heavy lifting, while Open Sans handles navigation, body copy, chips, tabs, and buttons. Illustrations are treated as roomy side-by-side companions to the copy, not as decorative backgrounds, so the page reads like a sequence of product proof modules rather than a glossy campaign microsite.
+
+There are three recurring stylistic moves: **dark CTA surfaces**, **green success labeling**, and **alternating split-layout feature rows**. Each section repeats the same structure with different content, which gives the page a modular, systemized rhythm.
 
 **Key Characteristics:**
-- White page canvas with deep charcoal headings (`{colors.ink}`) and muted body copy (`{colors.body-muted}`).
-- Frevana green (`{colors.primary}`) for signup CTAs, active tabs, UI accents, and high-confidence labels.
-- Heavy Host Grotesk display typography with tight negative letter-spacing; Open Sans for body and UI labels.
-- Website-level Header/Footer remain stable and are not rewritten from user copy.
-- Hero uses left copy and right visual card; feature sections alternate image/text orientation.
-- Imagery combines realistic work scenes with clean SaaS dashboards, not abstract AI art.
+
+- White `{colors.canvas}` page shell with deep neutral text instead of a saturated brand wash
+- Oversized Host Grotesk headlines paired with pragmatic Open Sans body copy
+- Green `{colors.success}` used as a supporting success/insight accent, not as the main CTA fill
+- Fixed white header, flat content sections, and a dark footer slab for visual closure
+- Repeating 50/50 feature rows with generous gaps and product illustrations
+- Minimal depth; hierarchy comes from typography, spacing, and color contrast more than shadow
 
 ## Colors
 
-### Brand & Accent
+### Core Palette
 
-- **Frevana Green** (`{colors.primary}` — #3d9040): Primary action and identity color for signup CTAs, active tabs, selected states, and emphasis.
-- **Frevana Green Active** (`{colors.primary-active}` — #2f7632): Hover/pressed state for green CTAs.
-- **Soft Green** (`{colors.primary-soft}` — #effdf4): Eyebrow pills, gentle callouts, and background glows.
-- **Green Border** (`{colors.primary-border}` — #cfe9d1): Low-contrast border for green-tinted cards and pills.
+- **Canvas** (`{colors.canvas}` — #ffffff): the dominant page background and the base for almost every section.
+- **Ink** (`{colors.ink}` — #111827): primary dark neutral used for section headings, feature titles, and most body-adjacent content.
+- **Hero Ink** (`{colors.ink-hero}` — #1C1F25): slightly deeper hero-title tone that sharpens the opening message.
+- **Body Neutral** (`{colors.ink-body}` — #565656): navigation and supporting neutral copy.
+- **Muted Body** (`{colors.ink-muted}` — #717171): softer explanatory paragraph tone in the hero.
+- **Subtle Neutral** (`{colors.ink-subtle}` — #6B7280): secondary utility state such as hamburger lines and some subdued text.
+- **Disabled / Inactive** (`{colors.ink-disabled}` — #9CA3AF): inactive tab labels and low-emphasis utility states.
 
-### Surface
+### Accent & Utility
 
-- **Canvas** (`{colors.canvas}` — #ffffff): Default body background.
-- **Warm Canvas** (`{colors.canvas-warm}` — #fafbf8): Module bands and subtle pacing backgrounds.
-- **Surface Soft** (`{colors.surface-soft}` — #f7faf6): Tab containers and quiet product UI backgrounds.
-- **Dark CTA** (`{colors.surface-dark}` — #202124): Hero primary button.
+- **Success Surface** (`{colors.surface-success}` — #EFFDF4): pale green fill behind section chips and proof labels.
+- **Success Text** (`{colors.success}` — #3D9040): the page’s main accent. Used for chips, inline CTA text, and arrow icons.
+- **Primary CTA** (`{colors.cta}` — #212121): dark charcoal used for the strongest call-to-action fills.
 
-### Text
+### Structural Surfaces
 
-- **Ink** (`{colors.ink}` — #111827): H1/H2/H3, primary nav, and important labels.
-- **Body** (`{colors.body}` — #4b5563): Navigation and UI labels.
-- **Body Muted** (`{colors.body-muted}` — #6b7280): Paragraphs and supporting copy.
-- **Muted** (`{colors.muted}` — #9ca3af): Dropdown group headings, captions, footer-adjacent text.
+- **Soft Border** (`{colors.border-soft}` — #EDEEF1): thin page-shell divider on the fixed header.
+- **UI Border** (`{colors.border-ui}` — #D1D5DB): form/select border styling in the header utility controls.
+- **Footer Surface** (`{colors.footer}` — #283137): deep slate footer block that anchors the page ending.
+- **Footer Border** (`{colors.footer-border}` — #3a4149): muted divider line separating the footer from the page body.
+- **Footer Muted Text** (`{colors.footer-muted}` — #b0b0b0): secondary footer copy and link color.
+
+### Color Principles
+
+This is a **neutral-first palette**. The design does not try to win attention through multiple brand colors. Instead, it keeps almost everything white, charcoal, or gray, then uses green sparingly to imply growth, relevance, and “AI visibility” success. The darker CTA color reinforces seriousness and trust more than excitement.
 
 ## Typography
 
-The system uses **Host Grotesk** for display headings and **Open Sans** for body, navigation, buttons, and tabs.
+### Font Roles
 
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---:|---:|---:|---:|---|
-| `{typography.display-xl}` | 84px | 800 | 0.98 | -0.075em | Hero H1 desktop |
-| `{typography.display-lg}` | 64px | 800 | 1.04 | -0.065em | Section H2 / final CTA H2 |
-| `{typography.display-md}` | 50px | 800 | 1.05 | -0.06em | Feature title |
-| `{typography.display-sm}` | 36px | 800 | 1.08 | -0.05em | Module title |
-| `{typography.body-lg}` | 21px | 400 | 1.7 | 0 | Hero and feature body |
-| `{typography.nav-link}` | 17px | 600 | 1.4 | 0 | Top navigation |
-| `{typography.button}` | 16px | 800 | 1 | 0 | CTA labels |
+The page uses a simple two-layer type identity in practice:
 
-Mobile adjustments: Hero H1 42-48px, section H2 34-40px, feature titles 30-34px, body copy 16-18px.
+- **Host Grotesk** for major headlines and high-salience section titles
+- **Open Sans** for navigation, labels, body copy, tabs, and buttons
+
+Several other fonts are globally loaded in the CSS bundle (`League Spartan`, `Inter`), but the visible page language is driven primarily by Host Grotesk + Open Sans.
+
+### Hierarchy
+
+| Token | Size | Weight | Line Height | Use |
+|---|---|---|---|---|
+| `{typography.display-xl}` | 58px | 800 | 77px | Main desktop hero and major section headlines |
+| `{typography.display-lg}` | 48px | 600 | 64px | Closing CTA headline |
+| `{typography.display-mobile}` | 28px | 800 | 36px | Mobile hero and section headlines |
+| `{typography.section-title}` | 24px | 700 | 1.35 | Feature-card headings and detail headers |
+| `{typography.body-lg}` | 20px | 400 | 1.6 | Desktop body text, chips, link-like CTAs |
+| `{typography.body-md}` | 16px | 400 | 1.6 | Mobile body text and compact button text |
+| `{typography.nav}` | 15px | 400 | 1.4 | Top navigation links |
+| `{typography.tab}` | 16px | 600 | 1.4 | Team-strip tabs |
+| `{typography.button-lg}` | 18px | 700 | 1 | Primary desktop buttons |
+| `{typography.eyebrow}` | 20px | 600 | 1.4 | Desktop section chips |
+| `{typography.eyebrow-mobile}` | 14px | 600 | 1.4 | Mobile section chips |
+
+### Typography Principles
+
+The system combines **assertive display scale** with **plainspoken UI typography**. Headlines are large, dense, and geometric; paragraphs stay readable and practical rather than editorial. There is very little decorative type treatment — no italic flourishes, no ultra-tight tracking experiments, and almost no color-based hierarchy inside paragraphs. The typography is there to make the promise clear, fast, and credible.
 
 ## Layout
 
-Use a centered `{layout.maxWidth}` container with generous whitespace. Desktop horizontal padding is `{spacing.container-x}`; mobile padding is `{spacing.container-x-mobile}`. Major sections use `{spacing.section}` vertical rhythm.
+### Overall Structure
 
-Hero pattern:
+The page follows a classic product-marketing flow:
 
-- Left copy column, right visual card.
-- Eyebrow pill above headline.
-- CTA below paragraph.
+1. **Fixed utility header** with logo, nav, language select, and mobile menu trigger
+2. **Hero split** with large copy on one side and an illustration on the other
+3. **Why Frevana** feature sequence using alternating two-column modules
+4. **Team / capabilities strip** with horizontal tabs and one active detail panel
+5. **Final CTA block** centered in a narrower container
+6. **Dark footer** with brand, social links, and navigation lists
 
-Feature pattern:
+### Grid & Container Behavior
 
-- Up to four alternating image/text rows.
-- Green eyebrow, short title, muted body.
-- Optional CTA defaults to `{links.signup}`.
+- Main content sits inside a broad `max-w-7xl` shell with `{spacing.container-pad}` horizontal padding on desktop.
+- Most hero and feature rows use a **50/50 two-column split**.
+- Desktop feature gaps sit around `{spacing.feature-gap}` and widen toward `{spacing.feature-gap-xl}` on larger screens.
+- The closing CTA compresses into a narrower centered container (`max-w-[852px]`) to create a focused conversion endpoint.
+- The footer expands to a wider `{spacing.footer-max}` max width and uses a more information-dense column structure.
 
-Module pattern:
+### Spacing Rhythm
 
-- Centered heading.
-- Tab rail plus content card.
-- Active tab uses green text, green border, and elevated white background.
+- Common in-section values: 8, 12, 16, 24, 32, and 40px
+- Large sectional cadence: 96, 135, 150, 220, and 235px
+- Hero top spacing is notably generous at about `{spacing.hero-top}` on desktop
+- Buttons hold clear vertical standards: 56px desktop and 48px mobile
+- Section labels and tabs use compact spacing so the larger page rhythm can stay airy
+
+The design feels spacious because it **creates contrast between compact controls and large inter-section whitespace**.
+
+## Elevation & Depth
+
+| Level | Treatment | Use |
+|---|---|---|
+| Flat | White background, no visible shadow | Most page sections |
+| Rule-defined | Thin gray dividers | Header and footer separation |
+| Contrast block | Dark footer surface | Page ending and brand anchor |
+| Accent-only | Pale green fill without shadow | Eyebrow / success chips |
+| Motion depth | Fade-up and arrow rotation transitions | Section entrance and inline CTA feedback |
+
+This page is mostly **flat and frictionless**. It does not rely on card shadows, glassmorphism, gradients, or dramatic overlays. Depth comes from section spacing, fixed-header layering, and the stark contrast between the white body and the slate footer.
+
+## Shapes
+
+### Radius Scale
+
+| Token | Value | Use |
+|---|---|---|
+| `{rounded.xs}` | 4px | Minor icon-line rounding and small utility details |
+| `{rounded.sm}` | 6px | Primary CTA buttons and standard control corners |
+| `{rounded.md}` | 12px | Hero badge, secondary CTA button, and compact panels |
+| `{rounded.pill}` | 9999px | Success chips and rounded status labels |
+
+### Geometry Notes
+
+The geometry is soft but disciplined. The page avoids playful blobs and oversized card curvature. Most surfaces stay rectangular; rounding appears mainly on buttons, pills, and utility controls. Full-pill shapes are reserved for labels, while CTA buttons use a friendlier medium radius rather than a fully rounded capsule.
 
 ## Components
 
-### Header And Footer
+### `header-bar`
 
-Header and Footer are website-level components. Keep them stable unless the user explicitly requests `--body-only`.
+A fixed white navigation bar with a light bottom rule, muted gray link text, and a compact control cluster on the right. On desktop it exposes nav links and a language selector; on mobile it collapses into a minimalist hamburger icon.
 
-Header links:
+### `hero-split`
 
-- Logo -> `{links.home}`
-- Solutions dropdown
-- Case study -> `{links.caseStudy}`
-- Docs -> `{links.docs}`
-- Articles -> `{links.articles}`
-- Pricing -> `{links.pricing}`
-- News -> `{links.news}`
-- Login -> `{links.login}`
-- Start free trial -> `{links.signup}`
+A two-column hero with oversized `{typography.display-xl}` headline text, muted supporting copy, a hidden-on-mobile green proof chip, and a dark primary button. The illustration sits as a product-adjacent object rather than a decorative background, which keeps the hero practical and product-led.
 
-Footer includes social links, Publications, Articles, Privacy, Pricing, Terms, About, stories, book demo, Discover, FAQ, MCPs, Download App, Download Extension, and copyright.
+### `success-chip`
 
-### Solutions Dropdown
+Pale green pill or rounded badge using `{colors.surface-success}` and `{colors.success}`. This pattern appears repeatedly to label sections and reinforce growth-oriented messaging without becoming the dominant CTA language.
 
-The dropdown has two groups:
+### `primary-button`
 
-- **By business size:** Individual, Small teams, Companies
-- **By industry:** E-Commerce, Technology, Local business
+Dark charcoal filled button with white text, compact radius, bold weight, and generous height. It is the clearest conversion affordance on the page and intentionally stronger than the green accent links.
 
-Hover/focus behavior is sufficient for single-file HTML.
+### `feature-row`
 
-### CTA Rules
+A modular split section pairing one illustration with one copy block. Each row includes a chip, title, supporting paragraph, and a green inline text CTA with arrow icon. Rows alternate orientation to keep the page from feeling repetitive.
 
-- Default CTA URL is `{links.signup}`.
-- If the user gives CTA text but no URL, keep `{links.signup}`.
-- If the user gives a URL, preserve it exactly.
-- Do not remove anchor behavior when changing copy.
+### `text-link-arrow`
 
-## Image System
+A green inline CTA styled more like emphasized text than a filled button. The attached arrow icon rotates on hover, which adds motion without making the page feel animated for animation’s sake.
 
-Images are generated with `gpt-image-2` through `{image.script}` and cached at `{image.cachePattern}`. The script requires `FREVANA_TOKEN` unless running with placeholders.
+### `tab-strip`
 
-Image direction:
+A horizontally scrollable set of capability labels in the “AEO team” section. The active item turns dark with a 2px bottom border; inactive items sit in muted gray. A desktop-only white gradient mask on the right hints that the strip continues beyond the visible area.
 
-- Real founder, marketer, operator, or small team context.
-- Laptop/desktop showing AEO, AI visibility, question research, or content workflow UI.
-- White interface, deep gray typography, Frevana green highlights.
-- Warm natural light and calm productivity mood.
-- No fake logos, no abstract AI blobs, no purple gradients.
+### `footer-band`
 
-Slot guidance:
+A dark slate footer with white brand elements, muted gray support text, social icons, and link columns. It functions as the page’s only major high-contrast slab and gives the overall composition a firm ending.
 
-- `hero`: broad aspirational product value and outcome.
-- `section-1`: user questions, search intelligence, topic demand.
-- `section-2`: content creation, FAQ, landing page, article workflow.
-- `section-3`: course, guidance, best practices, team learning.
-- `section-4`: industry report, competitor ranking, benchmark dashboard.
-- `module`: modular AI team or AEO dashboard experience.
+## Do's and Don'ts
 
-## Responsiveness
+### Do
 
-Desktop uses two-column hero/features and a tabbed module panel. Tablet stacks major grids below `{layout.tabletBreakpoint}`. Mobile uses 20px padding, stacked columns, horizontally scrollable module tabs, and no horizontal overflow.
+- Keep the page predominantly white and neutral, with green used as a supporting signal rather than a primary fill color.
+- Use oversized Host Grotesk headlines to create authority and immediate scannability.
+- Preserve the repeating text-plus-illustration module structure with large horizontal gaps.
+- Keep CTA hierarchy clear: dark filled buttons first, green inline links second.
+- Maintain generous sectional whitespace so the layout feels calm and premium.
+- Use pill-like chips to frame benefits, section labels, and progress cues.
 
-## Accessibility
+### Don't
 
-Use semantic landmarks, real anchors for CTAs and navigation, visible focus states, meaningful alt text, and a selected-tab state that does not rely only on color.
+- Don’t introduce bright gradients, noisy color blocks, or multi-accent rainbow marketing styling.
+- Don’t replace the dark CTA with a green fill everywhere; green is a support accent here, not the dominant action surface.
+- Don’t turn every section into a bordered or shadowed card; the page reads best as clean stacked bands.
+- Don’t overcomplicate body copy with multiple font families or decorative display treatments.
+- Don’t shrink the headline scale too aggressively; the page’s confidence depends on large typographic contrast.
 
-## Body-Only Mode
+## Responsive Behavior
 
-`--body-only` omits the HTML shell, Header, and Footer. It keeps Hero, Intro, Features, Module tabs, Final CTA, and any JavaScript required for module tabs.
+### Breakpoints
 
+| Context | Key Changes |
+|---|---|
+| Desktop (`md` and up) | Fixed full header, visible nav, 2-column hero, alternating split feature rows, 58px display headlines, 20px body copy |
+| Mobile (below `md`) | Navigation collapses to hamburger, hero and feature rows stack vertically, headline scale drops to 28px, body copy drops to 16px |
+| Narrow mobile | Buttons stretch fuller width, chips shrink to `{typography.eyebrow-mobile}`, padding reduces, and vertical spacing becomes more compact |
+
+### Behavior Notes
+
+- The hero uses `flex-col-reverse` on mobile, so imagery and copy are re-stacked for a tighter small-screen composition.
+- The desktop proof chip in the hero is hidden on smaller screens to reduce clutter.
+- Feature sections collapse from side-by-side modules into single-column sequences while preserving generous internal spacing.
+- The capability tab strip becomes horizontally scrollable rather than wrapping into a dense multi-row control.
+- The final CTA remains centered and simplified, preserving conversion focus even as padding reduces from about 150px to 96px.
+
+## Known Gaps
+
+- The extracted guide is based on the server-rendered page HTML and linked CSS; hidden drawer states, dropdown-open states, and deeper interactive variants are only partially visible.
+- The global CSS bundle loads multiple font families, but the visible page identity mainly exercises Host Grotesk and Open Sans; other loaded fonts may belong to broader site usage.
+- The generic component system includes broader focus, invalid, and dark-theme tokens, but this specific page is authored overwhelmingly as a light-theme landing experience.
+- Motion behavior is inferred from class-based transitions and hover states rather than from a full runtime interaction recording.
+
+## Skill-Specific Additions
+
+These additions are for the `frevana-solution-page` skill runtime. They do not replace the design tokens above; use the tokens above as the source of truth for font sizes, colors, spacing, radii, CTA hierarchy, and layout.
+
+### Output Modes
+
+- Default output is a standalone single-file HTML page with Header, main content, Footer, responsive CSS, and small module-tab JavaScript.
+- `--body-only` omits the HTML shell, Header, and Footer. It keeps the Hero, Intro, Feature rows, Module tabs, Final CTA, and any JavaScript needed for module tabs.
+
+### CTA Defaults
+
+- Hero CTA defaults to `/zh-CN/signup` if the user gives CTA text but no URL.
+- Feature-row CTA defaults to `/zh-CN/signup` and should render as `{components.text-link-arrow}`: green inline text plus arrow, not a filled green button.
+- Final CTA defaults to `/zh-CN/signup` unless the user explicitly requests a different destination such as `/zh-CN/download`.
+- Header/Footer links remain website-level chrome and should not be rewritten from user copy.
+
+### Image Generation
+
+Images are generated with the sibling `gpt-image-2` skill:
+
+```bash
+../gpt-image-2/scripts/generate_image.sh
+```
+
+Generated image responses are cached by slot and prompt hash:
+
+```text
+cache/images/<slot>-<hash>.json
+```
+
+Required slots:
+
+- `hero`
+- `section-1`
+- `section-2`
+- `section-3`
+- `section-4`
+- `module`
+
+Image direction should stay compatible with the current `/individual` page:
+
+- Transparent-background product collage asset, compatible with a white page.
+- White rounded UI cards with thin dark navy/black outlines, soft shadows, and bold black labels.
+- Frevana green highlights plus one or two flat geometric overlays in green, teal, orange, yellow, light cyan, or soft pink.
+- Hero may include a tasteful cropped lifestyle/product-photo fragment blended into the collage.
+- Feature and module slots should primarily be UI-card collage illustrations, not office photos.
+- Avoid fake logos, generic SaaS screenshots, abstract AI blobs, purple gradients, dark backgrounds, or full-bleed stock-photo scenes.
+
+If `FREVANA_TOKEN` is missing, image generation should fail with a clear message and suggest rerunning with `--skip-images`.
