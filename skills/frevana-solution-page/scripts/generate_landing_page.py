@@ -157,7 +157,7 @@ def render_header() -> str:
 
         <div class="site-header__actions">
           <a class="header-login" href="/zh-CN/login">Login</a>
-          <a class="header-trial" href="/zh-CN/signup" data-track="landing_header_cta_click" data-track-section="header">Start free trial</a>
+          <a class="header-trial" href="/zh-CN/signup">Start free trial</a>
           <span class="header-language" aria-label="Current language">中文</span>
           <button class="mobile-menu-button" type="button" aria-label="Open navigation" aria-controls="mobile-drawer" aria-expanded="false" data-drawer-open>
             <span></span><span></span><span></span>
@@ -254,7 +254,7 @@ def render_footer() -> str:
     for label, url, external in footer_links:
         attrs = ' target="_blank" rel="noopener noreferrer"' if external else ''
         if label == "Download App":
-            attrs += ' data-download-app data-track="landing_footer_download_click" data-track-section="footer"'
+            attrs += ' data-download-app'
         rendered_links.append(f'<a href="{esc(url)}" class="footer-link"{attrs}>{esc(label)}</a>')
     link_html = "\n            ".join(rendered_links)
     return f"""
@@ -317,7 +317,7 @@ def render_hero(page_data: dict[str, Any], image_manifest: dict[str, dict[str, A
           <span class="eyebrow">{esc(hero.get("eyebrow"),)}</span>
           <h1>{esc(title)}</h1>
           <p class="hero__body">{esc(hero.get("body"), "无论您面向哪类客户，Frevana 都能帮助您的网站获得 AI 回答曝光。")}</p>
-          <a class="button" href="{esc(normalize_cta_url(hero.get("cta_url")))}" data-track="landing_hero_cta_click" data-track-section="hero">{esc(hero.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
+          <a class="button" href="{esc(normalize_cta_url(hero.get("cta_url")))}">{esc(hero.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
         </div>
         <div class="hero__visual visual-card">
           <img src="{esc(image_url)}" alt="{esc(image_alt)}">
@@ -354,8 +354,7 @@ def render_features(page_data: dict[str, Any], image_manifest: dict[str, dict[st
         cta_html = ""
         if cta_text:
             cta_html = (
-                f'<a class="text-link-arrow" href="{esc(normalize_cta_url(section.get("cta_url")))}" '
-                f'data-track="landing_feature_cta_click" data-track-section="section-{index}">'
+                f'<a class="text-link-arrow" href="{esc(normalize_cta_url(section.get("cta_url")))}">'
                 f'{esc(cta_text)} <span aria-hidden="true">→</span></a>'
             )
         feature_html.append(
@@ -520,7 +519,7 @@ def render_final_cta(page_data: dict[str, Any]) -> str:
           <span class="eyebrow">{esc(final_cta.get("eyebrow"), "准备开始")}</span>
           <h2 id="final-cta-title">{esc(final_cta.get("title"), "准备好赢得 AI 流量了吗？")}</h2>
           <p>{esc(final_cta.get("body"), "用 Frevana 创建您的下一批 AI 可引用页面。")}</p>
-          <a class="button" href="{esc(normalize_cta_url(final_cta.get("cta_url")))}" data-track="landing_final_cta_click" data-track-section="final_cta">{esc(final_cta.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
+          <a class="button" href="{esc(normalize_cta_url(final_cta.get("cta_url")))}">{esc(final_cta.get("cta_text"), "立即开始")} <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>""".strip()
