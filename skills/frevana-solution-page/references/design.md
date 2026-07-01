@@ -396,6 +396,7 @@ These additions are for the `frevana-solution-page` skill runtime. They do not r
 - Feature-row CTA defaults to `/zh-CN/signup` and should render as `{components.text-link-arrow}`: green inline text plus arrow, not a filled green button.
 - Final CTA defaults to `/zh-CN/signup` unless the user explicitly requests a different destination such as `/zh-CN/download`.
 - Header/Footer links remain website-level chrome and should not be rewritten from user copy.
+- Generated HTML must not include GA4 scripts or direct `gtag()` calls. CTA links should include `data-track` and `data-track-section` attributes; `frevana-web` is responsible for listening to those attributes and reporting through the shared GA4 setup.
 
 ### Image Generation
 
