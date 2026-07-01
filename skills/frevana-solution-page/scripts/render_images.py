@@ -16,7 +16,7 @@ from typing import Any
 DEFAULT_SIZE = "1536x1024"
 DEFAULT_QUALITY = "high"
 DEFAULT_FORMAT = "png"
-DEFAULT_BACKGROUND = "transparent"
+DEFAULT_BACKGROUND = "opaque"
 DEFAULT_VISUAL_SEED = "frevana-individual-cn-reference-style-v4"
 
 
