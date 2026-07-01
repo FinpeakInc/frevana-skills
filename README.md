@@ -62,6 +62,9 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Google Search | [`google-short-videos-search`](skills/google-short-videos-search/SKILL.md) | Google Short Videos results | query |
 | Google Search | [`google-videos-search`](skills/google-videos-search/SKILL.md) | Google Videos results | query |
 | Google Ads | [`google-ads-search`](skills/google-ads-search/SKILL.md) | Google sponsored search ads | query and location |
+| Google Ads | [`google-ads-keywords-search-volume`](skills/google-ads-keywords-search-volume/SKILL.md) | Google Ads keyword search-volume estimates | one or more keywords |
+| Google Ads | [`google-ads-keywords-for-keywords`](skills/google-ads-keywords-for-keywords/SKILL.md) | Google Ads keyword suggestions from seed keywords | one or more seed keywords |
+| Google Ads | [`google-ads-ad-traffic-by-keywords`](skills/google-ads-ad-traffic-by-keywords/SKILL.md) | Google Ads ad traffic forecasts for keywords | keywords, bid, and match type |
 | Google Maps | [`google-maps-reviews`](skills/google-maps-reviews/SKILL.md) | Google Maps place reviews | data ID or place ID |
 | Google Local Services | [`google-local-services-search`](skills/google-local-services-search/SKILL.md) | Google Local Services results | query and data CID |
 | Bing | [`bing-search`](skills/bing-search/SKILL.md) | Bing web search results | query |
@@ -448,6 +451,61 @@ Features:
 - optional `--platform` and `--region`
 - returns advertiser, advertiser ID, creative ID, format, target domain, media links, details links, and first/last shown timestamps when available
 - saves every successful response to `./out/google-ads-transparency-center-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`google-ads-keywords-search-volume`](skills/google-ads-keywords-search-volume/SKILL.md)
+
+Check keyword search volume through Google Ads data.
+
+Use when:
+
+- you want to query search volume for one or more keywords
+- you want Google Ads search-volume estimates for keywords
+- you want to compare multiple keywords
+- you want input for SEO, PPC, or ad planning
+
+Features:
+
+- compare one or more keywords with `--keywords`
+- includes search partners by default with `--search-partners true`
+- saves every successful response to `./out/google-ads-keywords-search-volume-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`google-ads-keywords-for-keywords`](skills/google-ads-keywords-for-keywords/SKILL.md)
+
+Get Google Ads keyword suggestions from seed keywords.
+
+Use when:
+
+- you want keywords related to a keyword
+- you want to query related keywords or keyword ideas
+- you want related keyword ideas from Google Ads data
+- you want to expand a seed keyword list for SEO, PPC, or ad planning
+- you want keyword suggestions with volume, competition, CPC, and monthly search data
+
+Features:
+
+- accepts one or more seed keywords with `--keywords`
+- supports optional location, language, historical date range, sorting, search partners, and adult-keyword inclusion
+- saves every successful response to `./out/google-ads-keywords-for-keywords-<timestamp>-<pid>.json` by default
+- use `--output` to choose a specific result path
+
+### [`google-ads-ad-traffic-by-keywords`](skills/google-ads-ad-traffic-by-keywords/SKILL.md)
+
+Forecast Google Ads traffic for keywords using a bid and match type.
+
+Use when:
+
+- you want projected ad clicks, CPC, or cost for keywords
+- you want Google Ads traffic forecasts for a planned campaign
+- you have keywords plus a bid and match type
+
+Features:
+
+- requires `--keywords`, `--bid`, and `--match`
+- `--match` accepts `exact`, `broad`, or `phrase`
+- supports optional location, language, date range or forecast interval, sorting, and tag
+- saves every successful response to `./out/google-ads-ad-traffic-by-keywords-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
 
 ### [`google-related-questions`](skills/google-related-questions/SKILL.md)

@@ -10,7 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
-- Google Ads Transparency Center, Google Ads Search, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
+- Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
@@ -125,6 +125,15 @@ skills/
   google-ads-search/
     SKILL.md
     scripts/search_google_ads.sh
+  google-ads-keywords-search-volume/
+    SKILL.md
+    scripts/search_google_ads_keywords_search_volume.sh
+  google-ads-keywords-for-keywords/
+    SKILL.md
+    scripts/search_google_ads_keywords_for_keywords.sh
+  google-ads-ad-traffic-by-keywords/
+    SKILL.md
+    scripts/search_google_ads_ad_traffic_by_keywords.sh
   google-autocomplete/
     SKILL.md
     scripts/search_google_autocomplete.sh
@@ -720,6 +729,106 @@ Optional input:
 If the user gives only a brand/company name and asks for a specific advertiser record by ID, ask for the advertiser ID instead of guessing. If the user wants a general ad search for that brand, use `text`.
 Do not invent optional platform, region, or pagination token fields when the user did not provide them.
 The Frevana endpoint schema currently exposes only `advertiser_id`, `text`, `platform`, `region`, and `next_page_token`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, `zero_trace`, `political_ads`, `start_date`, `end_date`, `creative_format`, or `num`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
+### Use `google-ads-keywords-search-volume`
+
+Route here when the user wants:
+
+- keyword search-volume estimates
+- to query search volume for one or more keywords
+- Google Ads keyword search-volume estimates
+- keyword demand checks for Google Ads
+- batch keyword comparisons for SEO, PPC, or ad planning
+- to call the Frevana google-ads-search-volume endpoint
+
+Required input:
+
+- one or more `keywords`
+
+Optional input:
+
+- `search_partners`
+- output file path override
+- one-time token override
+
+Important defaults:
+
+- If `search_partners` is missing, default to `true`.
+- State that default explicitly in the user-facing response when it matters.
+
+Do not invent optional fields. The Frevana endpoint schema currently exposes only `keywords` and `search_partners`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
+### Use `google-ads-keywords-for-keywords`
+
+Route here when the user wants:
+
+- keywords related to a keyword
+- to query related keywords or keyword ideas
+- Google Ads keyword suggestions from seed keywords
+- related keyword ideas from Google Ads data
+- keyword expansion for SEO, PPC, or ad planning
+- to call the Frevana google-ads-keywords-for-keywords endpoint
+
+Required input:
+
+- one or more seed `keywords`
+
+Optional input:
+
+- location name, location code, or location coordinate
+- language name or language code
+- `search_partners`
+- `date_from` and/or `date_to`
+- `sort_by`
+- `include_adult_keywords`
+- `tag`
+- output file path override
+- one-time token override
+
+Important defaults:
+
+- If `search_partners` is missing, default to `false`.
+- If `include_adult_keywords` is missing, default to `false`.
+
+Do not invent optional fields. The Frevana endpoint schema currently exposes only `keywords`, location, language, `search_partners`, `date_from`, `date_to`, `sort_by`, `include_adult_keywords`, and `tag`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
+### Use `google-ads-ad-traffic-by-keywords`
+
+Route here when the user wants:
+
+- Google Ads ad traffic forecasts for keywords
+- projected clicks, CPC, or ad cost for a keyword set
+- forecast metrics based on a bid and match type
+- to call the Frevana google-ads-ad-traffic-by-keywords endpoint
+
+Required input:
+
+- one or more `keywords`
+- `bid`
+- `match`
+
+Optional input:
+
+- location name, location code, or location coordinate
+- language name or language code
+- `date_from` plus `date_to`
+- `date_interval`
+- `sort_by`
+- `tag`
+- output file path override
+- one-time token override
+
+Important defaults:
+
+- If no forecast date range or interval is provided, DataForSEO defaults to `next_month`.
+- `match` must be `exact`, `broad`, or `phrase`.
+- `date_interval` must not be combined with `date_from` or `date_to`.
+- `date_from` and `date_to` must be provided together.
+
+Do not invent optional fields. The Frevana endpoint schema currently exposes only `keywords`, `bid`, `match`, location, language, `date_from`, `date_to`, `date_interval`, `sort_by`, and `tag`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
 
 ### Use `google-related-questions`
@@ -1691,6 +1800,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "scrape this", "scrape URL", or wants URL scraping but does not provide a URL, ask for the URL.
 - If the user asks ChatGPT, Gemini, Perplexity, DeepSeek, or Doubao a question without providing a prompt/question, ask for the prompt.
 - If the user asks for Google Ads Transparency Center search without `advertiser_id`, `text`, or `next_page_token`, ask for one of those inputs.
+- If the user asks for keyword search volume or Google Ads keyword search volume but does not provide keywords, ask for the keywords.
 - If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.
 - If the user asks for Google Related Questions or People Also Ask expansion without a `next_page_token`, suggest running the regular Google Search skill first to obtain `related_questions[].next_page_token`, then continue with this skill using that token.
@@ -1714,16 +1824,16 @@ For `frevana-auth`:
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
 
-### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
+### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### SendGrid email sending
@@ -2080,6 +2190,9 @@ bash skills/google-news-search/scripts/search_google_news.sh
 bash skills/google-maps-search/scripts/search_google_maps.sh
 bash skills/facebook-profile/scripts/get_facebook_profile.sh
 bash skills/google-ads-transparency-center/scripts/search_google_ads_transparency_center.sh
+bash skills/google-ads-keywords-search-volume/scripts/search_google_ads_keywords_search_volume.sh
+bash skills/google-ads-keywords-for-keywords/scripts/search_google_ads_keywords_for_keywords.sh
+bash skills/google-ads-ad-traffic-by-keywords/scripts/search_google_ads_ad_traffic_by_keywords.sh
 bash skills/google-related-questions/scripts/search_google_related_questions.sh
 bash skills/google-trends/scripts/search_google_trends.sh
 bash skills/google-shopping-search/scripts/search_google_shopping.sh
