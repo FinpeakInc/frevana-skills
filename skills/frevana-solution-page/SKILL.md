@@ -148,6 +148,7 @@ Preserve these default behaviors:
 - If the user provides a CTA URL, use that override.
 - Hero and final primary CTAs should render as dark charcoal filled buttons.
 - Feature-row CTAs should render as green inline text links with arrows, not green filled buttons.
+- Do not embed GA4 scripts or call `gtag()` from generated HTML. Add `data-track` and `data-track-section` attributes to key CTA links so the `frevana-web` `/lp/:slug` route can report events through the shared GA4 layer.
 
 
 ## Module Layout Policy
