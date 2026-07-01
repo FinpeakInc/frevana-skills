@@ -290,6 +290,7 @@ def generate_slot_image(
 
     script = resolve_gpt_image_script()
     command = [
+        "bash",
         str(script),
         "--prompt",
         prompt,
