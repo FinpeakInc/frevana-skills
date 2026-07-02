@@ -82,6 +82,27 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
 | Facebook | [`facebook-profile`](skills/facebook-profile/SKILL.md) | Facebook profile lookup | profile ID or username |
 | Reddit | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
+| Backlinks | [`backlinks-index`](skills/backlinks-index/SKILL.md) | External backlink/inbound-link index freshness and database status | none |
+| Backlinks | [`backlinks-summary`](skills/backlinks-summary/SKILL.md) | High-level external backlink/inbound-link totals and authority metrics | target |
+| Backlinks | [`backlinks-list`](skills/backlinks-list/SKILL.md) | Individual external backlink rows pointing to a target, with filters and pagination | target |
+| Backlinks | [`backlinks-history`](skills/backlinks-history/SKILL.md) | Historical external backlink and referring-domain counts across past crawls | target |
+| Backlinks | [`backlinks-anchors`](skills/backlinks-anchors/SKILL.md) | Anchor text distribution from external backlinks pointing to a target | target |
+| Backlinks | [`backlinks-referring-domains`](skills/backlinks-referring-domains/SKILL.md) | External referring domains linking to a target, with per-domain metrics | target |
+| Backlinks | [`backlinks-referring-networks`](skills/backlinks-referring-networks/SKILL.md) | External referring IP/network backlink diversity for a target | target |
+| Backlinks | [`backlinks-competitors`](skills/backlinks-competitors/SKILL.md) | Domains with similar external backlink profiles to a target | target |
+| Backlinks | [`backlinks-domain-intersection`](skills/backlinks-domain-intersection/SKILL.md) | External referring domains shared across multiple target domains | targets |
+| Backlinks | [`backlinks-page-intersection`](skills/backlinks-page-intersection/SKILL.md) | External source pages shared across multiple target URLs | targets |
+| Backlinks | [`backlinks-domain-pages`](skills/backlinks-domain-pages/SKILL.md) | Pages on a target domain ranked by external backlink metrics | target |
+| Backlinks | [`backlinks-domain-pages-summary`](skills/backlinks-domain-pages-summary/SKILL.md) | Aggregate page-level external backlink metrics without fetching page rows | target |
+| Backlinks | [`backlinks-timeseries-summary`](skills/backlinks-timeseries-summary/SKILL.md) | External backlink, referring-domain, and authority metrics grouped over time | target |
+| Backlinks | [`backlinks-timeseries-new-lost-summary`](skills/backlinks-timeseries-new-lost-summary/SKILL.md) | New versus lost external backlinks or referring domains grouped over time | target |
+| Backlinks | [`backlinks-bulk-ranks`](skills/backlinks-bulk-ranks/SKILL.md) | External backlink authority/rank metrics for many domains or URLs | targets |
+| Backlinks | [`backlinks-bulk-backlinks`](skills/backlinks-bulk-backlinks/SKILL.md) | External backlink/inbound-link count totals for many domains or URLs | targets |
+| Backlinks | [`backlinks-bulk-spam-score`](skills/backlinks-bulk-spam-score/SKILL.md) | External backlink spam score or inbound-link risk metrics for many targets | targets |
+| Backlinks | [`backlinks-bulk-referring-domains`](skills/backlinks-bulk-referring-domains/SKILL.md) | External referring-domain count totals for many domains or URLs | targets |
+| Backlinks | [`backlinks-bulk-new-lost-backlinks`](skills/backlinks-bulk-new-lost-backlinks/SKILL.md) | New and lost external backlink/inbound-link count totals for many targets | targets |
+| Backlinks | [`backlinks-bulk-new-lost-referring-domains`](skills/backlinks-bulk-new-lost-referring-domains/SKILL.md) | New and lost external referring-domain count totals for many targets | targets |
+| Backlinks | [`backlinks-bulk-pages-summary`](skills/backlinks-bulk-pages-summary/SKILL.md) | Aggregate page-level external backlink metrics for many domains or URLs | targets |
 
 #### Databases
 
