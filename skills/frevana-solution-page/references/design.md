@@ -421,9 +421,9 @@ Required slots:
 - `section-4`
 - `module`
 
-Image direction should stay compatible with the current Chinese `/individual` page for every page language. Chinese and English pages should use the same airy, open, lightweight illustration style. The renderer supplies transparent output through the image API, so the natural-language prompt should describe the artwork as a floating cutout and should avoid wording that makes the model draw gray tile artifacts:
+Image direction should stay compatible with the current Chinese `/individual` page for every page language. Chinese and English pages should use the same airy, open, lightweight illustration style. The renderer uses opaque output because the current image API rejects transparent backgrounds for this model, so the natural-language prompt should describe white-canvas floating artwork that visually blends into the page and should avoid wording that makes the model draw gray tile artifacts:
 
-- Use simple floating spot illustrations with API-controlled transparent output, not information posters. The image is a visual accent, not a second copy area.
+- Use simple floating spot illustrations on a white or near-white canvas, not information posters. The image is a visual accent, not a second copy area.
 - Keep each illustration sparse: 1 large pastel geometric shape, 1-2 white rounded UI cards, optional tiny icon badge, thin outlines, flat layers, no image drop shadow, and no cast shadow. Do not draw a white page or white rectangular background behind the artwork.
 - Each image slot must use a different composition, silhouette, card arrangement, and accent-color mix. Avoid repeating the same search-bar/status-chip formula across the page.
 - Text inside images must be minimal. Prefer gray placeholder lines; if text is necessary, use at most one short generic English label, 1-2 words. Never use Chinese text, platform names, page headlines, section body text, bullets, or long user copy into artwork.

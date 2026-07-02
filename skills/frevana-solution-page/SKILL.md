@@ -7,7 +7,7 @@ description: Generate Frevana solution-style landing pages from natural-language
 
 Create single-file HTML landing pages that match Frevana's solution-page visual system. The user can describe the page in natural language; do not require them to hand-write JSON.
 
-The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, transparent-background spot illustrations, and a dark slate footer.
+The visual target is the current Frevana `/individual` page: neutral white canvas, oversized Host Grotesk headlines, Open Sans body/UI text, soft-green proof chips, dark charcoal primary CTAs, green inline feature links, alternating product-illustration rows, airy spot illustrations that visually blend into the white page, and a dark slate footer.
 
 ## Workflow
 
@@ -98,7 +98,7 @@ Images are generated through:
 ../gpt-image-2/scripts/generate_image.sh
 ```
 
-The script requires `FREVANA_TOKEN` unless `--skip-images` is used. It calls `gpt-image-2` with `--background transparent --output-format png` by default. Generated image responses are cached by slot, prompt hash, output options, and background under:
+The script requires `FREVANA_TOKEN` unless `--skip-images` is used. It calls `gpt-image-2` with `--background opaque --output-format png` by default because the current image API rejects transparent backgrounds for this model. Generated image responses are cached by slot, prompt hash, output options, and background under:
 
 ```text
 cache/images/<slot>-<hash>.json
@@ -114,9 +114,9 @@ Standard slots:
 - `section-N` for any additional user-provided feature sections
 - `module`
 
-Image style must match the current Chinese Frevana `/individual` page assets for every page language. Chinese and English pages should use the same airy, open, lightweight illustration style. Module tabs must match the original horizontal tab strip, not a left-side vertical rail. The script passes `--background transparent`; image prompts should describe floating cutout artwork and should avoid wording that makes the model draw gray tile artifacts:
+Image style must match the current Chinese Frevana `/individual` page assets for every page language. Chinese and English pages should use the same airy, open, lightweight illustration style. Module tabs must match the original horizontal tab strip, not a left-side vertical rail. The script passes `--background opaque`; image prompts should describe white-canvas floating artwork that visually blends into the page and should avoid wording that makes the model draw gray tile artifacts:
 
-- Generate simple floating spot illustrations with API-controlled transparent output, not information posters or dense SaaS dashboards.
+- Generate simple floating spot illustrations on a white or near-white canvas, not information posters or dense SaaS dashboards.
 - Use 1 large pastel geometric shape plus 1-2 white rounded UI cards, thin outlines, flat layers, no image drop shadow, no cast shadow, and optional tiny icon badges. Use a richer pastel palette: coral/salmon, warm yellow, cyan, sky blue, soft pink, lavender, mint, and Frevana green. Frevana green should be a small accent, not the dominant color. Do not draw a white page or white rectangular background behind the artwork.
 - Each image slot must use a different composition, silhouette, card arrangement, and accent-color mix. Do not reuse the same search-bar/status-chip illustration across Hero and feature sections.
 - Prefer gray placeholder lines over readable text. If text is necessary, use at most one short generic English label, 1-2 words. Do not use Chinese text, platform names, page headlines, section body text, bullets, or long user copy in the image.
