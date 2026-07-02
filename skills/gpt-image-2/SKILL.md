@@ -38,7 +38,7 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 - `--n`: `1-10`
 - `--size`: `auto`, `1024x1024`, `1536x1024`, `1024x1536`, `256x256`, `512x512`, `1792x1024`, `1024x1792`
 - `--quality`: `standard`, `hd`, `low`, `medium`, `high`, `auto`
-- `--background`: `transparent`, `opaque`, `auto`
+- `--background`: `opaque`, `auto`
 - `--output-format`: `png`, `jpeg`, `webp`
 - `--output-compression`: `1-100`
 - `--image`: repeatable local file path, `.png`/`.jpg`/`.jpeg`/`.webp`, each under 50MB
@@ -89,6 +89,7 @@ bash <skill-path>/scripts/generate_image.sh \
 ## Notes
 
 - Do not pass image routing overrides; the wrapper rejects them.
+- Do not pass `--background transparent`; `gpt-image-2` does not currently support transparent backgrounds.
 - If the user says "use `/path/to/reference.png`", map that to `--image /path/to/reference.png`.
 - If the user says "use `https://example.com/reference.png`", map that to `--image-url https://example.com/reference.png`.
 - If the user says "use the images under `/path/to/references`", map that to `--image-dir /path/to/references`.

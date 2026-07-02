@@ -46,7 +46,7 @@ OpenAI options:
   --n                    Number of images (1-10)
   --size                 Image size
   --quality              Image quality
-  --background           Background behavior
+  --background           Background behavior (opaque or auto; transparent is not supported by gpt-image-2)
   --output-format        Output format
   --output-compression   Output compression for jpeg/webp (1-100)
   --image                Reference image path for image-to-image (repeatable, png/jpg/jpeg/webp, <50MB each)
@@ -415,7 +415,7 @@ fi
 
 OPENAI_QUALITIES=("standard" "hd" "low" "medium" "high" "auto")
 OPENAI_SIZES=("auto" "1024x1024" "1536x1024" "1024x1536" "256x256" "512x512" "1792x1024" "1024x1792")
-OPENAI_BACKGROUNDS=("transparent" "opaque" "auto")
+OPENAI_BACKGROUNDS=("opaque" "auto")
 OPENAI_OUTPUT_FORMATS=("png" "jpeg" "webp")
 
 if [[ -n "$N" ]]; then
@@ -441,6 +441,9 @@ fi
 if [[ -n "$BACKGROUND" ]] && ! is_allowed_value "$BACKGROUND" "${OPENAI_BACKGROUNDS[@]}"; then
   echo "Invalid background: $BACKGROUND" >&2
   echo "Allowed backgrounds: ${OPENAI_BACKGROUNDS[*]}" >&2
+  if [[ "$BACKGROUND" == "transparent" ]]; then
+    echo "gpt-image-2 does not currently support transparent backgrounds." >&2
+  fi
   exit 1
 fi
 

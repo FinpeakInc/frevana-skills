@@ -1706,6 +1706,8 @@ Fixed Frevana routing contract:
 
 - use the `gpt-image-2` skill script
 
+`gpt-image-2` does not currently support transparent backgrounds. Do not pass `background: "transparent"` or `--background transparent`; use `opaque`, `auto`, or omit the background option.
+
 Do not pass or ask for alternate image routing values.
 
 ### Use `nano-banana-2`

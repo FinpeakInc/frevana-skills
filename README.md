@@ -786,7 +786,7 @@ Features:
 - accepts prompt input via `--prompt` or `--contents`
 - supports image-to-image input via `--image`, `--image-url`, `--image-dir`, and `--mask`
 - returns a hosted image link
-- supported options: `--n`, `--size`, `--quality`, `--background`, `--output-format`, `--output-compression`
+- supported options: `--n`, `--size`, `--quality`, `--background` (`opaque` or `auto`; transparent backgrounds are not supported), `--output-format`, `--output-compression`
 
 ### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
 
