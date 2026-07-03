@@ -12,7 +12,7 @@ This repository contains reusable skills for four main workflow families:
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
-- SendGrid Mail Send API workflows for transactional email sending
+- SendGrid Mail Send API workflows for transactional email sending and SendGrid Stats API workflows for global email statistics
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
@@ -183,6 +183,9 @@ skills/
     SKILL.md
     scripts/send_email.sh
     scripts/query_email_logs.sh
+  sendgrid-global-email-stats/
+    SKILL.md
+    scripts/retrieve_global_email_stats.sh
   instantly-send-email/
     SKILL.md
     scripts/lead.sh
@@ -1263,6 +1266,43 @@ Important behavior:
 - Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
 - Use `--private-recipients` when multiple `to` recipients should not see each other.
 
+### Use `sendgrid-global-email-stats`
+
+Route here when the user wants:
+
+- SendGrid global email statistics
+- aggregate SendGrid stats across a date range
+- account-level SendGrid metrics such as requests, processed, delivered, bounces, opens, clicks, spam reports, or unsubscribes
+- to call the Twilio SendGrid Stats API `GET /v3/stats`
+- SendGrid stats grouped by day, week, or month
+
+Required input:
+
+- `start_date` in `YYYY-MM-DD` format
+
+Optional input:
+
+- `end_date` in `YYYY-MM-DD` format
+- `aggregated_by`, one of `day`, `week`, or `month`
+- `limit`
+- `offset`
+- `on_behalf_of` header value for parent-account subuser or customer-account calls
+- API region (`global` or `eu`)
+- output file path
+- one-time API key override
+
+Important behavior:
+
+- Use `SENDGRID_API_KEY`, not `FREVANA_TOKEN` and not Twilio Account SID/Auth Token credentials.
+- API key lookup order is `--api-key`, then `SENDGRID_API_KEY`, then the locally saved key at `~/.config/sendgrid-send-email/api_key`.
+- The saved API key path is shared with `sendgrid-send-email`.
+- If no API key is available, the script prompts once in interactive runs and saves the key locally for future runs. In non-interactive runs, guide the user to read `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration` to get the required configuration.
+- Prefer `scripts/retrieve_global_email_stats.sh` over ad hoc `curl`.
+- This is a read-only `GET /v3/stats` lookup; it does not send email and does not query per-message Email Logs.
+- Do not invent optional query parameters. The endpoint schema currently exposes only `start_date`, `end_date`, `aggregated_by`, `limit`, and `offset`.
+- For parent account calls, pass the complete `on-behalf-of` header value through `--on-behalf-of`. Use a subuser username for subusers or `account-id <account-id>` for customer accounts.
+- Return raw JSON when requested; otherwise summarize the most useful metrics by date bucket.
+
 ### Use `instantly-send-email`
 
 Route here when the user wants:
@@ -1812,6 +1852,7 @@ Use these rules to avoid bad assumptions:
 - If the user says only `nano banana` without specifying `2` or `pro`, ask which variant they want.
 - If the user asks for Frevana report generation without `template_id`, use the default `mckinsey-style-report-2`.
 - If the user asks to send SendGrid email without sender, recipient, or content details, ask for the missing fields before execution.
+- If the user asks for SendGrid global email stats without a `start_date`, ask for the start date.
 - If the user does not provide prompt/content required by a skill, ask for it before execution.
 
 ## Execution Order Rules
@@ -1864,6 +1905,17 @@ For SendGrid status lookup:
 6. Do not query by `custom_args.business_id`; use `--to`, `--sent-at`, and `--message-id` to narrow by recipient/time and fuzzy-match returned `sg_message_id`. Add `--subject` when available, except for template sends. Email Logs can append suffixes such as `.recvd-...` to `sg_message_id`, so treat the user-provided message ID as a prefix/substring match, not only an exact match.
 7. `--sent-at` is only a lower bound, but the script subtracts a 5-second default lookback before building `sg_message_id_created_at >= ...` to absorb SendGrid response/log timestamp skew. Do not use a time-window parameter.
 8. If Email Logs returns no data or no fuzzy `sg_message_id` match, ask the user to review `https://app.sendgrid.com/email_logs` manually.
+
+### SendGrid global email stats
+
+For `sendgrid-global-email-stats`:
+
+1. Extract `start_date`, optional `end_date`, optional `aggregated_by`, optional pagination, optional `on_behalf_of`, and optional region.
+2. Prefer `scripts/retrieve_global_email_stats.sh` over ad hoc `curl`.
+3. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key shared with `sendgrid-send-email`.
+4. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration`.
+5. Return either raw JSON or summarize metrics such as `requests`, `processed`, `delivered`, `bounces`, `opens`, `unique_opens`, `clicks`, `unique_clicks`, `spam_reports`, and `unsubscribes`.
+6. Do not pass unsupported query fields beyond `start_date`, `end_date`, `aggregated_by`, `limit`, and `offset`.
 
 ### Instantly campaign enrollment and replies
 

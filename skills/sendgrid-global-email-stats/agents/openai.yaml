@@ -1,0 +1,4 @@
+interface:
+  display_name: "SendGrid Global Email Stats"
+  short_description: "Retrieve aggregate SendGrid email statistics with the Stats API."
+  default_prompt: "Retrieve SendGrid global email statistics"

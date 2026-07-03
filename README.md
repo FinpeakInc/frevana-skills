@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid and Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending and statistics, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -120,6 +120,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
+| Email | [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md) | Retrieve aggregate SendGrid email statistics | start date |
 | Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
 | Email | [`klaviyo-send-email`](skills/klaviyo-send-email/SKILL.md) | Manage Klaviyo campaigns and audiences | campaign or audience details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
@@ -881,6 +882,27 @@ Features:
 - reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
 - points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
 
+### [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md)
+
+Retrieve aggregate SendGrid email statistics with the Twilio SendGrid Stats API.
+
+Use when:
+
+- you want account-level SendGrid email statistics
+- you need metrics such as requests, processed, delivered, bounces, opens, clicks, spam reports, or unsubscribes
+- you want stats grouped by day, week, or month
+- you need to call `GET /v3/stats`
+
+Features:
+
+- calls `GET /v3/stats` directly with `SENDGRID_API_KEY` or the saved SendGrid key shared with `sendgrid-send-email`
+- requires `--start-date` in `YYYY-MM-DD` format
+- supports optional `--end-date`, `--aggregated-by day|week|month`, `--limit`, and `--offset`
+- supports parent-account `on-behalf-of` header values for subuser or customer-account stats
+- supports global and EU SendGrid API regions
+- supports dry-run request metadata with `--dry-run`
+- points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
+
 ### [`instantly-send-email`](skills/instantly-send-email/SKILL.md)
 
 Send through Instantly's real API V2 workflow paths.
@@ -1031,7 +1053,7 @@ Features:
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
-- SendGrid email skill: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
+- SendGrid email and stats skills: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
 - Instantly email skill: `bash`, `curl`, `python3`, `INSTANTLY_API_KEY`.
 - MySQL CRUD skill: `bash`; plus local `mysql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `mysql` for `ssh-remote`.
 - PostgreSQL CRUD skill: `bash`; plus local `psql` for `direct` and `ssh-tunnel`; plus `ssh`, remote `bash`, and remote `psql` for `ssh-remote`.
