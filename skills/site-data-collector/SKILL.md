@@ -59,7 +59,7 @@ Use this flow:
    - Rewrite `parse_rows()` and `FIELDS` so they select the real item rows/columns the user asked for (this is Layer 3). Keep it deterministic — use CSS/selector or `html.parser` logic in Python; do **not** call an LLM at run time, so reruns stay ~0-token.
    - Set `PAGE_PARAM` (and use `--max-pages`) if the listing paginates.
    - If the page is truly not parseable (heavy anti-bot, canvas/image-only, non-HTML), say so and suggest the Web Content Scraper skill instead.
-7. Hand the user the generated script. Explain: save it as a `.py` file and run `python3 <file> --output data.csv`. It requires the Frevana CLI (already installed by setup) on the machine.
+7. Hand the user the generated script as a saved artifact (via `save_artifacts`) so it appears as a downloadable file card in the chat. Do NOT tell the user to run a bare filename like `python3 collector.py` — the file lives in the session workspace, not their current directory, so that command fails. Instead tell them: click **Save to local** on the file card to save it (e.g. to `~/Downloads`), then run it from there with an absolute path, e.g. `python3 ~/Downloads/collector.py --output data.csv`. It requires the Frevana CLI (already installed by setup) on the machine.
 8. Do not execute the generated script yourself.
 
 ## Commands
