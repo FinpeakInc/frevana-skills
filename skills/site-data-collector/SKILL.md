@@ -18,8 +18,8 @@ This skill runs the Chrome Extension-backed Frevana MCP tool `frevana_generate`.
 It uses a three-layer fallback so most sites produce a working script:
 
 - **Layer 1 (JSON API)** — the deterministic collector above, when the site has a clean JSON feed.
-- **Layer 2 (DOM)** — if there is no JSON API, the tool no longer fails: it returns a DOM collector whose fetch layer is still `frevana fetch` (raw HTML) and whose `parse_rows()` defaults to extracting links, with a captured HTML sample embedded in the script.
-- **Layer 3 (your job)** — when you get a Layer-2 script, tighten `parse_rows()` + `FIELDS` into the real item rows/columns using that sample (see Execution Order step 6).
+- **Layer 2 (DOM)** — if there is no JSON API, the tool no longer fails: it returns a DOM collector whose fetch layer is still `frevana fetch` (raw HTML) and whose **selector config** defaults to extracting links, with a captured HTML sample embedded in the script.
+- **Layer 3 (your job)** — when you get a Layer-2 script, tighten its `ITEM` / `FIELDS` / pagination **selector config** into the real item rows/columns using that sample (see Execution Order step 6).
 
 Important: this skill **returns a script; it does not run it and it does not return the data directly.** The user runs the script themselves when they want the full dataset (or on a schedule). To get data right now for a single URL instead, use the **Authenticated Fetch** skill.
 
@@ -56,8 +56,11 @@ Use this flow:
 5. Run the generate step only after setup succeeds.
 6. If there is no JSON API, `frevana_generate` returns a **Layer 2 DOM collector** instead of failing. When you get one (its header says "Layer 2 (DOM) collector"):
    - Read the captured HTML sample embedded at the bottom of the script.
-   - Rewrite `parse_rows()` and `FIELDS` so they select the real item rows/columns the user asked for (this is Layer 3). Keep it deterministic — use CSS/selector or `html.parser` logic in Python; do **not** call an LLM at run time, so reruns stay ~0-token.
-   - Set `PAGE_PARAM` (and use `--max-pages`) if the listing paginates.
+   - Tighten it by editing **only the SELECTOR CONFIG** near the top of the script — `ITEM`, `FIELDS`, and the pagination (`PAGE_PARAM` or `NEXT_LINK`). **Do NOT rewrite the parser or subclass `HTMLParser`.** The engine below the config is already void-element-safe and correct; hand-rolling a parser (naive tag-depth counting, grabbing an attribute off the wrong `<a>`) is the #1 source of silent 0-row bugs. This is Layer 3.
+     - `ITEM` = the repeating row container, e.g. `{"tag": "article", "class": ["product_pod"]}`.
+     - `FIELDS` = one column each, found WITHIN each item: `{"tag": ..., "class": [...], "attr": ...}`. Omit `attr` to read the element's text; `href`/`src` are auto-resolved to absolute URLs. First match in document order wins.
+     - Pagination: set `PAGE_PARAM` for `?page=N` sites, or `NEXT_LINK` — e.g. `{"container": {"tag": "li", "class": ["next"]}, "tag": "a"}` — to follow a "next" link. Use `--max-pages` while testing.
+   - Keep it deterministic — the config drives a stdlib parser; do **not** call an LLM at run time, so reruns stay ~0-token.
    - If the page is truly not parseable (heavy anti-bot, canvas/image-only, non-HTML), say so and suggest the Web Content Scraper skill instead.
 7. Hand the user the generated script as a saved artifact (via `save_artifacts`) so it appears as a downloadable file card in the chat. Do NOT tell the user to run a bare filename like `python3 collector.py` — the file lives in the session workspace, not their current directory, so that command fails. Instead tell them: click **Save to local** on the file card to save it (e.g. to `~/Downloads`), then run it from there with an absolute path, e.g. `python3 ~/Downloads/collector.py --output data.csv` (on Windows use `python` or `py` and a Windows path, e.g. `python %USERPROFILE%\Downloads\collector.py --output data.csv`). It requires the Frevana CLI (already installed by setup) on the machine.
 8. Do not execute the generated script yourself.
