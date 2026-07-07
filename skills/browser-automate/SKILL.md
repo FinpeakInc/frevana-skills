@@ -1,6 +1,6 @@
 ---
 name: browser-automate
-description: Use when the user wants to DRIVE their real logged-in Chrome to perform a task — navigate, search, fill forms, click, add to cart, multi-step flows — through the Frevana Chrome Extension. A perceive→act loop that addresses elements by an integer [ref] from a snapshot. Stops before any payment/place-order.
+description: Use when the user wants to DRIVE their real logged-in Chrome to perform a task — navigate, search, fill forms, click, add to cart, multi-step flows, even place an order — through the Frevana Chrome Extension. A perceive→act loop that addresses elements by an integer [ref] from a snapshot. Stops before any payment/place-order; submitting an order requires the user's explicit confirmation in chat (one-shot --confirm-payment).
 ---
 
 # Browser Automate
@@ -40,7 +40,17 @@ Optional flags: `--allow-domains '["amazon.com"]'` (restrict navigation to these
 
 ## PAYMENT / CHALLENGE SAFETY (critical)
 
-Clicking a pay / place-order control is **blocked by default**. When the result contains `NEEDS HUMAN (payment)` (or `needHuman:"payment"`), **STOP immediately** and tell the user to complete the payment themselves. Never retry a payment/checkout submit. Same for captcha / login challenges (`needHuman:"login"`/`"captcha"`).
+Clicking a pay / place-order control is **blocked by default**. When the result contains `NEEDS HUMAN (payment)` (or `needHuman:"payment"`), **STOP acting** — never retry the submit on your own. There is exactly one sanctioned path to place the order: the user's explicit confirmation flow below. Captcha / login challenges (`needHuman:"login"`/`"captcha"`) always hand off to the user — no override exists for those.
+
+### Placing an order — requires the user's explicit confirmation in chat
+
+1. Drive the flow normally (search → add to cart → checkout) until a step returns `NEEDS HUMAN (payment)`.
+2. **Present an order summary in chat**, extracted from the CURRENT page (latest snapshot; use `extract`/`getHtml` on specific refs if needed): item name(s), quantity, total price, and — if visible — shipping address and payment method.
+3. **Ask the user to confirm and WAIT for their reply**, e.g.: "已到下单确认页:〈商品〉× N,总价 ¥X。回复「确认下单」我就提交订单。" Never proceed on silence or on your own judgment.
+4. **Only after the user explicitly confirms** (e.g. "确认下单" / "confirm order"): take a FRESH snapshot (refs go stale), then send ONE call with `--confirm-payment` containing minimally the click on the place-order control + `waitFor` + `snapshot` to verify.
+5. Report the outcome (order number / confirmation state if visible). If the confirmed submit fails, do NOT retry — show the user what happened and ask again.
+
+**Never** pass `--confirm-payment` in any other situation: not on your own initiative, not because a step failed, not to save a round trip. The user's explicit go-ahead in this conversation authorizes exactly one call.
 
 ## Execution Order
 
@@ -48,7 +58,7 @@ Clicking a pay / place-order control is **blocked by default**. When the result 
 2. If setup reports Chrome disconnected, stop and tell the user to open Chrome, connect the Frevana extension, and retry.
 3. Start with `--url <page>` + `[{"op":"snapshot"}]`. Read the snapshot.
 4. Act by `[ref]` from the LATEST snapshot only — never reuse stale refs; always end an action batch with `{"op":"snapshot"}` before deciding the next step.
-5. On `NEEDS HUMAN (payment)` / login / captcha → STOP and hand off to the user.
+5. On `NEEDS HUMAN (payment)` → follow "Placing an order" above (summary → explicit user confirmation → single `--confirm-payment` call). On login / captcha → STOP and hand off to the user.
 6. When done, give a short plain-text summary of what you did and the final state.
 
 ## Commands
@@ -61,4 +71,9 @@ bash <skill-path>/scripts/automate.sh --url "https://www.amazon.com/" --steps '[
 ### Act on the current page (reuse the tab)
 ```bash
 bash <skill-path>/scripts/automate.sh --steps '[{"op":"click","ref":13},{"op":"waitFor","for":"navigation"},{"op":"snapshot"}]'
+```
+
+### Submit a HUMAN-CONFIRMED order (one-shot; only after the user explicitly confirmed in chat)
+```bash
+bash <skill-path>/scripts/automate.sh --confirm-payment --steps '[{"op":"click","ref":42},{"op":"waitFor","for":"navigation"},{"op":"snapshot"}]'
 ```
