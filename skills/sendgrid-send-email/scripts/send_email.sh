@@ -711,7 +711,7 @@ if 200 <= http_code < 300 and message_id:
             "sent_at": sent_at,
             "query_params": query_params,
             "manual_review_url": "https://app.sendgrid.com/email_logs",
-            "note": "Delivery is asynchronous. Ask the agent to query status after a short delay, changing the recipient if you want to check another recipient.",
+            "note": "Delivery is asynchronous. Ask the agent to use sendgrid-email-log after a short delay. The Mail Send x-message-id may be incomplete for detail lookup, so resolve the full Email Logs sg_message_id with recipient, sent_at, and message_id before fetching details.",
             "prompt_example": "Check the status of this SendGrid email",
         }
         if template_id:

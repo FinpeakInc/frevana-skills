@@ -1,6 +1,6 @@
 ---
 name: sendgrid-send-email
-description: Use when the user wants to send transactional email through the Twilio SendGrid v3 Mail Send API using a SendGrid API key, or query SendGrid Email Logs for send status by recipient, optional subject, sent-at lower bound, and message ID. Supports single sends, multiple recipients, cc/bcc, reply-to, plain text or HTML content, dynamic templates, attachments, categories, custom args, sandbox validation, scheduled send fields, global or EU SendGrid API base URLs, dry-run payload preview, and POST /v3/logs status lookup. Do not use for the separate Twilio Email API.
+description: Use when the user wants to send transactional email through the Twilio SendGrid v3 Mail Send API using a SendGrid API key. Supports single sends, multiple recipients, cc/bcc, reply-to, plain text or HTML content, dynamic templates, attachments, categories, custom args, sandbox validation, scheduled send fields, global or EU SendGrid API base URLs, and dry-run payload preview. Do not use for Email Logs queries, per-message activity, aggregate SendGrid statistics, or the separate Twilio Email API.
 ---
 
 # SendGrid Send Email
@@ -9,7 +9,7 @@ Send email through SendGrid's v3 Mail Send API.
 
 ## Purpose
 
-This skill is for **sending transactional email with SendGrid** by calling `POST /v3/mail/send` directly, and for querying send status with `POST /v3/logs`.
+This skill is for **sending transactional email with SendGrid** by calling `POST /v3/mail/send` directly.
 
 Inputs:
 
@@ -24,7 +24,6 @@ Output:
 
 - dry-run JSON payload by default
 - SendGrid HTTP status, message metadata, and one status-query prompt example when `--send` is explicitly provided
-- Email Logs JSON when querying by recipient, optional subject, sent-at lower bound, and message ID
 
 Sending email is irreversible once queued. Always confirm recipients, subject, and content with the user before running with `--send`.
 
@@ -59,49 +58,6 @@ or clear it with:
 bash <skill-path>/scripts/send_email.sh --clear-api-key
 ```
 
-## Status Query
-
-Use `scripts/query_email_logs.sh` to query SendGrid Email Logs with `POST /v3/logs`.
-
-### Add status or time filters
-
-```bash
-bash <skill-path>/scripts/query_email_logs.sh \
-  --to "customer@example.com" \
-  --status delivered \
-  --start-time "2026-06-15T00:00:00Z" \
-  --end-time "2026-06-16T00:00:00Z"
-```
-
-### Query by recipient, optional subject, sent time, and fuzzy message ID
-
-Use this as the default status lookup path. The script first narrows Email Logs with `to_email` and `sg_message_id_created_at >= (--sent-at - 5 seconds)` by default, optionally adds an exact `subject` filter when provided, then fuzzy-matches returned `messages[].sg_message_id` against the Mail Send response `x-message-id`. The 5-second lookback absorbs small timing differences where the SendGrid `202` response timestamp is slightly later than the Email Logs creation time. SendGrid Email Logs may append suffixes such as `.recvd-...` to `sg_message_id`; the script treats a user-provided message ID as matching when it is the prefix or normalized substring of the returned `sg_message_id`.
-
-For dynamic template sends, omit `--subject` when querying status. The template can define or override the final email subject, so filtering Email Logs by the request subject may hide the matching message.
-
-```bash
-bash <skill-path>/scripts/query_email_logs.sh \
-  --to "customer@example.com" \
-  --subject "Order update" \
-  --sent-at "2026-06-15T10:37:21Z" \
-  --message-id "abc123..." \
-  --limit 100
-```
-
-When `--message-id` is provided, the response includes `matched_messages`, `matched_count`, and `_match_reason` for each matched message. If no matching messages are returned, ask the user to review SendGrid Email Logs manually at <https://app.sendgrid.com/email_logs>.
-
-### Raw SendGrid query
-
-```bash
-bash <skill-path>/scripts/query_email_logs.sh \
-  --query "to_email = 'customer@example.com' AND status IN ('delivered', 'processed')" \
-  --limit 10
-```
-
-Use `--dry-run` to inspect the `/v3/logs` request payload without calling SendGrid.
-
-Note: Do not use `custom_args.business_id` for Email Logs queries. Use recipient, optional subject, `--sent-at`, and message ID fuzzy matching, or pass a raw account-supported `--query`.
-
 ## Execution Order
 
 1. Confirm the user explicitly wants to send email and has provided the final recipients, subject, and content.
@@ -109,8 +65,8 @@ Note: Do not use `custom_args.business_id` for Email Logs queries. Use recipient
 3. Run a dry run first unless the user already asked for an immediate send and the final email details are unambiguous.
 4. Review the dry-run payload for recipient visibility, content, attachments, sandbox mode, and scheduled-send fields.
 5. Run again with `--send` only after explicit user approval.
-6. Treat HTTP `202` as queued, not delivered. Delivery confirmation is asynchronous through SendGrid events or webhooks.
-7. Report the recipients, subject, business ID, sandbox/send mode, HTTP status, SendGrid `x-message-id` header, and a concise prompt example for querying status when available.
+6. Treat HTTP `202` as queued, not delivered. Delivery confirmation is asynchronous through SendGrid Email Logs, event webhooks, or the `sendgrid-email-log` skill.
+7. Report the recipients, subject, business ID, sandbox/send mode, HTTP status, SendGrid `x-message-id` header, and a concise prompt example for querying status with `sendgrid-email-log` when available.
 
 ## Commands
 
@@ -259,7 +215,6 @@ Optional fields are omitted when the user does not provide them. Require `--from
 - `--clear-api-key` to remove the locally saved key
 - `--output PATH` to save dry-run JSON or send metadata
 - `--send` to perform the API call
-- `query_email_logs.sh --sent-at-lookback-seconds N`; optional Email Logs query lookback before `--sent-at`, default `5`
 
 ## Notes
 
@@ -270,9 +225,8 @@ Optional fields are omitted when the user does not provide them. Require `--from
 - The `from` address should be a verified sender in the user's Twilio SendGrid account.
 - Every request includes `custom_args.business_id`. Use `--business-id` to set a business-specific correlation ID; otherwise the script generates one.
 - Do not pass `--custom-arg business_id=...`; use `--business-id` for that reserved key.
-- Use `query_email_logs.sh --to <email> --sent-at <iso-time> --message-id <x-message-id> [--subject <subject>]` to query send status through SendGrid Email Logs by recipient, optional subject, buffered sent-at lower bound, and fuzzy-match returned `sg_message_id`, including `sg_message_id` values with `.recvd-...` suffixes. The script subtracts 5 seconds from `--sent-at` by default; override with `--sent-at-lookback-seconds`. If the email was sent with `--template-id`, omit subject in status lookups because the template may override it.
+- Use `sendgrid-email-log` for Email Logs status queries, per-message event timelines, and opened/clicked checks.
 - After a successful send, the script returns `status_query.prompt_example` and `status_query.query_params` so the user can ask the agent to query status later without displaying shell scripts.
-- If Email Logs returns no data or no fuzzy `sg_message_id` match, direct the user to <https://app.sendgrid.com/email_logs> for manual review.
 - If `--api-key`, `SENDGRID_API_KEY`, and the locally saved key are all missing, tell the user to read <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> to get the required configuration.
 - SendGrid returns `202 Accepted` for queued mail. That does not mean delivered.
 - Sandbox mode returns validation status and does not deliver.

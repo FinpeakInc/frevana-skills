@@ -1,0 +1,4 @@
+interface:
+  display_name: "SendGrid Email Log"
+  short_description: "Retrieve per-message SendGrid Email Logs activity and event summary."
+  default_prompt: "Check SendGrid email log"
