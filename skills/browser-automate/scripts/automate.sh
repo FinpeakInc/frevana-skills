@@ -11,26 +11,31 @@ SETUP_SCRIPT="${SCRIPT_DIR}/setup.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  automate.sh --steps '<json-array>' [--url "https://..."] [--allow-domains '<json-array>'] [--timeout MS]
+  automate.sh --steps '<json-array>' [--url "https://..."] [--allow-domains '<json-array>'] [--timeout MS] [--confirm-payment]
 
 Perceive -> act loop: call repeatedly. First call passes --url + [{"op":"snapshot"}];
 read the snapshot, then call again (omit --url to reuse the tab) with action steps that
 reference the [ref]s you saw, ending in {"op":"snapshot"}.
 
 Options:
-  --steps          REQUIRED. JSON array of DSL step objects, e.g.
-                   '[{"op":"type","ref":2,"text":"hello","submit":true},{"op":"snapshot"}]'
-  --url            Open/reuse the dedicated Frevana tab at this http(s) URL (first call).
-  --allow-domains  Optional JSON array; navigation/actions outside these are refused.
-  --timeout        Optional frevana_automate timeout in milliseconds.
-  -h, --help       Show this help.
+  --steps            REQUIRED. JSON array of DSL step objects, e.g.
+                     '[{"op":"type","ref":2,"text":"hello","submit":true},{"op":"snapshot"}]'
+  --url              Open/reuse the dedicated Frevana tab at this http(s) URL (first call).
+  --allow-domains    Optional JSON array; navigation/actions outside these are refused.
+  --timeout          Optional frevana_automate timeout in milliseconds.
+  --confirm-payment  ONE-SHOT: allow payment/place-order controls for THIS call only.
+                     Pass ONLY after the human user explicitly confirmed the order in chat
+                     (after being shown items + total price). Never on your own initiative.
+  -h, --help         Show this help.
 
 Step ops: navigate{url} | snapshot | click{ref} | type{ref,text,submit?} | select{ref,value}
   | scroll{to:"ref|top|bottom",ref?} | pressKey{key} | waitFor{for:"navigation|idle|ref",ref?}
   | assert{ref,exists?} | extract{ref,as} | getHtml{ref,as?} | wait{ms}
 
-SAFETY: pay / place-order is blocked; a NEEDS HUMAN (payment) result means STOP and let the
-user pay. Never retry a payment submit.
+SAFETY: pay / place-order is blocked by default; a NEEDS HUMAN (payment) result means STOP,
+show the user the order summary (items, total), and ask them to confirm in chat. Only after
+an explicit user confirmation, re-send the single order-submit step with --confirm-payment.
+Never retry a payment submit without asking the user again.
 
 Environment:
   FREVANA_PORT     Local daemon port, default 12306
@@ -74,6 +79,7 @@ URL=""
 STEPS=""
 ALLOW_DOMAINS=""
 TOOL_TIMEOUT=""
+CONFIRM_PAYMENT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -92,6 +98,10 @@ while [[ $# -gt 0 ]]; do
     --timeout)
       TOOL_TIMEOUT="${2:-}"
       shift 2
+      ;;
+    --confirm-payment)
+      CONFIRM_PAYMENT="1"
+      shift
       ;;
     -h|--help)
       usage
@@ -167,7 +177,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export URL STEPS ALLOW_DOMAINS TOOL_TIMEOUT
+if [[ -n "$CONFIRM_PAYMENT" ]]; then
+  echo "[automate] --confirm-payment: payment/place-order controls allowed for this single call (human-confirmed in chat)" >&2
+fi
+
+export URL STEPS ALLOW_DOMAINS TOOL_TIMEOUT CONFIRM_PAYMENT
 
 # Build the JSON payload. --steps / --allow-domains are parsed as JSON so the agent
 # passes structured DSL, not a stringified blob. Invalid JSON fails loudly here.
@@ -205,6 +219,10 @@ if allow:
 timeout = os.environ.get("TOOL_TIMEOUT")
 if timeout:
     payload["timeout"] = int(timeout)
+
+# One-shot human payment confirmation (see --confirm-payment in usage).
+if os.environ.get("CONFIRM_PAYMENT"):
+    payload["confirm_payment"] = True
 
 payload_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 PY
