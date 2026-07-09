@@ -45,7 +45,7 @@ _SOCIAL = [
     ("instagram_url", ("instagram.com",),
      {"p", "reel", "reels", "explore", "accounts", "stories", "direct"}),
     ("linkedin_url", ("linkedin.com",),
-     {"sharearticle", "sharing", "sharearticle", "feed", "cws", "uas", "login"}),
+     {"sharearticle", "sharing", "feed", "cws", "uas", "login"}),
     ("twitter_url", ("twitter.com", "x.com"),
      {"intent", "share", "hashtag", "search", "home", "i", "login", "privacy",
       "tos", "explore", "notifications", "messages"}),
@@ -55,13 +55,14 @@ COLUMNS = [c for c, _, _ in _SOCIAL] + ["email"]
 _A_HREF = re.compile(r'href=["\']([^"\']+)["\']', re.I)
 _EMAIL = re.compile(r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}')
 _TAG = re.compile(r"<[^>]+>")
-# Emails that belong to page tooling / vendors / placeholders, not the business.
-_EMAIL_DENY = (
-    "sentry.io", ".ingest.", "wixpress.com", "example.com", "example.org",
-    "yourdomain", "your-email", "domain.com", "email@", "test@", "sentry-",
-    "@2x", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", "godaddy.com",
-    "squarespace.com", "wordpress.com", "cloudflare", "no-reply@", "noreply@",
-)
+# Vendor / tooling / placeholder emails to reject. Matched PRECISELY (domain vs
+# domain, local-part vs local-part) — never as a loose substring — so e.g. the
+# placeholder domain "domain.com" can't reject a real "info@yourhomedomain.com".
+_DENY_DOMAINS = ("sentry.io", "wixpress.com", "example.com", "example.org",
+                 "domain.com", "yourdomain.com", "godaddy.com", "squarespace.com",
+                 "wordpress.com")
+_DENY_LOCAL = ("no-reply", "noreply", "test", "name", "yourname", "your-email")
+_IMG_EXT = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico")
 
 
 def _fetch_once(url: str) -> str:
@@ -110,7 +111,16 @@ def _in_domain(host: str, domains: "tuple[str, ...]") -> bool:
 
 def _bad_email(addr: str) -> bool:
     a = addr.lower()
-    return any(x in a for x in _EMAIL_DENY)
+    if a.endswith(_IMG_EXT):  # the regex over-matched an image filename (logo@2x.png)
+        return True
+    local, _, domain = a.partition("@")
+    if not domain:
+        return True
+    if ".ingest." in domain:  # Sentry ingest hosts, e.g. o0.ingest.sentry.io
+        return True
+    if any(domain == d or domain.endswith("." + d) for d in _DENY_DOMAINS):
+        return True
+    return local in _DENY_LOCAL
 
 
 def extract(html: str) -> "dict[str, str]":
@@ -144,9 +154,9 @@ def extract(html: str) -> "dict[str, str]":
             segs = [s for s in p.path.split("/") if s]
             if not segs or segs[0].lower() in bad:
                 continue
-            if segs[0].lower() == "profile.php":  # a real FB page: keep ?id=
-                mid = re.search(r"id=\d+", p.query)
-                out[col] = "https://" + host + "/profile.php" + ("?" + mid.group(0) if mid else "")
+            if segs[0].lower() == "profile.php":  # a real FB page: keep ?id=<n>
+                mid = re.search(r"(?:^|&)id=(\d+)", p.query)
+                out[col] = "https://" + host + "/profile.php" + ("?id=" + mid.group(1) if mid else "")
             else:
                 out[col] = "https://" + host + p.path.rstrip("/")
             break
@@ -164,6 +174,8 @@ def _normalize(u: str) -> "str | None":
         if "://" in u:  # some other scheme we don't fetch
             return None
         u = "https://" + u
+    if "." not in (urlparse(u).hostname or ""):  # junk cell like "N/A", "-", ""
+        return None
     return u
 
 
