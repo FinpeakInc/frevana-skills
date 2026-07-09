@@ -1,0 +1,4 @@
+pypdf
+python-docx
+openpyxl
+beautifulsoup4

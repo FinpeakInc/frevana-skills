@@ -1,0 +1,6 @@
+pillow
+transformers
+qwen-vl-utils>=0.0.14
+timm
+einops
+accelerate

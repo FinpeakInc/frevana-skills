@@ -1,0 +1,2 @@
+class LocalKnowledgeError(Exception):
+    pass
