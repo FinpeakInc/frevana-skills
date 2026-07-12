@@ -1,6 +1,6 @@
 ---
 name: site-data-collector
-description: Use when the user wants a REUSABLE script that collects all of a website's data (e.g. every listing/product/row across pages) through their logged-in Frevana Chrome Extension session. Explores the site once, auto-detects its JSON API, and returns a ready-to-run Python collector script — no code is written by the model, and the script is not executed here.
+description: Use when the user wants a REUSABLE script that collects all of a website's data (e.g. every listing/product/row across pages) through their logged-in Frevana Chrome Extension session. Explores the site once, auto-detects its JSON API, and returns a ready-to-run Python collector script — no code is written by the model, and the script is not executed here. Also supports a URL-LIST mode: given a list of website URLs (e.g. from a Google Map Search), visit each site through the extension and extract its social/contact links — Facebook page, Instagram, LinkedIn, X, email — into a CSV.
 ---
 
 # Site Data Collector
@@ -32,6 +32,23 @@ Inputs:
 Output:
 
 - a Python collector script (text). Save it to a `.py` file; the user runs it with `python3` to produce a CSV.
+
+## URL-list mode — visit a list of websites and extract their social/contact links
+
+Use this when the user already has a **list of website URLs** (e.g. the `website` column from a **Google Map Search**) and wants to visit each site and pull its **social / contact links** — Facebook page first, plus Instagram, LinkedIn, X, and email — into a CSV. This is different from the single-site collectors above: it maps over a batch of URLs instead of paginating one site.
+
+Use the bundled `scripts/extract_links.py`. It fetches each site **exactly once** through the logged-in browser (`frevana fetch` = the user's own IP — so there is nothing to rate-limit and block risk is low), extracts the links, and writes a CSV with columns `website, facebook_url, instagram_url, linkedin_url, twitter_url, email, status`.
+
+How to deliver it (fits the file card's **Run** button):
+
+1. **Get the URL list.** From the user directly, or run the **Google Map Search** skill first and take `local_results[].website` (each place record also has `phone`, `address`, `rating`).
+2. **Bake the URLs into the script.** Copy `scripts/extract_links.py` into the workspace and fill the `URLS = [...]` list at the top with the website URLs. Baking them in means the file card's **Run** works with no arguments. (Alternatively the user can pass `--input urls.csv`, a CSV with a `website` column, or `--input urls.txt`, one URL per line.)
+3. **Deliver via `save_artifacts`** → the user clicks **Run** on the file card → the CSV lands in Downloads.
+
+Honest limits (tell the user):
+
+- **Do NOT scrape Google Maps itself this way.** Maps is heavily anti-bot and scraping it from one IP is exactly what gets blocked — use the **Google Map Search** skill for the place list, then this mode for the websites.
+- Coverage is realistic, not 100%. Some sites' WAF returns **HTTP 403** to the lightweight fetch, and some put their Facebook link in **JS-rendered** content the raw fetch can't see. The `status` column records the reason per row (`ok` / `no facebook` / `HTTP 403` / `Failed to fetch`) so misses are visible, not silent. The script auto-retries transient connection blips.
 
 ## What This Skill Needs
 
@@ -81,3 +98,17 @@ bash <skill-path>/scripts/generate_collector.sh \
 ```bash
 bash <skill-path>/scripts/generate_collector.sh --url "https://example.com/products"
 ```
+
+### URL-list mode: extract social/contact links from a batch of websites → CSV
+
+Copy `scripts/extract_links.py`, fill its `URLS = [...]` with the website URLs (or use `--input`), then run:
+
+```bash
+# URLs baked into URLS[] (what the file card's Run uses):
+python3 extract_links.py --output leads.csv
+
+# or read them from a CSV (needs a 'website' column) / a .txt (one URL per line):
+python3 extract_links.py --input websites.csv --output leads.csv
+```
+
+Output CSV columns: `website, facebook_url, instagram_url, linkedin_url, twitter_url, email, status`.
