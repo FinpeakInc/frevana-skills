@@ -9,10 +9,14 @@ Treat this document as the operational guide for the repo. Treat each skill's `S
 This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
+- Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending and SendGrid Stats API workflows for global email statistics
+- SendGrid Email Logs workflows for per-message activity, opened/clicked checks, and status lookups
+- Slack Incoming Webhook workflows for posting Slack messages and notifications
+- Telegram Bot API workflows for bot inspection, messaging, updates, webhooks, commands, and chat/message management
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
@@ -42,6 +46,9 @@ skills/
   frevana-auth/
     SKILL.md
     scripts/login.sh
+  lark-cli/
+    SKILL.md
+    scripts/setup_lark_cli.sh
   amazon-search/
     SKILL.md
     scripts/search_amazon.sh
@@ -182,10 +189,19 @@ skills/
   sendgrid-send-email/
     SKILL.md
     scripts/send_email.sh
+  sendgrid-email-log/
+    SKILL.md
+    scripts/get_email_log.sh
     scripts/query_email_logs.sh
   sendgrid-global-email-stats/
     SKILL.md
     scripts/retrieve_global_email_stats.sh
+  slack-webhook/
+    SKILL.md
+    scripts/send_slack_webhook.sh
+  telegram-bot/
+    SKILL.md
+    scripts/telegram_bot.sh
   instantly-send-email/
     SKILL.md
     scripts/lead.sh
@@ -317,6 +333,54 @@ Important behavior:
 - If that install fails because the package is unavailable in the current registry, ask the user for the correct private registry or local package source.
 - Let the CLI manage device authorization and local credential storage.
 - Do not print the saved API key value back to the user unless they explicitly ask for the raw secret.
+
+### Use `lark-cli`
+
+Route here when the user wants:
+
+- to install or upgrade the official Lark/Feishu `lark-cli`
+- to check whether `lark-cli` is installed
+- to know the local command, npm package, or native binary install location
+- to run `lark-cli config init --new --brand lark|feishu`
+- to run `lark-cli auth login --recommend`
+- to use the correct Lark versus Feishu authorization link
+- to extract and relay Lark/Feishu setup or authorization links
+- to prepare bot default identity before using Lark skills
+- to verify Lark auth before using another Lark skill
+- to choose or explain `--as user` versus `--as bot`
+
+Required input:
+
+- none
+
+Optional input:
+
+- `--suite lark|feishu` for product suite / authorization link family during config init; defaults to `feishu` when omitted
+- `--lang zh|en` for the installer or config init flow
+- exact auth `scope` or auth `domain` when a downstream Lark skill requires it
+- `--force-init` when setup must reinitialize app credentials instead of reusing existing config
+
+Important behavior:
+
+- Check first with `scripts/setup_lark_cli.sh check`; do not reinstall on every Lark request.
+- Install only when `lark-cli` is missing or the user explicitly asks to upgrade/reinstall.
+- Preferred install command is `npx @larksuite/cli@latest install`.
+- The install flow globally installs `@larksuite/cli`; on macOS/Linux the command is normally `$(npm prefix -g)/bin/lark-cli`, the npm package is normally `$(npm root -g)/@larksuite/cli`, and the native binary is normally `$(npm root -g)/@larksuite/cli/bin/lark-cli`.
+- If the user says Lark, international Lark, larksuite, global, or overseas, run setup/config with `--suite lark`; this reuses an existing Lark config but must not reuse an old Feishu or unknown config.
+- If the user says Feishu, 飞书, or 国内飞书, run setup/config with `--suite feishu`; this reuses an existing Feishu config but must not reuse an old Lark or unknown config.
+- If the user does not specify Lark versus Feishu, default to Feishu. `scripts/setup_lark_cli.sh config-init` passes `--brand feishu` explicitly; `setup` does the same only when it needs to initialize missing config.
+- Default setup is bot-oriented and fast: it checks existing config with `lark-cli config show`, skips `config init --new` when config already exists and either no suite was specified or the existing suite matches the explicit suite, runs `lark-cli config default-as bot`, and does not run user OAuth.
+- Use `scripts/setup_lark_cli.sh login` only when the user explicitly needs user OAuth or a downstream skill requires OAuth scopes.
+- Do not confuse product suite `--suite lark|feishu` with auth business-domain `--domain calendar|docs|drive|all`.
+- `auth login` uses the product suite saved by config init. To change Lark versus Feishu authorization links, rerun config init or setup with the intended `--suite`.
+- For agent setup, run `scripts/setup_lark_cli.sh setup`, `scripts/setup_lark_cli.sh setup --suite lark`, or `scripts/setup_lark_cli.sh setup --suite feishu`; never run bare `lark-cli config init --new`.
+- If using raw `lark-cli` instead of the wrapper, the init command must include explicit brand: `lark-cli config init --new --brand lark` or `lark-cli config init --new --brand feishu`.
+- If a previous setup accidentally created a Feishu profile for a Lark user, rerun `scripts/setup_lark_cli.sh config-init --suite lark` or `scripts/setup_lark_cli.sh setup --suite lark`; plain `setup` keeps using the saved brand.
+- If config or login prints a browser URL, relay the exact URL to the user and wait for them to finish the browser step. Do not rely on automatic browser opening.
+- Do not print app secrets, OAuth tokens, cookies, or raw local credential files.
+- For side-effect Lark commands, prefer `--dry-run` first when the command supports it.
+- If the user asks to send a Lark message, use this skill only for setup/auth, then use `lark-im` for message sending.
+- If the user provides only a person name or email for messaging, use a contact lookup skill before sending.
 
 ### Use `amazon-search`
 
@@ -1213,7 +1277,6 @@ Route here when the user wants:
 
 - to send transactional email through SendGrid
 - to call the Twilio SendGrid v3 Mail Send API
-- to query SendGrid Email Logs / send status by recipient, optional subject, sent-at lower bound, and message ID
 - a SendGrid dry-run payload before sending
 - SendGrid plain text, HTML, dynamic template, attachment, sandbox, or scheduled-send email
 
@@ -1223,12 +1286,6 @@ Required input:
 - one or more recipient emails
 - subject, unless provided by a dynamic template
 - message content through plain text, HTML, or `template_id`
-
-For status lookup:
-
-- `to_email`, `sent_at`, and `message_id` for lower-bound lookup plus fuzzy `sg_message_id` matching
-- optional `subject` to narrow Email Logs results
-- or raw Email Logs `query`
 
 Optional input:
 
@@ -1255,9 +1312,8 @@ Important behavior:
 - If no API key is available, the scripts prompt once in interactive runs and save the key locally for future runs. In non-interactive runs, guide the user to read `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration` to get the required configuration.
 - Use `--api-key <key> --save-api-key` or `--configure-api-key` to update the saved key. Use `--clear-api-key` to remove it.
 - Prefer `scripts/send_email.sh` over ad hoc `curl`.
-- For status lookup, prefer `scripts/query_email_logs.sh` over ad hoc `curl`.
 - The script dry-runs by default and requires `--send` to call SendGrid.
-- After a successful send with `x-message-id`, the script returns `status_query.prompt_example` as a concise user-facing example for querying Email Logs later, plus `status_query.query_params` for agent use. Do not display shell scripts unless the user asks.
+- After a successful send with `x-message-id`, the script returns `status_query.prompt_example` as a concise user-facing example for querying Email Logs later with `sendgrid-email-log`, plus `status_query.query_params` for agent use. Do not display shell scripts unless the user asks.
 - For dynamic template sends, do not include `--subject` when querying Email Logs status. The template may override the request subject, so subject filtering can hide matching messages.
 - Every request includes `custom_args.business_id` for application-side correlation. Use `--business-id` when the user provides a business-specific ID; otherwise let the script generate one.
 - Do not pass `business_id` through `--custom-arg`; it is reserved for the generated or explicit business ID.
@@ -1265,6 +1321,53 @@ Important behavior:
 - Treat HTTP `202` as queued, not delivered. Sandbox validation may return HTTP `200`.
 - Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
 - Use `--private-recipients` when multiple `to` recipients should not see each other.
+
+### Use `sendgrid-email-log`
+
+Route here when the user wants:
+
+- SendGrid Email Logs status lookup
+- to check whether a specific email was opened or clicked
+- per-message SendGrid event activity or timeline
+- delivery, bounce, drop, defer, spam report, unsubscribe, open, or click status for a known message
+- to call `GET /v3/logs/{sg_message_id}` or `POST /v3/logs`
+
+Required input:
+
+- for direct by-ID activity: full Email Logs `sg_message_id`
+- for search-then-detail lookup: one or more Email Logs search filters such as `to_email`, `from_email`, `sent_at`, `subject`, `status`, `start_time`, `end_time`, raw `query`, and optional Mail Send `message_id`
+- or a raw Email Logs `query`
+
+Optional input:
+
+- `subject` to narrow Email Logs results, except for dynamic template sends
+- sender email
+- status filters
+- start/end time filters
+- raw Email Logs query
+- `sent_at_lookback_seconds`
+- `limit`
+- `subuser` for `POST /v3/logs`
+- `on_behalf_of` header value for parent-account by-ID calls
+- API region (`global` or `eu`)
+- output file path
+- one-time API key override
+
+Important behavior:
+
+- Use `SENDGRID_API_KEY`, not `FREVANA_TOKEN` and not Twilio Account SID/Auth Token credentials.
+- API key lookup order is `--api-key`, then `SENDGRID_API_KEY`, then the locally saved key at `~/.config/sendgrid-send-email/api_key`.
+- The saved API key path is shared with `sendgrid-send-email`.
+- Prefer `scripts/get_email_log.sh` for both known full `sg_message_id` lookups and search-then-detail lookups. Use `scripts/query_email_logs.sh` only when the user wants raw `POST /v3/logs` search results without fetching details.
+- The Mail Send `x-message-id` can be incomplete for `GET /v3/logs/{sg_message_id}`. When the user has only that ID, or does not know the message ID, call `scripts/get_email_log.sh` with all available filters such as `--to`, `--from`, `--sent-at`, `--message-id`, `--subject`, `--status`, `--start-time`, `--end-time`, or `--query`; the script searches `POST /v3/logs` first, resolves the full `sg_message_id`, then calls `GET /v3/logs/{sg_message_id}`.
+- `scripts/get_email_log.sh` calls `GET /v3/logs/{sg_message_id}` and adds an `event_summary` with booleans for delivered, opened, clicked, bounced, deferred, dropped, processed, spam_reported, and unsubscribed. When it resolves the ID first, it also returns `log_resolution`.
+- `scripts/query_email_logs.sh` calls `POST /v3/logs`, subtracts 5 seconds from `--sent-at` by default, and fuzzy-matches returned `messages[].sg_message_id` against the Mail Send `x-message-id`, including `.recvd-...` suffix variants.
+- For dynamic template sends, do not include `--subject` when querying Email Logs status. The template may override the request subject, so subject filtering can hide matching messages.
+- Do not query by `custom_args.business_id`; use `--to`, `--sent-at`, and `--message-id` to narrow by recipient/time and fuzzy-match returned `sg_message_id`, or pass an account-supported raw `--query`.
+- If no API key is available, the scripts prompt once in interactive runs and save the key locally for future runs. In non-interactive runs, guide the user to read `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration` to get the required configuration.
+- Return raw JSON when requested; otherwise summarize `event_summary`, `log_resolution.resolved_sg_message_id`, `messages[].status`, `to_email`, `from_email`, `subject`, `reason`, and `sg_message_id`.
+- If Email Logs returns no data, no fuzzy `sg_message_id` match, or by-ID lookup returns not found, ask the user to review `https://app.sendgrid.com/email_logs` manually.
+- Do not print or log the API key. If the user shares a key in chat, advise them to rotate it.
 
 ### Use `sendgrid-global-email-stats`
 
@@ -1302,6 +1405,91 @@ Important behavior:
 - Do not invent optional query parameters. The endpoint schema currently exposes only `start_date`, `end_date`, `aggregated_by`, `limit`, and `offset`.
 - For parent account calls, pass the complete `on-behalf-of` header value through `--on-behalf-of`. Use a subuser username for subusers or `account-id <account-id>` for customer accounts.
 - Return raw JSON when requested; otherwise summarize the most useful metrics by date bucket.
+
+### Use `slack-webhook`
+
+Route here when the user wants:
+
+- to post a Slack message through an incoming webhook
+- to send a Slack notification
+- a Slack webhook dry-run payload before posting
+- Slack mrkdwn, links, Block Kit blocks, attachments, or thread replies through an incoming webhook
+
+Do not use this for:
+
+- reading Slack messages
+- deleting Slack messages
+- listing or managing channels, users, or conversations
+- Slack Bot Token Web API workflows
+
+Required input:
+
+- message text through `--text` or `--text-file`
+- or a complete Slack webhook payload through `--payload-json` or `--payload-file`
+
+Optional input:
+
+- Block Kit `blocks` JSON array
+- Slack `attachments` JSON array
+- `thread_ts`
+- `unfurl_links` or `unfurl_media`
+- output file path
+- one-time webhook URL override
+
+Important behavior:
+
+- Use `SLACK_WEBHOOK_URL`, not `FREVANA_TOKEN`, `SENDGRID_API_KEY`, `INSTANTLY_API_KEY`, or `KLAVIVO_API_KEY`.
+- Webhook URL lookup order is `SLACK_WEBHOOK_URL`, then `--webhook-url`, then the locally saved URL at `~/.config/slack-webhook/webhook_url`.
+- If no webhook URL is available, dry-run payload preview still works. Sending requires a webhook URL.
+- Use `--webhook-url <url> --save-webhook-url` or `--configure-webhook-url` to update the saved URL. Use `--clear-webhook-url` to remove it.
+- Prefer `scripts/send_slack_webhook.sh` over ad hoc `curl`.
+- The script dry-runs by default and requires `--send` to call Slack.
+- Confirm the channel/workspace implied by the webhook URL and the final message content before running with `--send`.
+- Treat HTTP `200` and response body `ok` as posted. Report Slack error strings such as `invalid_payload`, `no_text`, `no_service`, `channel_not_found`, `channel_is_archived`, or `action_prohibited`.
+- Do not print or log the webhook URL. If the user shares a webhook URL in chat, advise them to rotate it.
+- Incoming webhooks are send-only and are normally bound to one configured Slack destination.
+
+### Use `telegram-bot`
+
+Route here when the user wants:
+
+- to inspect a Telegram bot through the Telegram Bot API
+- to send Telegram bot messages, photos, documents, or locations
+- to get Telegram updates or discover a chat ID
+- to set, get, or delete a Telegram bot webhook
+- to set or get Telegram bot commands
+- to inspect chats, administrators, or member counts
+- to ban or unban users from a Telegram chat
+- to edit, delete, pin, or forward Telegram messages
+- to answer callback queries
+
+Required input:
+
+- Telegram bot token from `--bot-token`, `TELEGRAM_BOT_TOKEN`, or saved local config
+- `--action`
+- method-specific inputs such as `chat_id`, `text`, `message_id`, `user_id`, `url`, media path, or payload JSON
+
+Optional input:
+
+- parse mode (`HTML`, `Markdown`, or `MarkdownV2`)
+- reply markup JSON
+- commands JSON
+- allowed updates JSON
+- output file path
+- raw Bot API method through `--action raw --method <METHOD> --payload-json <JSON>`
+
+Important behavior:
+
+- Use `TELEGRAM_BOT_TOKEN`, not `FREVANA_TOKEN`, `SLACK_WEBHOOK_URL`, `SENDGRID_API_KEY`, `INSTANTLY_API_KEY`, or `KLAVIVO_API_KEY`.
+- Token lookup order is `--bot-token`, then `TELEGRAM_BOT_TOKEN`, then the locally saved token at `~/.config/telegram-bot/bot_token`.
+- Use `--bot-token <token> --save-bot-token` or `--configure-bot-token` to update the saved token. Use `--clear-bot-token` to remove it.
+- Prefer `scripts/telegram_bot.sh` over ad hoc `curl`.
+- Read actions call Telegram immediately by default unless `--dry-run` is passed.
+- Write actions dry-run by default and require `--execute` to call Telegram.
+- Treat `--action raw` as a write action unless the user passes `--dry-run` or explicitly requests execution.
+- Confirm target `chat_id`, message content, moderation target, webhook URL, or message ID before running write actions with `--execute`.
+- Do not print or log the bot token. If the user shares a token in chat, advise them to rotate it with BotFather.
+- Telegram bots cannot message users first; the user must start the bot or otherwise expose a chat to the bot.
 
 ### Use `instantly-send-email`
 
@@ -1895,16 +2083,16 @@ For `sendgrid-send-email`:
 7. Report SendGrid HTTP status, queued/sandbox status, business ID, `x-message-id`, and a concise prompt example for querying status when available.
 8. Do not present `202 Accepted` as delivery confirmation.
 
-For SendGrid status lookup:
+For SendGrid email log and status lookup:
 
-1. Extract `to_email`, `sent_at`, and `message_id`; include `subject` only when available.
-2. Prefer `scripts/query_email_logs.sh`.
+1. Extract full `sg_message_id` for direct by-ID lookups. If the user only has a Mail Send `x-message-id`, an incomplete ID, or no message ID, extract as many filters as available: `to_email`, `from_email`, `sent_at`, `message_id`, `subject`, `status`, `start_time`, `end_time`, or raw `query`; include `subject` only when available.
+2. Prefer `sendgrid-email-log/scripts/get_email_log.sh`. It can perform direct detail lookup by full `sg_message_id`, or search `POST /v3/logs` first to resolve the full `sg_message_id` before fetching details.
 3. Let the script use `--api-key`, `SENDGRID_API_KEY`, or the locally saved key.
 4. In non-interactive agent runs, fail fast if the API key is missing from all supported sources, and point the user to `https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration`.
-5. Return matching Email Logs JSON or summarize `messages[].status`, `to_email`, `from_email`, `subject`, `reason`, and `sg_message_id`.
+5. Return matching Email Logs JSON or summarize `event_summary`, `log_resolution.resolved_sg_message_id`, `messages[].status`, `to_email`, `from_email`, `subject`, `reason`, and `sg_message_id`.
 6. Do not query by `custom_args.business_id`; use `--to`, `--sent-at`, and `--message-id` to narrow by recipient/time and fuzzy-match returned `sg_message_id`. Add `--subject` when available, except for template sends. Email Logs can append suffixes such as `.recvd-...` to `sg_message_id`, so treat the user-provided message ID as a prefix/substring match, not only an exact match.
 7. `--sent-at` is only a lower bound, but the script subtracts a 5-second default lookback before building `sg_message_id_created_at >= ...` to absorb SendGrid response/log timestamp skew. Do not use a time-window parameter.
-8. If Email Logs returns no data or no fuzzy `sg_message_id` match, ask the user to review `https://app.sendgrid.com/email_logs` manually.
+8. If Email Logs returns no data, no fuzzy `sg_message_id` match, or by-ID lookup returns not found, ask the user to review `https://app.sendgrid.com/email_logs` manually.
 
 ### SendGrid global email stats
 
@@ -2257,6 +2445,8 @@ bash skills/google-shopping-light-search/scripts/search_google_shopping_light.sh
 bash skills/google-immersive-product/scripts/search_google_immersive_product.sh
 bash skills/youtube-search/scripts/search_youtube.sh
 bash skills/sendgrid-send-email/scripts/send_email.sh
+bash skills/slack-webhook/scripts/send_slack_webhook.sh
+bash skills/telegram-bot/scripts/telegram_bot.sh
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh

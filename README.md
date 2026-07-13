@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending and statistics, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Lark/Feishu CLI setup, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -119,8 +119,12 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
+| Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
+| Email | [`sendgrid-email-log`](skills/sendgrid-email-log/SKILL.md) | Query SendGrid Email Logs and per-message detail | full `sg_message_id`, or recipient/time/message ID |
 | Email | [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md) | Retrieve aggregate SendGrid email statistics | start date |
+| Notification | [`slack-webhook`](skills/slack-webhook/SKILL.md) | Post Slack messages through an incoming webhook | message text or payload JSON |
+| Bot | [`telegram-bot`](skills/telegram-bot/SKILL.md) | Manage Telegram bots through the Bot API | bot token and action |
 | Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
 | Email | [`klaviyo-send-email`](skills/klaviyo-send-email/SKILL.md) | Manage Klaviyo campaigns and audiences | campaign or audience details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
@@ -185,6 +189,33 @@ Features:
 - retries after `npm i -g @frevana/frevana` only when the login command is unavailable
 - uses `https://api.frevana.com` by default and supports an optional custom `--server`
 - reports the saved config path without exposing the raw API key by default
+
+### [`lark-cli`](skills/lark-cli/SKILL.md)
+
+Install and bootstrap the official Lark/Feishu CLI.
+
+Use when:
+
+- you need to install `lark-cli`
+- you need to know where `lark-cli` is installed
+- you need to run `lark-cli config init --new --brand lark|feishu`
+- you need to run `lark-cli auth login --recommend`
+- you need the correct Lark versus Feishu authorization link
+- you need to prepare bot default identity before using Lark skills
+- you need to verify auth before using other Lark skills such as `lark-im`
+
+Features:
+
+- checks the current command path, npm global prefix, package directory, and native binary path
+- installs through the official `npx @larksuite/cli@latest install` flow
+- maps optional `--suite lark|feishu` to official `--brand lark|feishu`; defaults to explicit `--brand feishu` when the user does not specify
+- defaults to bot setup, skips `config init --new` when a compatible existing config is detected, and sets `lark-cli config default-as bot`
+- checks the existing config brand when the user explicitly says Lark or Feishu; matching configs are reused, while different or unknown configs are reinitialized with `--brand lark` or `--brand feishu`
+- keeps user OAuth as a separate explicit `login` action
+- prints setup/auth URLs for the user to open manually
+- avoids bare `lark-cli config init --new`; the wrapper always passes an explicit brand, defaulting to Feishu
+- verifies auth with `lark-cli auth status`
+- documents `user` versus `bot` identity and JSON output handling
 
 ### [`amazon-search`](skills/amazon-search/SKILL.md)
 
@@ -876,10 +907,32 @@ Features:
 - can save the SendGrid API key locally after the first input, and supports later updates with `--api-key <key> --save-api-key`
 - automatically includes `custom_args.business_id` for application-side correlation, with `--business-id` override support
 - supports multiple recipients, cc, bcc, reply-to, categories, custom args, attachments, global region, and EU region
-- queries SendGrid Email Logs with `scripts/query_email_logs.sh` by recipient, optional subject, sent-at lower bound, status, and fuzzy `message_id` matching
+- reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for resolving the full Email Logs ID and querying status with `sendgrid-email-log` when available
+- points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
+
+### [`sendgrid-email-log`](skills/sendgrid-email-log/SKILL.md)
+
+Query SendGrid Email Logs and retrieve per-message activity.
+
+Use when:
+
+- you want to check whether a specific SendGrid email was opened or clicked
+- you need a per-message event timeline from `GET /v3/logs/{sg_message_id}`
+- you need Email Logs status lookup by recipient, sent time, optional subject, and message ID
+- you need to locate the Email Logs `sg_message_id` from a Mail Send `x-message-id`
+- you do not know the message ID but have other filters such as recipient, sender, time range, subject, or status
+
+Features:
+
+- calls `GET /v3/logs/{sg_message_id}` for by-ID message activity
+- adds an `event_summary` with delivered, opened, clicked, bounced, deferred, dropped, processed, spam_reported, and unsubscribed booleans
+- can call `POST /v3/logs` first to resolve the full `sg_message_id` from multiple filters, then automatically call `GET /v3/logs/{sg_message_id}` for details
+- also includes `query_email_logs.sh` for raw Email Logs search by recipient, optional subject, status, time filters, raw query, and fuzzy `message_id` matching
 - subtracts a 5-second default lookback from `--sent-at` for Email Logs queries to handle SendGrid response/log timestamp skew
 - omits subject from suggested status lookups for template sends, because templates can override the final subject
-- reports SendGrid HTTP status, message ID metadata, and one suggested prompt example for querying status when available
+- reuses the SendGrid API key saved by `sendgrid-send-email`
+- supports global and EU SendGrid API regions
+- supports dry-run request metadata or payload preview with `--dry-run`
 - points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
 
 ### [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md)
@@ -902,6 +955,47 @@ Features:
 - supports global and EU SendGrid API regions
 - supports dry-run request metadata with `--dry-run`
 - points users to <https://frevana.gitbook.io/frevana-docs/email-integrations/sendgrid-integration> when SendGrid configuration is missing
+
+### [`slack-webhook`](skills/slack-webhook/SKILL.md)
+
+Post Slack messages through an incoming webhook URL.
+
+Use when:
+
+- you want to send a Slack notification through an incoming webhook
+- you need a dry-run Slack webhook payload preview before posting
+- you want Slack mrkdwn, links, Block Kit blocks, attachments, or thread replies
+
+Features:
+
+- uses `scripts/send_slack_webhook.sh`
+- reads the webhook URL from `SLACK_WEBHOOK_URL`, `--webhook-url`, or the saved URL at `~/.config/slack-webhook/webhook_url`
+- dry-runs by default and requires `--send` for the actual Slack post
+- supports `--text`, `--text-file`, complete `--payload-json`, or complete `--payload-file`
+- supports `--blocks-json`, `--attachments-json`, `--thread-ts`, `--unfurl-links`, and `--unfurl-media`
+- can save or clear the webhook URL with `--save-webhook-url`, `--configure-webhook-url`, and `--clear-webhook-url`
+- treats webhook URLs as secrets and never prints them in user-facing output
+
+### [`telegram-bot`](skills/telegram-bot/SKILL.md)
+
+Build and manage Telegram bots through the Telegram Bot API.
+
+Use when:
+
+- you want to inspect a Telegram bot with `getMe`, commands, updates, or webhook info
+- you want to send Telegram bot messages, photos, documents, or locations
+- you want to set bot commands or webhooks
+- you want chat/message management such as ban, unban, edit, delete, pin, forward, or callback query answers
+
+Features:
+
+- uses `scripts/telegram_bot.sh`
+- reads the bot token from `--bot-token`, `TELEGRAM_BOT_TOKEN`, or the saved token at `~/.config/telegram-bot/bot_token`
+- read actions call Telegram immediately by default, while write actions dry-run by default and require `--execute`
+- supports `sendMessage`, `sendPhoto`, `sendDocument`, `sendLocation`, `getUpdates`, `setWebhook`, `deleteWebhook`, chat info, moderation, and message management actions
+- supports `--payload-json` and `--payload-file` for full Bot API payloads, plus `--action raw --method METHOD` for less common methods
+- supports saving or clearing the bot token with `--save-bot-token`, `--configure-bot-token`, and `--clear-bot-token`
+- treats bot tokens as secrets and never prints them in user-facing output
 
 ### [`instantly-send-email`](skills/instantly-send-email/SKILL.md)
 

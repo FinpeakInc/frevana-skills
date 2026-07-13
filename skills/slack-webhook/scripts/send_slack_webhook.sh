@@ -360,6 +360,28 @@ import os
 import sys
 from pathlib import Path
 
+MESSAGE_BLOCK_TYPES = {
+    "actions",
+    "card",
+    "carousel",
+    "container",
+    "context",
+    "context_actions",
+    "data_table",
+    "data_visualization",
+    "divider",
+    "file",
+    "header",
+    "image",
+    "markdown",
+    "plan",
+    "rich_text",
+    "section",
+    "table",
+    "task_card",
+    "video",
+}
+
 payload_json = os.environ.get("PAYLOAD_JSON_ENV", "")
 payload_file = os.environ.get("PAYLOAD_FILE_ENV", "")
 
@@ -397,6 +419,21 @@ if "blocks" in payload and not isinstance(payload["blocks"], list):
     raise SystemExit("Slack blocks must be a JSON array")
 if "attachments" in payload and not isinstance(payload["attachments"], list):
     raise SystemExit("Slack attachments must be a JSON array")
+if "blocks" in payload:
+    if len(payload["blocks"]) > 50:
+        raise SystemExit("Slack incoming webhook messages support up to 50 blocks")
+    for idx, block in enumerate(payload["blocks"]):
+        if not isinstance(block, dict):
+            raise SystemExit(f"Slack block at index {idx} must be a JSON object")
+        block_type = block.get("type")
+        if not isinstance(block_type, str) or not block_type:
+            raise SystemExit(f"Slack block at index {idx} must include a string type")
+        if block_type not in MESSAGE_BLOCK_TYPES:
+            allowed = ", ".join(sorted(MESSAGE_BLOCK_TYPES))
+            raise SystemExit(
+                f"Unsupported Slack message block type '{block_type}' at index {idx}. "
+                f"Supported message block types: {allowed}"
+            )
 
 Path(sys.argv[1]).write_text(
     json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",

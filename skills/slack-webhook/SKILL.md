@@ -11,6 +11,8 @@ Post messages to Slack through an incoming webhook URL.
 
 This skill is for **sending Slack notifications with Slack Incoming Webhooks** by calling the webhook URL directly.
 
+Incoming webhooks post to the **Messages** surface. They do not create modals or Home tabs.
+
 Inputs:
 
 - message text, or a complete Slack webhook JSON payload
@@ -122,6 +124,107 @@ bash <skill-path>/scripts/send_slack_webhook.sh \
 
 `text` is still recommended as a fallback for notifications and clients that do not render blocks.
 
+Supported Block Kit block types for webhook messages are based on Slack's Messages-surface block reference:
+
+- `actions`
+- `card`
+- `carousel`
+- `container`
+- `context`
+- `context_actions`
+- `data_table`
+- `data_visualization`
+- `divider`
+- `file`
+- `header`
+- `image`
+- `markdown`
+- `plan`
+- `rich_text`
+- `section`
+- `table`
+- `task_card`
+- `video`
+
+Blocks that are not available on the Messages surface, such as modal-only blocks like `input` or `alert`, should not be sent through this skill.
+
+### More Block Kit examples
+
+#### Section + Context + Actions
+
+```bash
+bash <skill-path>/scripts/send_slack_webhook.sh \
+  --text "Build status update" \
+  --blocks-json '[
+    {"type":"section","text":{"type":"mrkdwn","text":"*Build succeeded* for `main`."}},
+    {"type":"context","elements":[{"type":"mrkdwn","text":"Commit: `a1b2c3d` • Duration: 4m 12s"}]},
+    {"type":"actions","elements":[
+      {"type":"button","text":{"type":"plain_text","text":"View build"},"url":"https://example.com/builds/123"},
+      {"type":"button","text":{"type":"plain_text","text":"Open logs"},"url":"https://example.com/builds/123/logs"}
+    ]}
+  ]'
+```
+
+#### Header + Table
+
+```bash
+bash <skill-path>/scripts/send_slack_webhook.sh \
+  --text "Daily KPI summary" \
+  --blocks-json '[
+    {"type":"header","text":{"type":"plain_text","text":"Daily KPI Summary"}},
+    {"type":"table","rows":[
+      [{"type":"raw_text","text":"Metric"},{"type":"raw_text","text":"Value"}],
+      [{"type":"raw_text","text":"Revenue"},{"type":"raw_text","text":"$12,430"}],
+      [{"type":"raw_text","text":"Orders"},{"type":"raw_text","text":"184"}],
+      [{"type":"raw_text","text":"Refund rate"},{"type":"raw_text","text":"1.2%"}]
+    ]}
+  ]'
+```
+
+#### Video
+
+```bash
+bash <skill-path>/scripts/send_slack_webhook.sh \
+  --text "Release demo video" \
+  --blocks-json '[
+    {
+      "type":"video",
+      "title":{"type":"plain_text","text":"Release Demo"},
+      "title_url":"https://example.com/demo",
+      "description":{"type":"plain_text","text":"Walkthrough of the latest release."},
+      "thumbnail_url":"https://example.com/demo-thumb.jpg",
+      "video_url":"https://example.com/demo.mp4",
+      "alt_text":"Release demo preview"
+    }
+  ]'
+```
+
+#### Carousel
+
+```bash
+bash <skill-path>/scripts/send_slack_webhook.sh \
+  --text "Top items this week" \
+  --blocks-json '[
+    {
+      "type":"carousel",
+      "elements":[
+        {
+          "type":"card",
+          "title":{"type":"plain_text","text":"Item A"},
+          "description":{"type":"plain_text","text":"Highest conversion rate this week."}
+        },
+        {
+          "type":"card",
+          "title":{"type":"plain_text","text":"Item B"},
+          "description":{"type":"plain_text","text":"Most saved by users."}
+        }
+      ]
+    }
+  ]'
+```
+
+When using newer block types such as `table`, `video`, `carousel`, `card`, `plan`, or `data_visualization`, prefer `--payload-file` if the JSON becomes large. Dry-run first to verify Slack accepts the payload shape for your workspace and webhook app configuration.
+
 ### Send a complete payload file
 
 ```bash
@@ -163,7 +266,7 @@ Constructed payload fields:
 - `unfurl_links`; optional boolean
 - `unfurl_media`; optional boolean
 
-Do not invent unsupported Slack fields. Use `--payload-json` or `--payload-file` when the user needs a full custom Incoming Webhook payload.
+The script locally validates `blocks` against Slack's supported Messages-surface block types and enforces the 50-block message limit. Do not invent unsupported Slack fields. Use `--payload-json` or `--payload-file` when the user needs a full custom Incoming Webhook payload.
 
 ## Script Options
 
