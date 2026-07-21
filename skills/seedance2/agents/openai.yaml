@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seedance 2.0"
+  short_description: "Generate and retrieve Seedance 2.0 videos"
+  default_prompt: "Use $seedance2 to create a cinematic video from my prompt."

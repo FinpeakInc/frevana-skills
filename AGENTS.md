@@ -20,6 +20,7 @@ This repository contains reusable skills for four main workflow families:
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
+- Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
@@ -292,6 +293,11 @@ skills/
   nano-banana-pro/
     SKILL.md
     scripts/generate_image.sh
+  seedance2/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/seedance.sh
   frevana-gen-report/
     SKILL.md
     scripts/generate_report.sh
@@ -1991,6 +1997,36 @@ Fixed Frevana routing contract:
 
 - use the `nano-banana-pro` skill script
 
+### Use `seedance2`
+
+Route here when the user wants:
+
+- Seedance 2.0 or Seedance2 AI video generation
+- text-to-video, image-to-video, or reference-to-video generation through `api.seedance2.ai`
+- to query, wait for, or download the result of an existing Seedance task
+
+Required input:
+
+- for creation: a non-empty prompt and any media URLs required by the selected generation mode
+- for status or wait: a Seedance task ID
+
+Optional input:
+
+- model (`seedance-2-0`, `seedance-2-0-fast`, or `seedance-2-0-mini`)
+- generation type, duration, aspect ratio, resolution, audio generation, watermark, web search, last-frame return, and seed
+- public image, video, or audio URLs as allowed by the selected generation mode
+- wait timeout, download directory, and output JSON path
+
+Important behavior:
+
+- Prefer `skills/seedance2/scripts/seedance.sh` over ad hoc API calls.
+- Require `SEEDANCE_API_KEY`; never print it or pass it directly in command-line arguments.
+- Require HTTPS for the API base URL. Do not allow an HTTP `SEEDANCE_API_BASE_URL` override.
+- Do not pass or ask for `callback_url`; this skill uses polling only.
+- Poll task status at the fixed API minimum interval of 10 seconds. Do not expose a custom interval.
+- Treat every create request as billable. Do not submit trial jobs or automatically resubmit failed or timed-out jobs.
+- Use only public HTTP(S) media URLs; the Seedance API does not upload local files.
+
 ### Use `frevana-gen-report`
 
 Route here when the user wants:
@@ -2033,6 +2069,7 @@ Use these rules to avoid bad assumptions:
 - If the user says "scrape this", "scrape URL", or wants URL scraping but does not provide a URL, ask for the URL.
 - If the user asks ChatGPT, Gemini, Perplexity, DeepSeek, or Doubao a question without providing a prompt/question, ask for the prompt.
 - If the user asks for Google Ads Transparency Center search without `advertiser_id`, `text`, or `next_page_token`, ask for one of those inputs.
+- If the user asks to create a Seedance video without a prompt, ask for the prompt. If the selected mode requires media, ask for the required public media URLs instead of guessing.
 - If the user asks for keyword search volume or Google Ads keyword search volume but does not provide keywords, ask for the keywords.
 - If the user asks for Google Immersive Product details without a `page_token`, suggest running `google-shopping-search` first to obtain `immersive_product_page_token`, then continue with this skill using that token.
 - If the user says "search Google Trends for this" but does not provide a keyword, ask for the keyword.

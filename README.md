@@ -130,6 +130,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
+| Video | [`seedance2`](skills/seedance2/SKILL.md) | Seedance 2.0 video generation, polling, and downloads | prompt or task ID |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
 ### Chrome Extension Skills
@@ -872,6 +873,24 @@ Features:
 - accepts image input via `--prompt` or `--contents`
 - returns a hosted image link
 - supported options: `--seed`, `--max-output-tokens`, `--response-modality`, `--aspect-ratio`, `--image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
+
+### [`seedance2`](skills/seedance2/SKILL.md)
+
+Generate and retrieve Seedance 2.0 videos through the asynchronous API.
+
+Use when:
+
+- you want text-to-video, image-to-video, or reference-to-video generation
+- you want to query or wait for an existing Seedance task
+- you want to download completed video results or the optional last frame
+
+Features:
+
+- supports the documented Seedance 2.0 models, generation modes, media limits, durations, aspect ratios, resolutions, and seeds
+- uses `SEEDANCE_API_KEY` without exposing it in command-line arguments
+- requires HTTPS for the API base URL
+- uses polling only, with one status check every 10 seconds and no callback URL support
+- supports saving raw response JSON and downloading completed results
 
 ### [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md)
 
