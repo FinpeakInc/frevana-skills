@@ -17,11 +17,14 @@ This skill runs the Chrome Extension-backed Frevana MCP tool `frevana_generate`.
 
 It uses a three-layer fallback so most sites produce a working script:
 
-- **Layer 1 (JSON API)** — the deterministic collector above, when the site has a clean JSON feed.
+- **Layer 1 (JSON API)** — the deterministic collector above, when the site has a clean JSON feed that can be re-fetched (a plain GET) through your logged-in browser.
+- **Layer 1c (Capture mode — signed / SPA APIs)** — when the data feed is a **signed** endpoint (typically **POST**, with per-request `x-s`/`x-t`-style auth or anti-bot headers that the site's own JS computes — e.g. Xiaohongshu's `search/notes`), a bare `frevana fetch` replay is rejected (HTTP 406) because only the page can sign its request. `frevana generate` detects this and emits a **capture-mode** collector: each run it drives the page with `frevana explore` (which scrolls and records the site's own XHR in your logged-in browser) and reads the response **the page itself signed**, then flattens it to CSV (deep-collecting nested image URLs into an `image_urls` column). Coverage = what one capture window loads (usually the first page, ~20 items); widen it with `--duration`.
 - **Layer 2 (DOM)** — if there is no JSON API, the tool no longer fails: it returns a DOM collector whose fetch layer is still `frevana fetch` (raw HTML) and whose **selector config** defaults to extracting links, with a captured HTML sample embedded in the script.
 - **Layer 3 (your job)** — when you get a Layer-2 script, tighten its `ITEM` / `FIELDS` / pagination **selector config** into the real item rows/columns using that sample (see Execution Order step 6).
 
 Important: this skill **returns a script; it does not run it and it does not return the data directly.** The user runs the script themselves when they want the full dataset (or on a schedule). To get data right now for a single URL instead, use the **Authenticated Fetch** skill.
+
+**NEVER hand-write a Playwright / Puppeteer / Selenium script, and never launch a separate or headless browser.** The Frevana Chrome Extension *is* the browser — it already holds the user's logged-in session, and it is the only thing that can produce validly-signed requests for sites like Xiaohongshu. A separate browser is not logged in (so it renders nothing), needs an extra install (so it just errors out), and defeats the entire point of this skill. If a generated Layer-1/Layer-2 script does not yet return the data, fix it by **tightening its config or switching it to capture mode via `frevana generate`** — not by reaching for a different browser engine.
 
 Inputs:
 
