@@ -1,6 +1,6 @@
 ---
 name: site-data-collector
-description: Use when the user wants a REUSABLE script that collects all of a website's data (e.g. every listing/product/row across pages) through their logged-in Frevana Chrome Extension session. Explores the site once, auto-detects its JSON API, and returns a ready-to-run Python collector script — no code is written by the model, and the script is not executed here. Also supports a URL-LIST mode: given a list of website URLs (e.g. from a Google Map Search), visit each site through the extension and extract its social/contact links — Facebook page, Instagram, LinkedIn, X, email — into a CSV.
+description: "Use when the user wants a REUSABLE script that collects all of a website's data (e.g. every listing/product/row across pages) through their logged-in Frevana Chrome Extension session. Explores the site once, auto-detects its JSON API, and returns a ready-to-run Python collector script — no code is written by the model, and the script is not executed here. Also supports a URL-LIST mode: given a list of website URLs (e.g. from a Google Map Search), visit each site through the extension and extract its social/contact links — Facebook page, Instagram, LinkedIn, X, email — into a CSV."
 ---
 
 # Site Data Collector
