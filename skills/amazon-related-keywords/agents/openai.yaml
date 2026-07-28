@@ -1,0 +1,4 @@
+interface:
+  display_name: "Amazon Related Keywords"
+  short_description: "Find related Amazon keywords from a seed term."
+  default_prompt: "Use $amazon-related-keywords to find related Amazon keywords for my seed term."
