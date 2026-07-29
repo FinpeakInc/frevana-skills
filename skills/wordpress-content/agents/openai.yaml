@@ -1,0 +1,4 @@
+interface:
+  display_name: "WordPress Content"
+  short_description: "Publish verbatim and manage WordPress REST content."
+  default_prompt: "Use $wordpress-content to publish my supplied content verbatim and safely manage it through the WordPress REST API."
