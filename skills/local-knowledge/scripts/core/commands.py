@@ -19,7 +19,12 @@ from core.config import (
 )
 from core.embeddings import encode_query, encode_records, import_runtime, load_model, resolve_backend, resolve_model
 from core.errors import LocalKnowledgeError
-from core.files import scan_documents
+from core.files import (
+    legacy_doc_parser_name,
+    legacy_doc_parser_signature,
+    python_document_parser_signature,
+    scan_documents,
+)
 from core.io_utils import emit, json_dumps, utc_now
 from core.store import collection_count, get_collection, manifest_is_current, read_manifest, write_jsonl
 
@@ -47,10 +52,13 @@ def cmd_doctor(args: argparse.Namespace) -> None:
             checks[module] = False
     text_ok = all(bool(checks[module]) for module in text_modules)
     docs_ok = all(bool(checks[module]) for module in docs_modules)
+    legacy_doc_parser = legacy_doc_parser_name()
+    legacy_doc_ok = legacy_doc_parser is not None
+    checks["legacy_doc_parser"] = legacy_doc_ok
     multimodal_ok = text_ok and all(bool(checks[module]) for module in multimodal_modules)
     docs_required = args.docs
     usable = multimodal_ok if mode == "multimodal" else text_ok
-    degraded = usable and docs_required and not docs_ok
+    degraded = usable and docs_required and (not docs_ok or not legacy_doc_ok)
     ok = usable
     if mode == "multimodal" and not usable:
         message = "Run doctor --install --with-multimodal."
@@ -59,7 +67,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
     elif degraded:
         message = (
             "Environment is ready with reduced document support. "
-            "Unavailable PDF, DOCX, or XLSX files will be skipped."
+            "Unavailable PDF, DOC, DOCX, or XLSX files will be skipped."
         )
     else:
         message = "Environment is ready."
@@ -73,6 +81,8 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         "text_ok": text_ok,
         "docs_required": docs_required,
         "docs_ok": docs_ok,
+        "legacy_doc_ok": legacy_doc_ok,
+        "legacy_doc_parser": legacy_doc_parser,
         "multimodal_ok": multimodal_ok,
         "checks": checks,
         "message": message,
@@ -151,6 +161,8 @@ def perform_index(args: argparse.Namespace) -> Dict[str, Any]:
             "chunk_overlap": args.chunk_overlap,
             "max_file_mb": args.max_file_mb,
             "max_files": args.max_files,
+            "legacy_doc_parsers": legacy_doc_parser_signature(),
+            "python_document_parsers": python_document_parser_signature(),
             "created_at": (previous or {}).get("created_at", utc_now()),
             "updated_at": utc_now(),
             "files": files_meta,

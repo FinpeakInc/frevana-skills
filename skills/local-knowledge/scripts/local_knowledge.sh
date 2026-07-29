@@ -4,7 +4,13 @@ set -euo pipefail
 
 DATA_DIR="${LOCAL_KNOWLEDGE_DATA_DIR:-${HOME}/.local/share/local-knowledge}"
 VENV_DIR="${LOCAL_KNOWLEDGE_VENV_DIR:-${DATA_DIR}/venv}"
-PYTHON_BIN="${PYTHON_BIN:-python3}"
+if [[ -n "${PYTHON_BIN:-}" ]]; then
+  PYTHON_BIN="${PYTHON_BIN}"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+else
+  PYTHON_BIN="python"
+fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PY_SCRIPT="${SCRIPT_DIR}/local_knowledge.py"
@@ -28,7 +34,7 @@ Environment:
   LOCAL_KNOWLEDGE_VENV_DIR   Virtualenv path. Default: ~/.local/share/local-knowledge/venv
   LOCAL_KNOWLEDGE_REQUIREMENTS_DIR
                                Requirements directory. Default: <skill>/requirements
-  PYTHON_BIN                 Python executable for bootstrap. Default: python3
+  PYTHON_BIN                 Python executable for bootstrap. Default: python3, then python
 EOF
 }
 
@@ -38,11 +44,15 @@ die() {
 }
 
 need_python() {
-  command -v "$PYTHON_BIN" >/dev/null 2>&1 || die "python3 is required. Set PYTHON_BIN if needed."
+  command -v "$PYTHON_BIN" >/dev/null 2>&1 || die "Python 3 is required. Set PYTHON_BIN if needed."
 }
 
 venv_python() {
-  printf '%s/bin/python' "$VENV_DIR"
+  if [[ -x "${VENV_DIR}/Scripts/python.exe" ]]; then
+    printf '%s/Scripts/python.exe' "$VENV_DIR"
+  else
+    printf '%s/bin/python' "$VENV_DIR"
+  fi
 }
 
 create_venv() {
@@ -64,10 +74,10 @@ install_document_deps() {
   create_venv
   if [[ ! -f "$DOCS_REQUIREMENTS" ]]; then
     echo "Warning: missing document requirements file: $DOCS_REQUIREMENTS" >&2
-    echo "Warning: continuing without some or all PDF, DOCX, and XLSX support." >&2
+    echo "Warning: continuing without some or all PDF, DOC, DOCX, and XLSX support." >&2
   elif ! "$(venv_python)" -m pip install -r "$DOCS_REQUIREMENTS"; then
     echo "Warning: document dependency installation failed." >&2
-    echo "Warning: continuing without some or all PDF, DOCX, and XLSX support." >&2
+    echo "Warning: continuing without some or all PDF, DOC, DOCX, and XLSX support." >&2
   fi
 }
 
@@ -102,6 +112,16 @@ for name in sys.argv[1:]:
     "$@"
 }
 
+python_has_document_modules() {
+  local python="$1"
+  python_has_modules "$python" pypdf docx openpyxl || return 1
+  "$python" -c \
+    'import importlib, sys
+if sys.platform == "win32":
+    for name in ("pythoncom", "win32com.client"):
+        importlib.import_module(name)'
+}
+
 bootstrap_default_deps() {
   local python
   local core_ok=false
@@ -115,7 +135,7 @@ bootstrap_default_deps() {
     if python_has_modules "$python" chromadb sentence_transformers socksio; then
       core_ok=true
     fi
-    if python_has_modules "$python" pypdf docx openpyxl; then
+    if python_has_document_modules "$python"; then
       docs_ok=true
     fi
     if [[ "$core_ok" == "false" ]]; then
@@ -132,8 +152,8 @@ bootstrap_default_deps() {
   if ! python_has_modules "$python" chromadb sentence_transformers socksio; then
     die "Core Local Knowledge dependencies are unavailable after installation."
   fi
-  if ! python_has_modules "$python" pypdf docx openpyxl; then
-    echo "Warning: continuing in degraded mode; unavailable PDF, DOCX, or XLSX files will be skipped." >&2
+  if ! python_has_document_modules "$python"; then
+    echo "Warning: continuing in degraded mode; unavailable PDF, DOC, DOCX, or XLSX files will be skipped." >&2
   fi
 }
 

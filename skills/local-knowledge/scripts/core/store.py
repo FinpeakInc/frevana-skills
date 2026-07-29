@@ -4,7 +4,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.config import DEFAULT_MAX_FILE_MB, DEFAULT_MAX_FILES, DEFAULT_MODE
 from core.errors import LocalKnowledgeError
-from core.files import scan_file_fingerprints
+from core.files import (
+    legacy_doc_parser_signature,
+    python_document_parser_signature,
+    scan_file_fingerprints,
+)
 
 
 def collection_name() -> str:
@@ -78,14 +82,47 @@ def manifest_is_current(
         "size": item.get("size"),
         "modality": item.get("modality", "text"),
     } for item in manifest.get("files", [])]
+    manifest_files.extend({
+        "path": item.get("path"),
+        "relative_path": item.get("relative_path"),
+        "sha256": item.get("sha256"),
+        "mtime": item.get("mtime"),
+        "size": item.get("size"),
+        "modality": item.get("modality", "text"),
+    } for item in manifest.get("skipped", []) if item.get("sha256"))
     manifest_files.sort(key=lambda item: item.get("relative_path") or "")
     manifest_skipped = [{
         "path": item.get("path"),
         "reason": item.get("reason"),
-    } for item in manifest.get("skipped", [])]
+    } for item in manifest.get("skipped", []) if not item.get("sha256")]
     manifest_skipped.sort(key=lambda item: item.get("path") or "")
     if current_files != manifest_files:
         return False, "source files changed"
     if current_skipped != manifest_skipped:
         return False, "skipped files changed"
+    has_legacy_doc = any(
+        Path(item.get("path") or "").suffix.lower() == ".doc"
+        for item in current_files
+    )
+    if has_legacy_doc and manifest.get("legacy_doc_parsers", []) != legacy_doc_parser_signature():
+        return False, "legacy DOC parser changed"
+    python_document_extensions = {
+        Path(item.get("path") or "").suffix.lower()
+        for item in current_files
+        if Path(item.get("path") or "").suffix.lower() in {".pdf", ".docx", ".xlsx"}
+    }
+    manifest_python_parsers = [
+        item
+        for item in manifest.get("python_document_parsers", [])
+        if item.get("extension") in python_document_extensions
+    ]
+    current_python_parsers: List[Dict[str, Any]] = []
+    if python_document_extensions:
+        current_python_parsers = [
+            item
+            for item in python_document_parser_signature()
+            if item.get("extension") in python_document_extensions
+        ]
+    if manifest_python_parsers != current_python_parsers:
+        return False, "document parser changed"
     return True, "current"

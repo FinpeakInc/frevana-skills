@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from core.embeddings.base import import_runtime
 from core.embeddings.registry import get_backend, resolve_backend, resolve_model

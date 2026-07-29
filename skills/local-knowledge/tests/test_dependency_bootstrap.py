@@ -3,7 +3,6 @@
 import json
 import os
 import subprocess
-import sys
 import tempfile
 import textwrap
 import unittest
@@ -25,6 +24,10 @@ state_dir.mkdir(parents=True, exist_ok=True)
 args = sys.argv[1:]
 
 if args and args[0] == "-c":
+    if "sys.platform" in args[1] and "win32com.client" in args[1]:
+        if os.environ.get("FAKE_PLATFORM") == "win32":
+            raise SystemExit(0 if (state_dir / "win32com").exists() else 1)
+        raise SystemExit(0)
     modules = set(args[2:])
     core = {"chromadb", "sentence_transformers", "socksio"}
     docs = {"pypdf", "docx", "openpyxl"}
@@ -52,6 +55,8 @@ if args[:3] == ["-m", "pip", "install"]:
         if os.environ.get("FAKE_DOCS_INSTALL_FAIL") == "1":
             raise SystemExit(42)
         (state_dir / "docs").touch()
+        if os.environ.get("FAKE_PLATFORM") == "win32":
+            (state_dir / "win32com").touch()
         raise SystemExit(0)
     raise SystemExit(0)
 
@@ -324,6 +329,47 @@ class DependencyBootstrapSmokeTests(unittest.TestCase):
         self.assertEqual(sum("base.txt" in line for line in self._pip_log()), 1)
         payload = self._read_result()
         self.assertIn("REPAIRED_CORE_OK", self._read_chunks(payload))
+
+    def test_windows_bootstrap_repairs_missing_pywin32(self) -> None:
+        (self.state_dir / "core").touch()
+        (self.state_dir / "docs").touch()
+        self._write(self.source_dir / "readme.txt", "WINDOWS_BOOTSTRAP_OK")
+        env = self.env.copy()
+        env["FAKE_PLATFORM"] = "win32"
+
+        result = self._wrapper(
+            "index",
+            "--path",
+            str(self.source_dir),
+            "--output",
+            str(self.output_path),
+            env=env,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Document parsers are missing", result.stderr)
+        self.assertTrue((self.state_dir / "win32com").exists())
+        self.assertEqual(sum("docs.txt" in line for line in self._pip_log()), 1)
+        self.assertIn("WINDOWS_BOOTSTRAP_OK", self._read_chunks(self._read_result()))
+
+    def test_windows_venv_scripts_python_is_supported(self) -> None:
+        scripts_dir = self.venv_dir / "Scripts"
+        scripts_dir.mkdir()
+        (self.venv_dir / "bin" / "python").rename(scripts_dir / "python.exe")
+        (self.state_dir / "core").touch()
+        (self.state_dir / "docs").touch()
+        self._write(self.source_dir / "readme.txt", "WINDOWS_VENV_OK")
+
+        result = self._wrapper(
+            "index",
+            "--path",
+            str(self.source_dir),
+            "--output",
+            str(self.output_path),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("WINDOWS_VENV_OK", self._read_chunks(self._read_result()))
 
     def test_failed_parser_install_degrades_and_skips_documents_once(self) -> None:
         (self.state_dir / "core").touch()

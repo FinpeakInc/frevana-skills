@@ -43,6 +43,11 @@ Required:
 - `python3`
 - local folder or file path to index or search
 
+On Windows, run the wrapper from Git Bash or another Bash environment that can
+invoke native Windows Python. The wrapper recognizes both Unix
+`venv/bin/python` and Windows `venv/Scripts/python.exe` layouts, and falls back
+from the `python3` command to `python` when needed.
+
 Installed by `doctor --install` into a skill-owned virtual environment:
 
 - core packages listed in `requirements/base.txt`
@@ -53,6 +58,25 @@ Default document parsing dependencies installed by the same command:
 - `pypdf` for `.pdf`
 - `python-docx` for `.docx`
 - `openpyxl` for `.xlsx`
+- `pywin32` on Windows for Microsoft Word COM access to legacy `.doc`
+
+Legacy binary `.doc` files use a local system parser. The parser preference is:
+
+1. Microsoft Word COM through `pywin32` on Windows
+2. `textutil` on macOS
+3. `antiword`
+4. `catdoc`
+
+The parsers are tried in order until one returns non-empty text. If none is
+installed, Microsoft Word is unavailable on Windows, or every available parser
+fails, `.doc` files are skipped with an actionable reason. Word COM runs in a
+separate, time-limited process; it opens documents read-only with macros,
+external OLE link updates, alerts, and UI disabled. It records the dedicated
+Word process ID so a timeout cleans up only the isolated Word instance before
+trying the next parser, after verifying the process is `WINWORD.EXE`. Word
+extraction includes the main body and all available story ranges such as
+headers, footers, footnotes, endnotes, comments, and text frames. The skill
+never uploads a `.doc` file to a conversion service.
 
 Optional multimodal dependencies installed only when requested:
 
@@ -111,8 +135,11 @@ bash <skill-path>/scripts/local_knowledge.sh doctor --install
 
 This creates or reuses `~/.local/share/local-knowledge/venv`. Document
 dependencies are installed by default, so the resulting environment supports
-`.pdf`, `.docx`, and `.xlsx`. Use `--no-docs` only when the user explicitly
-wants a text-only installation.
+`.pdf`, `.docx`, and `.xlsx`. On Windows, the same requirements install
+`pywin32`; legacy `.doc` then works when desktop Microsoft Word is installed.
+On macOS or Linux, `.doc` works when `textutil`, `antiword`, or `catdoc` is
+available. Use `--no-docs` only when the user explicitly wants a text-only
+installation.
 
 ### Automatic Dependency Bootstrap
 
@@ -122,7 +149,7 @@ missing required modules:
 
 1. Install required core dependencies when they are missing.
 2. Attempt to install the default PDF, DOCX, and XLSX parsers when they are
-   missing.
+   missing. On Windows this also checks and installs `pywin32`.
 3. Continue with the requested command after the installation attempt; stop
    only if required core dependencies are still unavailable.
 
@@ -143,6 +170,12 @@ Dependency checks perform real imports rather than only checking whether a
 module path exists. A broken core import triggers one repair attempt; a broken
 document-parser import follows the same best-effort installation and degraded
 behavior as a missing parser.
+
+Document parser signatures, including real Python import health, are stored in
+the index manifest. `--auto-index` refreshes affected indexes when
+PDF/DOCX/XLSX parser availability or import health changes, or when the local
+legacy `.doc` parser set changes. Unchanged files that consistently fail
+parsing remain stable in `skipped` instead of triggering repeated indexing.
 
 Multimodal dependencies remain opt-in and must not be installed automatically.
 
@@ -302,10 +335,11 @@ Core text support:
 .py .js .jsx .ts .tsx .go .java .rs .sh .bash .zsh .css .scss .sql .toml .ini .env
 ```
 
-Optional parser support when dependencies are installed:
+Optional parser support when dependencies or a local legacy parser are
+installed:
 
 ```text
-.pdf .docx .xlsx
+.pdf .doc .docx .xlsx
 ```
 
 Advanced multimodal support when `--mode multimodal` is used:
@@ -343,7 +377,7 @@ Use returned source paths and line spans when citing context in the final answer
 - Prefer `search` when the user wants raw local evidence.
 - Prefer `ask` when the user asks a natural-language question and the calling agent should answer from retrieved context.
 - The wrapper automatically checks and bootstraps dependencies for `index`, `search`, and `ask`; do not add a second manual installation attempt in the same user request.
-- A default `doctor --install` includes `.pdf`, `.docx`, and `.xlsx` support; do not pass `--no-docs` unless the user explicitly requests a text-only environment.
+- A default `doctor --install` includes `.pdf`, `.docx`, and `.xlsx` support plus Windows-only `pywin32`; do not pass `--no-docs` unless the user explicitly requests a text-only environment.
 - Treat document parser installation failures as non-fatal: warn once, continue indexing, and report affected files through `skipped`. Core dependency failures remain fatal.
 - Use `--auto-index` on `search` or `ask` when the user expects the skill to create or refresh the folder index automatically.
 - Use `--max-file-mb` and `--max-files` when indexing very large folders.

@@ -19,7 +19,7 @@ TEXT_EXTS = {
     ".h", ".cpp", ".hpp", ".cs", ".swift", ".kt", ".kts", ".dart", ".vue",
     ".svelte",
 }
-OPTIONAL_EXTS = {".pdf", ".docx", ".xlsx"}
+OPTIONAL_EXTS = {".pdf", ".doc", ".docx", ".xlsx"}
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 SKIP_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "vendor", ".venv", "venv",

@@ -1,3 +1,4 @@
 pypdf>=5.0,<7
 python-docx>=1.1,<2
 openpyxl>=3.1,<4
+pywin32>=311,<313; sys_platform == "win32"

@@ -1,8 +1,16 @@
 import csv
+import ctypes
 import hashlib
 import html
+import importlib
+import importlib.util
 import os
 import re
+import signal
+import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -16,6 +24,15 @@ from core.config import (
     TEXT_EXTS,
 )
 from core.errors import LocalKnowledgeError
+
+
+LEGACY_DOC_PARSERS = ("textutil", "antiword", "catdoc")
+WORD_COM_HELPER = Path(__file__).with_name("word_com.py")
+PYTHON_DOCUMENT_PARSERS = (
+    (".pdf", "pypdf"),
+    (".docx", "docx"),
+    (".xlsx", "openpyxl"),
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -37,12 +54,239 @@ def is_binary_sample(path: Path) -> bool:
 
 def safe_read_text(path: Path) -> str:
     data = path.read_bytes()
+    return decode_text(data)
+
+
+def decode_text(data: bytes) -> str:
     for encoding in ("utf-8", "utf-8-sig", "gb18030", "latin-1"):
         try:
             return data.decode(encoding)
         except UnicodeDecodeError:
             continue
     return data.decode("utf-8", errors="replace")
+
+
+def find_legacy_doc_parser() -> Optional[Tuple[str, str]]:
+    parsers = find_legacy_doc_parsers()
+    return parsers[0] if parsers else None
+
+
+def find_legacy_doc_parsers() -> List[Tuple[str, str]]:
+    parsers: List[Tuple[str, str]] = []
+    if word_com_available():
+        parsers.append(("word-com", sys.executable))
+    for name in LEGACY_DOC_PARSERS:
+        executable = shutil.which(name)
+        if executable:
+            parsers.append((name, executable))
+    return parsers
+
+
+def word_com_available() -> bool:
+    if sys.platform != "win32":
+        return False
+    try:
+        import pythoncom  # type: ignore
+        import win32com.client  # type: ignore  # noqa: F401
+
+        pythoncom.CLSIDFromProgID("Word.Application")
+    except Exception:
+        return False
+    return True
+
+
+def legacy_doc_parser_name() -> Optional[str]:
+    parser = find_legacy_doc_parser()
+    return parser[0] if parser else None
+
+
+def legacy_doc_parser_signature() -> List[Dict[str, Any]]:
+    signature: List[Dict[str, Any]] = []
+    for name, executable in find_legacy_doc_parsers():
+        item: Dict[str, Any] = {"name": name, "path": executable}
+        if name == "word-com":
+            try:
+                spec = importlib.util.find_spec("win32com.client")
+            except (ImportError, ModuleNotFoundError, ValueError):
+                spec = None
+            origin = spec.origin if spec is not None else None
+            if origin:
+                item["module_path"] = origin
+                try:
+                    module_stat = Path(origin).stat()
+                except OSError:
+                    pass
+                else:
+                    item["module_size"] = module_stat.st_size
+                    item["module_mtime_ns"] = module_stat.st_mtime_ns
+        try:
+            stat = Path(executable).stat()
+        except OSError:
+            pass
+        else:
+            item["size"] = stat.st_size
+            item["mtime_ns"] = stat.st_mtime_ns
+        signature.append(item)
+    return signature
+
+
+def python_document_parser_signature() -> List[Dict[str, Any]]:
+    signature: List[Dict[str, Any]] = []
+    for extension, module in PYTHON_DOCUMENT_PARSERS:
+        item: Dict[str, Any] = {"extension": extension, "module": module}
+        try:
+            importlib.import_module(module)
+        except Exception:
+            item["import_ok"] = False
+        else:
+            item["import_ok"] = True
+        try:
+            spec = importlib.util.find_spec(module)
+        except (ImportError, ValueError):
+            spec = None
+        origin = spec.origin if spec is not None else None
+        if origin:
+            item["path"] = origin
+            try:
+                stat = Path(origin).stat()
+            except OSError:
+                pass
+            else:
+                item["size"] = stat.st_size
+                item["mtime_ns"] = stat.st_mtime_ns
+        signature.append(item)
+    return signature
+
+
+def legacy_doc_command(
+    name: str,
+    executable: str,
+    path: Path,
+    pid_file: Optional[Path] = None,
+) -> List[str]:
+    if name == "word-com":
+        if pid_file is None:
+            raise LocalKnowledgeError("Word COM parser requires a PID file.")
+        return [executable, str(WORD_COM_HELPER), str(path), str(pid_file)]
+    if name == "textutil":
+        return [executable, "-convert", "txt", "-stdout", str(path)]
+    return [executable, str(path)]
+
+
+def terminate_word_process(pid_file: Path) -> None:
+    if sys.platform != "win32" or not pid_file.is_file():
+        return
+    try:
+        pid = int(pid_file.read_text(encoding="ascii").strip())
+        if pid <= 0 or pid == os.getpid():
+            return
+        if not is_word_process(pid):
+            return
+        os.kill(pid, signal.SIGTERM)
+    except (OSError, ValueError):
+        pass
+
+
+def is_word_process(pid: int) -> bool:
+    if sys.platform != "win32":
+        return False
+    try:
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.argtypes = [
+            wintypes.DWORD,
+            wintypes.BOOL,
+            wintypes.DWORD,
+        ]
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.QueryFullProcessImageNameW.argtypes = [
+            wintypes.HANDLE,
+            wintypes.DWORD,
+            wintypes.LPWSTR,
+            ctypes.POINTER(wintypes.DWORD),
+        ]
+        kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+
+        handle = kernel32.OpenProcess(0x1000, False, pid)
+        if not handle:
+            return False
+        try:
+            buffer = ctypes.create_unicode_buffer(32768)
+            size = wintypes.DWORD(len(buffer))
+            if not kernel32.QueryFullProcessImageNameW(
+                handle,
+                0,
+                buffer,
+                ctypes.byref(size),
+            ):
+                return False
+            executable = buffer.value
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        return False
+    return Path(executable).name.lower() == "winword.exe"
+
+
+def run_legacy_doc_parser(
+    name: str,
+    executable: str,
+    path: Path,
+) -> subprocess.CompletedProcess[bytes]:
+    if name != "word-com":
+        return subprocess.run(
+            legacy_doc_command(name, executable, path),
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+    with tempfile.TemporaryDirectory(prefix="local-knowledge-word-com-") as tmp:
+        pid_file = Path(tmp) / "word.pid"
+        try:
+            return subprocess.run(
+                legacy_doc_command(name, executable, path, pid_file),
+                capture_output=True,
+                check=False,
+                timeout=120,
+            )
+        finally:
+            terminate_word_process(pid_file)
+
+
+def parse_doc(path: Path) -> str:
+    parsers = find_legacy_doc_parsers()
+    if not parsers:
+        raise LocalKnowledgeError(
+            "DOC support requires a local legacy Word parser: "
+            "Microsoft Word with pywin32 (Windows), textutil (macOS), "
+            "antiword, or catdoc."
+        )
+    failures: List[str] = []
+    for name, executable in parsers:
+        try:
+            result = run_legacy_doc_parser(name, executable, path)
+        except subprocess.TimeoutExpired:
+            failures.append(f"{name} timed out after 120 seconds")
+            continue
+        except OSError as exc:
+            failures.append(f"{name} could not run: {exc}")
+            continue
+        if result.returncode != 0:
+            detail = decode_text(result.stderr).strip()
+            failure = f"{name} exited with status {result.returncode}"
+            if detail:
+                failure += f": {detail}"
+            failures.append(failure)
+            continue
+        text = decode_text(result.stdout)
+        if not text.strip():
+            failures.append(f"{name} produced no text")
+            continue
+        return text
+    raise LocalKnowledgeError(f"All available DOC parsers failed: {'; '.join(failures)}")
 
 
 def html_to_text(raw: str) -> str:
@@ -108,6 +352,8 @@ def parse_file(path: Path) -> str:
     suffix = path.suffix.lower()
     if suffix == ".pdf":
         return parse_pdf(path)
+    if suffix == ".doc":
+        return parse_doc(path)
     if suffix == ".docx":
         return parse_docx(path)
     if suffix == ".xlsx":
@@ -133,6 +379,12 @@ def optional_parser_error(path: Path) -> Optional[str]:
             import pypdf  # type: ignore  # noqa: F401
         except Exception:
             return "PDF support requires pypdf. Run doctor --install."
+    if suffix == ".doc" and not find_legacy_doc_parser():
+        return (
+            "DOC support requires a local legacy Word parser: "
+            "Microsoft Word with pywin32 (Windows), textutil (macOS), "
+            "antiword, or catdoc."
+        )
     if suffix == ".docx":
         try:
             import docx  # type: ignore  # noqa: F401
@@ -257,6 +509,9 @@ def scan_documents(
     max_file_bytes = max_file_mb * 1024 * 1024
     accepted_files = 0
     for file_path in iter_files(source, mode):
+        stat = None
+        digest = None
+        rel = None
         try:
             stat = file_path.stat()
             if accepted_files >= max_files:
@@ -268,6 +523,7 @@ def scan_documents(
             if file_path.suffix.lower() in TEXT_EXTS and is_binary_sample(file_path):
                 skipped.append({"path": str(file_path), "reason": "binary"})
                 continue
+            accepted_files += 1
             digest = sha256_file(file_path)
             rel = relative_doc_path(source, file_path)
             if is_image_file(file_path):
@@ -288,7 +544,6 @@ def scan_documents(
                 "chunks": len(file_chunks),
             }
             files_meta.append(file_meta)
-            accepted_files += 1
             for idx, (chunk, line_start, line_end) in enumerate(file_chunks):
                 chunk_id_seed = f"{rel}:{digest}:{idx}:{line_start}:{line_end}"
                 chunk_id = hashlib.sha256(chunk_id_seed.encode("utf-8")).hexdigest()[:32]
@@ -303,7 +558,18 @@ def scan_documents(
                     "text": chunk,
                 })
         except Exception as exc:
-            skipped.append({"path": str(file_path), "reason": str(exc)})
+            item: Dict[str, Any] = {
+                "path": str(file_path.resolve()) if digest is not None else str(file_path),
+                "reason": str(exc),
+            }
+            if stat is not None:
+                item["mtime"] = stat.st_mtime
+                item["size"] = stat.st_size
+            if digest is not None:
+                item["sha256"] = digest
+            if rel is not None:
+                item["relative_path"] = rel
+            skipped.append(item)
     return files_meta, chunks, skipped
 
 
@@ -329,11 +595,7 @@ def scan_file_fingerprints(
             if file_path.suffix.lower() in TEXT_EXTS and is_binary_sample(file_path):
                 skipped.append({"path": str(file_path), "reason": "binary"})
                 continue
-            if not is_image_file(file_path):
-                parser_error = optional_parser_error(file_path)
-                if parser_error:
-                    skipped.append({"path": str(file_path), "reason": parser_error})
-                    continue
+            accepted_files += 1
             files_meta.append({
                 "path": str(file_path.resolve()),
                 "relative_path": relative_doc_path(source, file_path),
@@ -342,7 +604,6 @@ def scan_file_fingerprints(
                 "size": stat.st_size,
                 "modality": "image" if is_image_file(file_path) else "text",
             })
-            accepted_files += 1
         except Exception as exc:
             skipped.append({"path": str(file_path), "reason": str(exc)})
     files_meta.sort(key=lambda item: item["relative_path"])
