@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERBATIM_HELPER="$SCRIPT_DIR/wordpress_verbatim.py"
 
 ACTION="status"
 if [[ $# -gt 0 && "$1" != -* ]]; then
@@ -19,13 +23,21 @@ CONTENT_TYPE=""
 FILENAME=""
 OUTPUT_FILE=""
 HEADER_FILE=""
+BACKUP_FILE=""
 SAVE_CONFIG="false"
 EXECUTE="false"
 DRY_RUN="false"
 
 TEMP_AUTH_FILE=""
+TEMP_RESPONSE_FILE=""
+TEMP_VERIFY_FILE=""
+TEMP_STATUS_FILE=""
 WORDPRESS_SETUP_GUIDE="https://frevana.gitbook.io/frevana-docs/cms-integrations/wordpress-integration"
+WORDPRESS_CONNECT_TIMEOUT="${WORDPRESS_CONNECT_TIMEOUT:-15}"
+WORDPRESS_MAX_TIME="${WORDPRESS_MAX_TIME:-300}"
 SETUP_GUIDE_PRINTED="false"
+CREDENTIALS_CONFIGURED="false"
+CREDENTIALS_VALID="false"
 
 usage() {
   cat <<'USAGE'
@@ -33,12 +45,18 @@ Usage:
   wordpress_rest.sh configure [credential options]
   wordpress_rest.sh status [credential options]
   wordpress_rest.sh request --endpoint PATH [request options] [credential options]
+  wordpress_rest.sh verbatim-create --endpoint COLLECTION --data-file JSON [--execute]
+  wordpress_rest.sh verbatim-update --endpoint OBJECT --data-file JSON --backup FILE [--execute]
   wordpress_rest.sh clear-config [--config FILE]
 
 Actions:
   configure     Resolve missing credentials interactively and save them.
-  status        Report whether each credential is available and its source.
+  status        Validate credentials and report availability and source.
   request       Call a relative endpoint on the configured WordPress site.
+  verbatim-create
+                Create with the supplied JSON unchanged, then compare content.raw.
+  verbatim-update
+                Back up, update unchanged, then compare content.raw.
   clear-config  Remove the selected local config file.
 
 Credential options:
@@ -57,6 +75,7 @@ Request options:
   --filename NAME       Content-Disposition attachment filename
   --output FILE         Save the response body
   --headers FILE        Save response headers
+  --backup FILE         Required saved pre-update object for verbatim-update
   --execute             Perform POST, PUT, PATCH, or DELETE
   --dry-run             Print a redacted request plan without calling WordPress
 
@@ -72,14 +91,25 @@ Default config:
 First-time setup:
   https://frevana.gitbook.io/frevana-docs/cms-integrations/wordpress-integration
 
+Timeout environment variables:
+  WORDPRESS_CONNECT_TIMEOUT  Connection timeout in seconds (default: 15)
+  WORDPRESS_MAX_TIME         Total request timeout in seconds (default: 300)
+
 Writes are dry-run by default. GET, HEAD, and OPTIONS execute immediately.
 USAGE
 }
 
 cleanup() {
-  if [[ -n "$TEMP_AUTH_FILE" && -f "$TEMP_AUTH_FILE" ]]; then
-    rm -f -- "$TEMP_AUTH_FILE"
-  fi
+  local path
+  for path in \
+    "$TEMP_AUTH_FILE" \
+    "$TEMP_RESPONSE_FILE" \
+    "$TEMP_VERIFY_FILE" \
+    "$TEMP_STATUS_FILE"; do
+    if [[ -n "$path" && -f "$path" ]]; then
+      rm -f -- "$path"
+    fi
+  done
 }
 trap cleanup EXIT
 
@@ -171,6 +201,11 @@ while [[ $# -gt 0 ]]; do
     --headers)
       [[ $# -ge 2 ]] || { echo "Missing value for --headers" >&2; exit 2; }
       HEADER_FILE="$2"
+      shift 2
+      ;;
+    --backup)
+      [[ $# -ge 2 ]] || { echo "Missing value for --backup" >&2; exit 2; }
+      BACKUP_FILE="$2"
       shift 2
       ;;
     --execute)
@@ -332,6 +367,8 @@ print_setup_guide() {
 validate_credentials() {
   local missing="false" authority
 
+  CREDENTIALS_CONFIGURED="false"
+  CREDENTIALS_VALID="false"
   validate_single_line "WORDPRESS_URL" "$RESOLVED_URL"
   validate_single_line "WORDPRESS_USERNAME" "$RESOLVED_USERNAME"
   validate_single_line "WORDPRESS_APP_PASSWORD" "$RESOLVED_APP_PASSWORD"
@@ -342,11 +379,16 @@ validate_credentials() {
   elif [[ "$RESOLVED_URL" != https://* ]]; then
     echo "WORDPRESS_URL must use HTTPS" >&2
     return 1
+  elif [[ "$RESOLVED_URL" == *"?"* || "$RESOLVED_URL" == *"#"* || "$RESOLVED_URL" == *" "* || "$RESOLVED_URL" == *$'\t'* ]]; then
+    echo "WORDPRESS_URL must not contain queries, fragments, or whitespace" >&2
+    return 1
   else
-    RESOLVED_URL="${RESOLVED_URL%/}"
+    while [[ "$RESOLVED_URL" == */ ]]; do
+      RESOLVED_URL="${RESOLVED_URL%/}"
+    done
     authority="${RESOLVED_URL#https://}"
     authority="${authority%%/*}"
-    if [[ -z "$authority" || "$authority" == *"@"* ]]; then
+    if [[ -z "$authority" || "$authority" == *"@"* || "$authority" == :* ]]; then
       echo "WORDPRESS_URL must contain a host and must not embed credentials" >&2
       return 1
     fi
@@ -365,15 +407,23 @@ validate_credentials() {
     print_setup_guide
     return 1
   fi
+
+  CREDENTIALS_CONFIGURED="true"
+  CREDENTIALS_VALID="not_checked"
 }
 
 save_config() {
-  local path dir tmp
+  local path dir tmp dir_created="false"
   path="$(config_file)"
   dir="$(dirname "$path")"
 
-  mkdir -p "$dir"
-  chmod 700 "$dir" 2>/dev/null || true
+  if [[ ! -d "$dir" ]]; then
+    mkdir -p "$dir"
+    dir_created="true"
+  fi
+  if [[ "$dir_created" == "true" ]]; then
+    chmod 700 "$dir"
+  fi
   tmp="$(mktemp "$dir/config.XXXXXX")"
   printf 'WORDPRESS_URL=%s\n' "$RESOLVED_URL" > "$tmp"
   printf 'WORDPRESS_USERNAME=%s\n' "$RESOLVED_USERNAME" >> "$tmp"
@@ -396,6 +446,8 @@ print_status() {
     printf 'wordpress_app_password=missing\n'
   fi
   printf 'wordpress_app_password_source=%s\n' "$APP_PASSWORD_SOURCE"
+  printf 'credentials_configured=%s\n' "$CREDENTIALS_CONFIGURED"
+  printf 'credentials_valid=%s\n' "$CREDENTIALS_VALID"
   if [[ -z "$RESOLVED_URL" || -z "$RESOLVED_USERNAME" || -z "$RESOLVED_APP_PASSWORD" ]]; then
     printf 'setup_guide=%s\n' "$WORDPRESS_SETUP_GUIDE"
   fi
@@ -410,12 +462,148 @@ curl_config_escape() {
 
 build_auth_file() {
   local auth_dir escaped_user escaped_password
+  if [[ -n "$TEMP_AUTH_FILE" && -f "$TEMP_AUTH_FILE" ]]; then
+    return 0
+  fi
   auth_dir="${TMPDIR:-/tmp}"
   TEMP_AUTH_FILE="$(mktemp "$auth_dir/wordpress-content-curl.XXXXXX")"
   escaped_user="$(curl_config_escape "$RESOLVED_USERNAME")"
   escaped_password="$(curl_config_escape "$RESOLVED_APP_PASSWORD")"
   printf 'user = "%s:%s"\n' "$escaped_user" "$escaped_password" > "$TEMP_AUTH_FILE"
   chmod 600 "$TEMP_AUTH_FILE"
+}
+
+require_verbatim_helper() {
+  command -v python3 >/dev/null 2>&1 || {
+    echo "verbatim-create and verbatim-update require Python 3" >&2
+    return 1
+  }
+  [[ -r "$VERBATIM_HELPER" ]] || {
+    echo "Missing verbatim helper: $VERBATIM_HELPER" >&2
+    return 1
+  }
+}
+
+require_curl() {
+  command -v curl >/dev/null 2>&1 || {
+    echo "Missing required command: curl" >&2
+    return 1
+  }
+}
+
+validate_curl_timeouts() {
+  local name value
+  for name in WORDPRESS_CONNECT_TIMEOUT WORDPRESS_MAX_TIME; do
+    if [[ "$name" == "WORDPRESS_CONNECT_TIMEOUT" ]]; then
+      value="$WORDPRESS_CONNECT_TIMEOUT"
+    else
+      value="$WORDPRESS_MAX_TIME"
+    fi
+    if [[ ! "$value" =~ ^[0-9]+([.][0-9]+)?$ || "$value" =~ ^0+([.]0+)?$ ]]; then
+      echo "$name must be a positive number of seconds" >&2
+      return 1
+    fi
+  done
+}
+
+validate_endpoint() {
+  local endpoint="$1"
+  if [[ -z "$endpoint" || "$endpoint" != /* || "$endpoint" == *"://"* ]]; then
+    echo "--endpoint must be a relative site path beginning with /" >&2
+    return 1
+  fi
+  validate_single_line "endpoint" "$endpoint"
+  if [[ "$endpoint" == *" "* || "$endpoint" == *$'\t'* ]]; then
+    echo "--endpoint must URL-encode spaces and other query values" >&2
+    return 1
+  fi
+}
+
+ensure_distinct_files() {
+  local first_label="$1"
+  local first_path="$2"
+  local second_label="$3"
+  local second_path="$4"
+  local path_status
+
+  [[ -n "$first_path" && -n "$second_path" ]] || return 0
+  require_verbatim_helper
+  if python3 "$VERBATIM_HELPER" same-path "$first_path" "$second_path"; then
+    printf '%s and %s must refer to different files\n' "$first_label" "$second_label" >&2
+    return 1
+  else
+    path_status=$?
+    if [[ "$path_status" -eq 1 ]]; then
+      return 0
+    fi
+    return "$path_status"
+  fi
+}
+
+allocate_verbatim_temp_files() {
+  local temp_root="${TMPDIR:-/tmp}"
+  TEMP_RESPONSE_FILE="$(mktemp "$temp_root/wordpress-content-response.XXXXXX")"
+  TEMP_VERIFY_FILE="$(mktemp "$temp_root/wordpress-content-verify.XXXXXX")"
+  chmod 600 "$TEMP_RESPONSE_FILE" "$TEMP_VERIFY_FILE"
+}
+
+json_request_to_file() {
+  local method="$1"
+  local endpoint="$2"
+  local data_file="$3"
+  local output_file="$4"
+  local request_url="$RESOLVED_URL$endpoint"
+  local curl_args=()
+
+  require_curl
+  validate_curl_timeouts
+  build_auth_file
+  curl_args=(
+    --disable
+    --fail-with-body
+    --silent
+    --show-error
+    --connect-timeout "$WORDPRESS_CONNECT_TIMEOUT"
+    --max-time "$WORDPRESS_MAX_TIME"
+    --config "$TEMP_AUTH_FILE"
+    --request "$method"
+    --header "Content-Type: application/json"
+    --output "$output_file"
+  )
+  if [[ -n "$data_file" ]]; then
+    curl_args+=(--data-binary "@$data_file")
+  fi
+  curl "${curl_args[@]}" "$request_url"
+}
+
+check_remote_credentials() {
+  local temp_root="${TMPDIR:-/tmp}"
+
+  require_verbatim_helper
+  TEMP_STATUS_FILE="$(mktemp "$temp_root/wordpress-content-status.XXXXXX")"
+  chmod 600 "$TEMP_STATUS_FILE"
+  if json_request_to_file GET \
+      "/wp-json/wp/v2/users/me?context=edit&_fields=id,username" \
+      "" \
+      "$TEMP_STATUS_FILE" \
+    && python3 "$VERBATIM_HELPER" extract-id "$TEMP_STATUS_FILE" >/dev/null; then
+    CREDENTIALS_VALID="true"
+    return 0
+  fi
+
+  CREDENTIALS_VALID="false"
+  echo "WordPress authentication check failed" >&2
+  return 1
+}
+
+emit_verbatim_result() {
+  local source_file="$1"
+  if [[ -n "$OUTPUT_FILE" ]]; then
+    cp -- "$source_file" "$OUTPUT_FILE"
+    printf 'Saved WordPress response to %s\n' "$OUTPUT_FILE" >&2
+  else
+    command cat -- "$source_file"
+  fi
 }
 
 request_is_write() {
@@ -426,10 +614,11 @@ request_is_write() {
 }
 
 run_request() {
-  local request_url is_write="false"
+  local request_url is_write="false" helper_status
   local curl_args=()
 
-  command -v curl >/dev/null 2>&1 || { echo "Missing required command: curl" >&2; return 1; }
+  require_curl
+  validate_curl_timeouts
 
   METHOD="$(printf '%s' "$METHOD" | tr '[:lower:]' '[:upper:]')"
   case "$METHOD" in
@@ -437,15 +626,7 @@ run_request() {
     *) echo "Unsupported HTTP method: $METHOD" >&2; return 1 ;;
   esac
 
-  if [[ -z "$ENDPOINT" || "$ENDPOINT" != /* || "$ENDPOINT" == *"://"* ]]; then
-    echo "--endpoint must be a relative site path beginning with /" >&2
-    return 1
-  fi
-  validate_single_line "endpoint" "$ENDPOINT"
-  if [[ "$ENDPOINT" == *" "* || "$ENDPOINT" == *$'\t'* ]]; then
-    echo "--endpoint must URL-encode spaces and other query values" >&2
-    return 1
-  fi
+  validate_endpoint "$ENDPOINT"
 
   if [[ -n "$DATA_FILE" && -n "$BINARY_FILE" ]]; then
     echo "--data-file and --binary-file are mutually exclusive" >&2
@@ -459,6 +640,11 @@ run_request() {
     echo "Binary file is not readable: $BINARY_FILE" >&2
     return 1
   fi
+  ensure_distinct_files "--output" "$OUTPUT_FILE" "--data-file" "$DATA_FILE"
+  ensure_distinct_files "--output" "$OUTPUT_FILE" "--binary-file" "$BINARY_FILE"
+  ensure_distinct_files "--headers" "$HEADER_FILE" "--data-file" "$DATA_FILE"
+  ensure_distinct_files "--headers" "$HEADER_FILE" "--binary-file" "$BINARY_FILE"
+  ensure_distinct_files "--output" "$OUTPUT_FILE" "--headers" "$HEADER_FILE"
 
   request_url="$RESOLVED_URL$ENDPOINT"
 
@@ -477,8 +663,31 @@ run_request() {
     return 0
   fi
 
+  if [[ "$is_write" == "true" && -n "$DATA_FILE" && ( -z "$CONTENT_TYPE" || "$CONTENT_TYPE" == application/json* ) ]]; then
+    require_verbatim_helper
+    if python3 "$VERBATIM_HELPER" has-content "$DATA_FILE"; then
+      echo "Generic request refuses executable writes containing content." >&2
+      echo "Use verbatim-create or verbatim-update so the payload is submitted unchanged and content.raw can be checked." >&2
+      return 1
+    else
+      helper_status=$?
+      if [[ "$helper_status" -ne 1 ]]; then
+        return "$helper_status"
+      fi
+    fi
+  fi
+
   build_auth_file
-  curl_args=(--fail-with-body --silent --show-error --config "$TEMP_AUTH_FILE" --request "$METHOD")
+  curl_args=(
+    --disable
+    --fail-with-body
+    --silent
+    --show-error
+    --connect-timeout "$WORDPRESS_CONNECT_TIMEOUT"
+    --max-time "$WORDPRESS_MAX_TIME"
+    --config "$TEMP_AUTH_FILE"
+    --request "$METHOD"
+  )
 
   if [[ -n "$CONTENT_TYPE" ]]; then
     validate_single_line "content type" "$CONTENT_TYPE"
@@ -505,6 +714,131 @@ run_request() {
   curl "${curl_args[@]}" "$request_url"
 }
 
+require_content_payload() {
+  local helper_status
+  if python3 "$VERBATIM_HELPER" has-content "$DATA_FILE"; then
+    return 0
+  else
+    helper_status=$?
+  fi
+  if [[ "$helper_status" -eq 1 ]]; then
+    echo "$DATA_FILE must contain a top-level string field named content" >&2
+  fi
+  return "$helper_status"
+}
+
+validate_verbatim_inputs() {
+  require_verbatim_helper
+  validate_endpoint "$ENDPOINT"
+  if [[ "$ENDPOINT" == *"?"* || "$ENDPOINT" == *"#"* ]]; then
+    echo "Verbatim actions require an endpoint without a query or fragment" >&2
+    return 1
+  fi
+  if [[ -z "$DATA_FILE" || ! -r "$DATA_FILE" ]]; then
+    echo "Verbatim actions require a readable --data-file JSON payload" >&2
+    return 1
+  fi
+  if [[ -n "$BINARY_FILE" ]]; then
+    echo "Verbatim actions do not accept --binary-file" >&2
+    return 1
+  fi
+  ensure_distinct_files "--output" "$OUTPUT_FILE" "--data-file" "$DATA_FILE"
+  ensure_distinct_files "--backup" "$BACKUP_FILE" "--data-file" "$DATA_FILE"
+  ensure_distinct_files "--output" "$OUTPUT_FILE" "--backup" "$BACKUP_FILE"
+  require_content_payload
+}
+
+run_verbatim_create() {
+  local object_id object_endpoint
+
+  validate_verbatim_inputs
+  if [[ "$ENDPOINT" =~ /[0-9]+/?$ ]]; then
+    echo "verbatim-create requires a collection endpoint; use verbatim-update for an object ID" >&2
+    return 1
+  fi
+  allocate_verbatim_temp_files
+
+  if [[ "$DRY_RUN" == "true" || "$EXECUTE" != "true" ]]; then
+    printf 'mode=dry_run\n'
+    printf 'action=verbatim_create\n'
+    printf 'url=%s%s\n' "$RESOLVED_URL" "$ENDPOINT"
+    printf 'payload=submitted_unchanged\n'
+    printf 'verification=advisory\n'
+    return 0
+  fi
+
+  json_request_to_file POST "$ENDPOINT" "$DATA_FILE" "$TEMP_RESPONSE_FILE"
+  emit_verbatim_result "$TEMP_RESPONSE_FILE"
+  if ! python3 "$VERBATIM_HELPER" verify-status "$DATA_FILE" "$TEMP_RESPONSE_FILE"; then
+    printf 'Error: WordPress accepted the request but did not apply the requested publication status.\n' >&2
+    return 1
+  fi
+
+  if ! object_id="$(python3 "$VERBATIM_HELPER" extract-id "$TEMP_RESPONSE_FILE")"; then
+    printf 'Warning: WordPress accepted the request, but the response ID could not be read; skipped advisory content verification.\n' >&2
+    return 0
+  fi
+
+  printf 'wordpress_object_id=%s\n' "$object_id" >&2
+  object_endpoint="${ENDPOINT%/}/$object_id"
+  if ! json_request_to_file GET "$object_endpoint?context=edit" "" "$TEMP_VERIFY_FILE"; then
+    printf 'Warning: WordPress accepted the request, but the published object could not be fetched for advisory verification.\n' >&2
+    return 0
+  fi
+  if ! python3 "$VERBATIM_HELPER" compare "$DATA_FILE" "$TEMP_VERIFY_FILE"; then
+    printf 'Warning: WordPress accepted the request but changed or omitted content.raw; publication was not stopped or rolled back.\n' >&2
+  fi
+  if ! python3 "$VERBATIM_HELPER" verify-status "$DATA_FILE" "$TEMP_VERIFY_FILE"; then
+    printf 'Error: the stored object does not have the requested publication status.\n' >&2
+    return 1
+  fi
+}
+
+run_verbatim_update() {
+  validate_verbatim_inputs
+  if [[ ! "$ENDPOINT" =~ /[0-9]+/?$ ]]; then
+    echo "verbatim-update requires an object endpoint ending in a numeric ID" >&2
+    return 1
+  fi
+
+  if [[ "$DRY_RUN" == "true" || "$EXECUTE" != "true" ]]; then
+    printf 'mode=dry_run\n'
+    printf 'action=verbatim_update\n'
+    printf 'url=%s%s\n' "$RESOLVED_URL" "$ENDPOINT"
+    printf 'payload=submitted_unchanged\n'
+    printf 'verification=advisory\n'
+    printf 'backup_file=%s\n' "${BACKUP_FILE:-required_for_execute}"
+    return 0
+  fi
+
+  if [[ -z "$BACKUP_FILE" ]]; then
+    echo "verbatim-update requires --backup FILE when --execute is used" >&2
+    return 1
+  fi
+  allocate_verbatim_temp_files
+  json_request_to_file GET "$ENDPOINT?context=edit" "" "$BACKUP_FILE"
+  chmod 600 "$BACKUP_FILE"
+  json_request_to_file POST "$ENDPOINT" "$DATA_FILE" "$TEMP_RESPONSE_FILE"
+  printf 'backup_file=%s\n' "$BACKUP_FILE" >&2
+  emit_verbatim_result "$TEMP_RESPONSE_FILE"
+  if ! python3 "$VERBATIM_HELPER" verify-status "$DATA_FILE" "$TEMP_RESPONSE_FILE"; then
+    printf 'Error: WordPress accepted the update but did not apply the requested status. The previous object is saved at %s.\n' "$BACKUP_FILE" >&2
+    return 1
+  fi
+
+  if ! json_request_to_file GET "$ENDPOINT?context=edit" "" "$TEMP_VERIFY_FILE"; then
+    printf 'Warning: WordPress accepted the update, but the object could not be fetched for advisory verification. The previous object is saved at %s.\n' "$BACKUP_FILE" >&2
+    return 0
+  fi
+  if ! python3 "$VERBATIM_HELPER" compare "$DATA_FILE" "$TEMP_VERIFY_FILE"; then
+    printf 'Warning: WordPress accepted the update but changed or omitted content.raw. The previous object is saved at %s; the update was not rolled back.\n' "$BACKUP_FILE" >&2
+  fi
+  if ! python3 "$VERBATIM_HELPER" verify-status "$DATA_FILE" "$TEMP_VERIFY_FILE"; then
+    printf 'Error: the stored object does not have the requested status. The previous object is saved at %s.\n' "$BACKUP_FILE" >&2
+    return 1
+  fi
+}
+
 resolve_credentials
 
 case "$ACTION" in
@@ -512,10 +846,28 @@ case "$ACTION" in
     prompt_missing_credentials
     validate_credentials
     save_config
-    print_status
+    if check_remote_credentials; then
+      print_status
+    else
+      connection_status=$?
+      print_status
+      exit "$connection_status"
+    fi
     ;;
   status)
-    print_status
+    if validate_credentials; then
+      if check_remote_credentials; then
+        print_status
+      else
+        connection_status=$?
+        print_status
+        exit "$connection_status"
+      fi
+    else
+      validation_status=$?
+      print_status
+      exit "$validation_status"
+    fi
     ;;
   clear-config)
     selected_config="$(config_file)"
@@ -531,6 +883,22 @@ case "$ACTION" in
       save_config
     fi
     run_request
+    ;;
+  verbatim-create)
+    prompt_missing_credentials
+    validate_credentials
+    if [[ "$SAVE_CONFIG" == "true" ]]; then
+      save_config
+    fi
+    run_verbatim_create
+    ;;
+  verbatim-update)
+    prompt_missing_credentials
+    validate_credentials
+    if [[ "$SAVE_CONFIG" == "true" ]]; then
+      save_config
+    fi
+    run_verbatim_update
     ;;
   *)
     echo "Unknown action: $ACTION" >&2

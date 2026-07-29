@@ -5,7 +5,7 @@ description: Create, inspect, update, schedule, publish, trash, and bulk-manage 
 
 # WordPress Content
 
-Manage WordPress content exclusively through the built-in REST API. Do not install or invoke WP-CLI. This workflow requires an HTTP client such as `curl`, but does not require local PHP.
+Manage WordPress content exclusively through the built-in REST API. Do not install or invoke WP-CLI. Require `bash`, `curl`, and Python 3; do not require local PHP.
 
 ## Required Inputs
 
@@ -27,8 +27,8 @@ Treat user-supplied body content as authoritative. Before creating or updating a
 - Do not rewrite, summarize, translate, reformat, normalize, or repair supplied content.
 - Do not convert between plain text, Markdown, HTML, Classic content, and Gutenberg blocks unless explicitly requested.
 - Keep title, excerpt, taxonomy, dates, and media assignments separate from the body; do not duplicate them inside `content`.
-- Create new content as a draft, fetch `content.raw`, and compare it with the submitted body before publishing.
-- If WordPress changes or sanitizes the body, keep the new item as a draft and report the mismatch instead of claiming exact publication.
+- Use `verbatim-create` or `verbatim-update` for every body write; the generic `request` action refuses executable JSON writes containing `content`.
+- Submit the user's payload without changing its requested status. If WordPress changes or sanitizes the body, report the mismatch as a warning; do not stop, unpublish, return to draft, or roll back solely because of that difference.
 
 Verbatim source preservation does not copy the originating application's CSS or override the WordPress theme. Treat visual fidelity as a separate, explicit styling task.
 
@@ -40,7 +40,7 @@ Prefer the bundled wrapper for configuration and authenticated requests:
 bash <skill-path>/scripts/wordpress_rest.sh status
 ```
 
-On first use, run `status`. If any credential is missing, direct the user to the [Frevana WordPress Integration guide](https://frevana.gitbook.io/frevana-docs/cms-integrations/wordpress-integration) to obtain the site URL, username, and Application Password. The wrapper prints this guide automatically for incomplete configuration. Do not invent these values.
+On first use, run `status`. It checks local configuration and authenticates against `/wp-json/wp/v2/users/me`. If any credential is missing, direct the user to the [Frevana WordPress Integration guide](https://frevana.gitbook.io/frevana-docs/cms-integrations/wordpress-integration) to obtain the site URL, username, and Application Password. The wrapper prints this guide automatically for incomplete configuration. Do not invent these values.
 
 Resolve each value independently in this order:
 
@@ -92,6 +92,8 @@ bash <skill-path>/scripts/wordpress_rest.sh clear-config
 
 Treat the Application Password as a secret. Never print it, persist it in repository files, include it in URLs, or expose a generated Authorization header.
 
+Requests ignore the user's default `.curlrc` and use connection and total timeouts. Override the defaults only when needed with `WORDPRESS_CONNECT_TIMEOUT` and `WORDPRESS_MAX_TIME`.
+
 ## Request Wrapper
 
 Use the wrapper for real requests so configuration, environment variables, and interactive input all work consistently:
@@ -112,7 +114,9 @@ bash <skill-path>/scripts/wordpress_rest.sh request \
 
 After reviewing the redacted plan, add `--execute` to perform the write. Use `--binary-file`, `--content-type`, and `--filename` for media uploads. Use `--headers` and `--output` for pagination or saved responses.
 
-The direct `curl` examples below show the underlying REST request shape and assume the three environment variables are already populated. Prefer the wrapper when values may come from the local config or an interactive prompt.
+For body content, use `verbatim-create` or `verbatim-update` instead. These actions dry-run by default, submit the supplied JSON unchanged, and perform an advisory `content.raw` comparison through the bundled Python helper.
+
+The read-only direct `curl` examples below show the underlying REST request shape and assume the three environment variables are already populated. Use the wrapper for every write.
 
 ## Connect and Discover
 
@@ -148,13 +152,13 @@ WordPress plugins, themes, versions, permissions, and custom post-type registrat
 
 ## Safety Contract
 
-Before every write:
+Before modifying or deleting an existing object:
 
 1. Fetch the current object with `context=edit`.
 2. Record its ID, type, slug, status, modified time, and fields being changed.
 3. Send only fields that must change.
 4. Preserve the current editor format and unrelated plugin-managed fields.
-5. Create new editorial content as `draft` unless another status was explicitly requested.
+5. Preserve the status in the approved payload; do not force a draft or add a second publication step.
 6. Preview exact targets for publishing, scheduling, navigation changes, taxonomy renames, deletes, and bulk updates.
 7. Trash posts and pages by default. Use `force=true` only when permanent deletion was explicitly requested.
 8. Verify the response and fetch the object again after each write.
@@ -220,12 +224,12 @@ Example post payload:
 Create the post:
 
 ```bash
-curl --fail-with-body --silent --show-error \
-  --user "$WORDPRESS_USERNAME:$WORDPRESS_APP_PASSWORD" \
-  --header "Content-Type: application/json" \
-  --data-binary @/absolute/path/post.json \
-  "$WORDPRESS_URL/wp-json/wp/v2/posts"
+bash <skill-path>/scripts/wordpress_rest.sh verbatim-create \
+  --endpoint "/wp-json/wp/v2/posts" \
+  --data-file /absolute/path/post.json
 ```
+
+Review the dry-run, then add `--execute`. The action sends the payload file directly, including its original `content` and requested `status`. A `content.raw` mismatch is only a warning and never triggers an automatic status change or rollback. A requested publication status that was not applied is a real failure.
 
 Create a page by sending the appropriate payload to `/wp-json/wp/v2/pages`. Page-specific fields can include `parent`, `menu_order`, and `template` when supported by the endpoint schema.
 
@@ -252,15 +256,13 @@ Prepare a minimal update payload, for example:
 Update:
 
 ```bash
-curl --fail-with-body --silent --show-error \
-  --request POST \
-  --user "$WORDPRESS_USERNAME:$WORDPRESS_APP_PASSWORD" \
-  --header "Content-Type: application/json" \
-  --data-binary @/absolute/path/post-update.json \
-  "$WORDPRESS_URL/wp-json/wp/v2/posts/123"
+bash <skill-path>/scripts/wordpress_rest.sh request \
+  --method POST \
+  --endpoint "/wp-json/wp/v2/posts/123" \
+  --data-file /absolute/path/post-update.json
 ```
 
-Do not resend `content` unless content is intended to change.
+Review the dry-run, then add `--execute`. Do not resend `content` unless content is intended to change. When the update includes `content`, use `verbatim-update` with `--backup /absolute/path/post-123-before.json` instead.
 
 ## Gutenberg Blocks
 
@@ -322,13 +324,15 @@ POST the payload to the exact post or page endpoint, then verify `status`, `date
 Upload binary media:
 
 ```bash
-curl --fail-with-body --silent --show-error \
-  --user "$WORDPRESS_USERNAME:$WORDPRESS_APP_PASSWORD" \
-  --header "Content-Disposition: attachment; filename=hero.jpg" \
-  --header "Content-Type: image/jpeg" \
-  --data-binary @/absolute/path/hero.jpg \
-  "$WORDPRESS_URL/wp-json/wp/v2/media"
+bash <skill-path>/scripts/wordpress_rest.sh request \
+  --method POST \
+  --endpoint "/wp-json/wp/v2/media" \
+  --binary-file /absolute/path/hero.jpg \
+  --content-type "image/jpeg" \
+  --filename "hero.jpg"
 ```
+
+Review the dry-run, then add `--execute`.
 
 Capture the returned media `id`. Then update its metadata:
 
@@ -410,19 +414,17 @@ Read the current menu and all affected items before reordering or deleting. Send
 Trash a post or page:
 
 ```bash
-curl --fail-with-body --silent --show-error \
-  --request DELETE \
-  --user "$WORDPRESS_USERNAME:$WORDPRESS_APP_PASSWORD" \
-  "$WORDPRESS_URL/wp-json/wp/v2/posts/123"
+bash <skill-path>/scripts/wordpress_rest.sh request \
+  --method DELETE \
+  --endpoint "/wp-json/wp/v2/posts/123"
 ```
 
 Bypass Trash only after explicit approval:
 
 ```bash
-curl --fail-with-body --silent --show-error \
-  --request DELETE \
-  --user "$WORDPRESS_USERNAME:$WORDPRESS_APP_PASSWORD" \
-  "$WORDPRESS_URL/wp-json/wp/v2/posts/123?force=true"
+bash <skill-path>/scripts/wordpress_rest.sh request \
+  --method DELETE \
+  --endpoint "/wp-json/wp/v2/posts/123?force=true"
 ```
 
 Restore trashed editorial content by POSTing `{"status":"draft"}` when the endpoint and permissions support it.

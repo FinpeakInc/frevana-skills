@@ -17,6 +17,7 @@ This repository contains reusable skills for four main workflow families:
 - SendGrid Email Logs workflows for per-message activity, opened/clicked checks, and status lookups
 - Slack Incoming Webhook workflows for posting Slack messages and notifications
 - Telegram Bot API workflows for bot inspection, messaging, updates, webhooks, commands, and chat/message management
+- WordPress content workflows through the built-in REST API for posts, pages, media, taxonomies, menus, scheduling, and bulk operations
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
@@ -59,6 +60,10 @@ skills/
   amazon-keyword-search-volume/
     SKILL.md
     scripts/get_search_volume.sh
+  amazon-related-keywords/
+    SKILL.md
+    agents/openai.yaml
+    scripts/search_amazon_related_keywords.sh
   amazon-rufus-ai/
     SKILL.md
     scripts/setup.sh
@@ -203,6 +208,13 @@ skills/
   telegram-bot/
     SKILL.md
     scripts/telegram_bot.sh
+  wordpress-content/
+    SKILL.md
+    agents/openai.yaml
+    references/verbatim-publishing.md
+    scripts/wordpress_rest.sh
+    scripts/wordpress_verbatim.py
+    tests/test_wordpress_rest.sh
   instantly-send-email/
     SKILL.md
     scripts/lead.sh
@@ -479,6 +491,40 @@ Supported marketplaces are limited to:
 - United States
 
 If the user asks for an unsupported marketplace, stop and say that the skill only supports the listed marketplaces.
+
+### Use `amazon-related-keywords`
+
+Route here when the user wants:
+
+- related Amazon keywords from one seed keyword
+- Amazon keyword expansion or related search terms
+- synonym-aware Amazon keyword ideas
+- paginated Amazon related-keyword results
+- keyword clusters for Amazon SEO, PPC, or listing optimization
+- to call the Frevana Amazon related-keywords endpoint
+
+Required input:
+
+- `keyword`
+
+Optional input:
+
+- one of `location_name` or `location_code` when overriding the default location
+- one of `language_name` or `language_code` when overriding the default language
+- `limit`
+- `offset`
+- `tag`
+- `depth`
+- `include_seed_keyword`
+- `ignore_synonyms`
+- output file path override
+- one-time token override
+
+Normalize `keyword` to lowercase. If location is missing, default to `location_name=United States`. If language is missing, default to `language_name=English`. State these defaults in the user-facing response when relevant. Default `limit=1000`, `offset=0`, and `depth=4` to maximize coverage. Let the API apply `include_seed_keyword=false` and `ignore_synonyms=false` when omitted.
+
+Validate `limit` as `1..1000`, `offset` as at least `0`, `depth` as `0..4`, and `tag` as no more than 255 characters. Do not pass unsupported fields or local-only values such as tokens and output paths in the request payload.
+
+When a page contains `limit` items, automatically increase `offset` by `limit` and continue. Stop when a page is not full or `total_count` is reached. Preserve each raw response page under the aggregate output's `pages` array. The script saves the aggregate JSON by default, so use that file for follow-up parsing instead of calling the API again.
 
 ### Use `ebay-search`
 
@@ -1276,6 +1322,51 @@ Important behavior:
 - Prefer structured commands over `raw-sql`.
 - Do not invent table or column names. Run `schema` first when uncertain.
 - The local `sqlite3` client is required and should support JSON output mode.
+
+### Use `wordpress-content`
+
+Route here when the user wants:
+
+- to create, inspect, update, schedule, publish, or trash WordPress posts, pages, or custom post types
+- to upload WordPress media, set featured images, or edit media metadata
+- to manage WordPress categories, tags, custom taxonomies, post meta, or custom fields
+- to manage classic navigation menus or inspect block-theme navigation
+- to preserve or edit Gutenberg block content
+- to perform a scoped WordPress bulk content update through REST endpoints
+- to use the WordPress REST API for content management without local PHP or WP-CLI
+
+Required input:
+
+- an HTTPS WordPress site URL, resolved from explicit input, environment, config, or an interactive prompt
+- the requested operation and enough content details to perform it
+- the exact object ID for changes to existing objects; when only a title or search term is provided, search and resolve ambiguity before writing
+- for authenticated REST operations, a WordPress username and Application Password resolved through the same supported sources
+
+Important behavior:
+
+- Use the built-in WordPress REST API directly. Do not install or invoke WP-CLI, and do not require local PHP.
+- Require `bash`, `curl`, and Python 3 for the deterministic verbatim publishing helper.
+- Prefer `skills/wordpress-content/scripts/wordpress_rest.sh` over ad hoc authenticated `curl`.
+- Run its `status` action on first use; it must authenticate against the current-user REST endpoint rather than treating the presence of credential strings as proof of validity.
+- Publish user-supplied body content without local rewriting or format conversion. Read `skills/wordpress-content/references/verbatim-publishing.md` before body writes and use `verbatim-create` or `verbatim-update`; never use generic `request` or direct `curl` for body writes.
+- Resolve `WORDPRESS_URL`, `WORDPRESS_USERNAME`, and `WORDPRESS_APP_PASSWORD` independently in this order: explicit `--url`/`--username`/`--app-password`, environment variables, local config file, then interactive prompt when a terminal is available.
+- If any credential is missing, direct the user to `https://frevana.gitbook.io/frevana-docs/cms-integrations/wordpress-integration` to obtain the required values; do not invent them.
+- Use `${WORDPRESS_CONFIG_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/wordpress-content/config}` by default, or `--config FILE` / `WORDPRESS_CONFIG_FILE` when overridden.
+- Save configuration only through the explicit `configure` action or `--save-config`. Keep the directory at `0700` and the file at `0600`; never print the Application Password.
+- GET, HEAD, and OPTIONS may execute immediately. POST, PUT, PATCH, and DELETE must dry-run by default and require `--execute`.
+- Inspect the REST index and use `OPTIONS` before relying on site-specific, custom-post-type, meta, menu, or navigation routes.
+- Use `curl --fail-with-body --silent --show-error` or an equivalent HTTP client so WordPress JSON errors remain visible.
+- Read the current object before updating it and verify the result after every write.
+- Submit new body content and its requested status directly through the deterministic helper. Compare the returned `content.raw` when possible, but treat mismatches as warnings; do not stop, change status, or roll back an otherwise successful request solely because WordPress stored a different representation.
+- Treat a requested publication status that WordPress did not apply as a real failure. The lenient mismatch rule applies only to the stored body representation.
+- Preserve Gutenberg block comments and the site's existing editor format. Do not convert block content to Classic HTML or vice versa unless requested.
+- Resolve exact IDs before writes. Do not guess a post, page, media, term, or menu item ID from a title alone.
+- Treat publishing, scheduling, navigation changes, taxonomy renames, deletes, and bulk updates as externally visible actions. Preview exact targets when they are not already unambiguous.
+- Trash by default. Permanently delete only when the user explicitly requests it.
+- For bulk writes, build an explicit endpoint-and-ID target list, send minimal payloads, stop on the first unexpected error, and verify every changed object.
+- For REST, use HTTPS and Application Passwords. Never use, print, or persist the user's interactive WordPress password.
+- For scheduled content, inspect `/wp-json/wp/v2/settings` when permitted; otherwise ask for the intended timezone instead of guessing.
+- Discover `/wp-json/wp/v2/menus`, `/menu-items`, `/menu-locations`, and `/navigation` before managing classic or block-theme navigation.
 
 ### Use `sendgrid-send-email`
 
@@ -2097,14 +2188,14 @@ For `frevana-auth`:
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `amazon-related-keywords`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
 3. Let the script use `FREVANA_TOKEN` from the environment first.
 4. In non-interactive agent runs, fail fast if the token is missing.
 5. Return either the raw JSON payload or a summary, depending on what the user asked for.
-6. For `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
+6. For `amazon-related-keywords`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, and `google-immersive-product`, rely on the default saved JSON file or pass `--output` only to choose a specific path. Do not call the script twice just to save and summarize results.
 7. For the other skills, save output with `--output` when a file is useful.
 
 ### SendGrid email sending
@@ -2460,6 +2551,7 @@ Use these paths when executing repo scripts:
 bash skills/amazon-search/scripts/search_amazon.sh
 bash skills/amazon-product/scripts/fetch_product.sh
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh
+bash skills/amazon-related-keywords/scripts/search_amazon_related_keywords.sh
 bash skills/ebay-search/scripts/search_ebay.sh
 bash skills/home-depot-search/scripts/search_home_depot.sh
 bash skills/walmart-search/scripts/search_walmart.sh
@@ -2484,6 +2576,7 @@ bash skills/youtube-search/scripts/search_youtube.sh
 bash skills/sendgrid-send-email/scripts/send_email.sh
 bash skills/slack-webhook/scripts/send_slack_webhook.sh
 bash skills/telegram-bot/scripts/telegram_bot.sh
+bash skills/wordpress-content/scripts/wordpress_rest.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
@@ -2535,6 +2628,13 @@ bash skills/amazon-product/scripts/fetch_product.sh \
 bash skills/amazon-keyword-search-volume/scripts/get_search_volume.sh \
   --keywords "wireless earbuds,gaming headset" \
   --location-name "United States"
+```
+
+### Amazon related keywords
+
+```bash
+bash skills/amazon-related-keywords/scripts/search_amazon_related_keywords.sh \
+  --keyword "wireless earbuds"
 ```
 
 ### eBay search

@@ -2,6 +2,8 @@
 
 Use this contract whenever a WordPress create or update operation includes body content.
 
+Use `wordpress_rest.sh verbatim-create` for new objects and `wordpress_rest.sh verbatim-update` for existing objects. Do not use the generic `request` action or direct `curl` for body writes.
+
 ## Source Is Authoritative
 
 Preserve the supplied body after JSON decoding as the canonical source:
@@ -28,24 +30,23 @@ Preserve the detected or declared source format:
 
 Never convert one format into another merely because the destination is WordPress.
 
-## Exactness Preflight
+## Publish and Advisory Verification
 
 For a new post, page, or custom post type:
 
-1. Save the supplied body as the comparison source.
-2. Create the object with `status=draft`, even when the final requested state is `publish` or `future`.
-3. Fetch the new object with `context=edit` and read `content.raw`.
-4. Compare the returned raw string with the submitted body after JSON decoding.
-5. Publish or schedule only when they match exactly.
-6. If they differ, keep the object as a draft, identify the first difference when practical, and report that WordPress transformed or sanitized the body.
+1. Save the supplied body in the JSON payload.
+2. Run `verbatim-create` without `--execute` and review the plan.
+3. Add `--execute`; the wrapper submits that JSON file directly without changing its `content`, `status`, or other fields.
+4. The wrapper then fetches `content.raw` and compares it after JSON decoding when possible.
+5. If they differ, report that WordPress transformed or sanitized the body. Treat this as a warning: do not stop, unpublish, return to draft, or roll back an otherwise successful request.
+6. Verify the requested `status` separately. A request for `publish` that remains `draft` is a publication failure, not a body-format mismatch.
 
 For an existing object:
 
-1. Fetch and save its current editable representation before writing.
-2. Preview the exact replacement body and target ID.
-3. Update only after the user's request authorizes that exact replacement.
-4. Fetch `content.raw` immediately and compare it with the submitted source.
-5. If they differ, report the mismatch and offer restoration from the saved representation. Do not silently rewrite or automatically roll back without authorization.
+1. Run `verbatim-update` with the exact object endpoint, payload, and `--backup FILE`.
+2. Review the dry-run, then add `--execute`.
+3. Let the wrapper save the editable object, update it, fetch `content.raw`, and compare it with the submitted source.
+4. If they differ, report the mismatch and the backup location. Do not fail or automatically roll back an otherwise successful update.
 
 Do not use rendered `content.rendered` for equality checks.
 
@@ -55,10 +56,13 @@ WordPress core, user capabilities, KSES filtering, plugins, or block validation 
 
 When a mismatch occurs:
 
-- report that exact preservation failed
+- report that WordPress stored a different raw representation
 - distinguish server sanitization from local conversion
 - show a concise structural diff without exposing secrets
-- do not claim the content was published exactly
+- do not treat the difference alone as a publication failure
+- do not automatically change status or roll back
+
+These lenient rules apply only to body representation. Authentication errors, HTTP errors, and a requested publication status that was not applied remain failures.
 
 ## Visual Fidelity
 

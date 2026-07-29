@@ -10,3 +10,4 @@ build/
 out
 ssim.sh
 .claude
+.ruff_cache/
