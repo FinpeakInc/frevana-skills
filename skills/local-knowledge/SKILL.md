@@ -47,15 +47,20 @@ Installed by `doctor --install` into a skill-owned virtual environment:
 
 - core packages listed in `requirements/base.txt`
 
-Optional document parsing dependencies installed by the same command:
+Default document parsing dependencies installed by the same command:
 
 - document packages listed in `requirements/docs.txt`
+- `pypdf` for `.pdf`
+- `python-docx` for `.docx`
+- `openpyxl` for `.xlsx`
 
 Optional multimodal dependencies installed only when requested:
 
 - multimodal packages listed in `requirements/multimodal.txt`
 
 Dependency files are maintained separately so they can be versioned, downloaded, mirrored, or packaged without editing the installer script.
+Requirements use compatible major-version ranges so normal patch and minor
+updates remain available without silently accepting breaking major releases.
 
 To pre-download dependencies into a local wheelhouse:
 
@@ -104,7 +109,42 @@ bash <skill-path>/scripts/local_knowledge.sh doctor --mode multimodal
 bash <skill-path>/scripts/local_knowledge.sh doctor --install
 ```
 
-This creates or reuses `~/.local/share/local-knowledge/venv`.
+This creates or reuses `~/.local/share/local-knowledge/venv`. Document
+dependencies are installed by default, so the resulting environment supports
+`.pdf`, `.docx`, and `.xlsx`. Use `--no-docs` only when the user explicitly
+wants a text-only installation.
+
+### Automatic Dependency Bootstrap
+
+The `local_knowledge.sh` wrapper automatically bootstraps dependencies before
+every `index`, `search`, or `ask` command when the skill-owned environment is
+missing required modules:
+
+1. Install required core dependencies when they are missing.
+2. Attempt to install the default PDF, DOCX, and XLSX parsers when they are
+   missing.
+3. Continue with the requested command after the installation attempt; stop
+   only if required core dependencies are still unavailable.
+
+Do not wait for the indexing command to skip `.pdf`, `.docx`, or `.xlsx`
+files before installing the default dependencies. The installation may
+download Python packages, so clearly relay any tool approval request or
+installation failure to the user.
+
+Core dependency installation is required for indexing and remains fatal if it
+fails. Document parser installation is best-effort: if `pypdf`,
+`python-docx`, or `openpyxl` cannot be installed, warn but do not stop the
+workflow. Continue with the requested indexing or query operation. Unavailable
+document types are reported in `skipped`, while every other supported and
+readable file continues to be indexed. Each wrapper invocation makes at most
+one document installation attempt.
+
+Dependency checks perform real imports rather than only checking whether a
+module path exists. A broken core import triggers one repair attempt; a broken
+document-parser import follows the same best-effort installation and degraded
+behavior as a missing parser.
+
+Multimodal dependencies remain opt-in and must not be installed automatically.
 
 Install multimodal dependencies only when the user explicitly wants multimodal indexing:
 
@@ -302,7 +342,9 @@ Use returned source paths and line spans when citing context in the final answer
 
 - Prefer `search` when the user wants raw local evidence.
 - Prefer `ask` when the user asks a natural-language question and the calling agent should answer from retrieved context.
-- Run `doctor --install` before indexing if dependencies are missing.
+- The wrapper automatically checks and bootstraps dependencies for `index`, `search`, and `ask`; do not add a second manual installation attempt in the same user request.
+- A default `doctor --install` includes `.pdf`, `.docx`, and `.xlsx` support; do not pass `--no-docs` unless the user explicitly requests a text-only environment.
+- Treat document parser installation failures as non-fatal: warn once, continue indexing, and report affected files through `skipped`. Core dependency failures remain fatal.
 - Use `--auto-index` on `search` or `ask` when the user expects the skill to create or refresh the folder index automatically.
 - Use `--max-file-mb` and `--max-files` when indexing very large folders.
 - If the user asks for a non-default model, pass it through with `--model`.

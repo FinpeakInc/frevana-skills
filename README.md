@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Lark/Feishu CLI setup, Frevana-backed HTTP API lookups, Chrome Extension workflows, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Lark/Feishu CLI setup, Frevana-backed HTTP API lookups, Chrome Extension workflows, WordPress content management, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -41,6 +41,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Amazon | [`amazon-search`](skills/amazon-search/SKILL.md) | Amazon product search and discovery | keyword |
 | Amazon | [`amazon-product`](skills/amazon-product/SKILL.md) | Amazon product detail lookup | ASIN |
 | Amazon | [`amazon-keyword-search-volume`](skills/amazon-keyword-search-volume/SKILL.md) | Amazon keyword demand and comparison | one or more keywords |
+| Amazon | [`amazon-related-keywords`](skills/amazon-related-keywords/SKILL.md) | Related Amazon keyword expansion | keyword |
 | Marketplace | [`ebay-search`](skills/ebay-search/SKILL.md) | eBay listing search by keyword or category | query or category ID |
 | Marketplace | [`home-depot-search`](skills/home-depot-search/SKILL.md) | Home Depot product search | query |
 | Walmart | [`walmart-search`](skills/walmart-search/SKILL.md) | Walmart product search and filtering | query |
@@ -120,6 +121,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
+| CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
 | Email | [`sendgrid-email-log`](skills/sendgrid-email-log/SKILL.md) | Query SendGrid Email Logs and per-message detail | full `sg_message_id`, or recipient/time/message ID |
 | Email | [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md) | Retrieve aggregate SendGrid email statistics | start date |
@@ -218,6 +220,36 @@ Features:
 - verifies auth with `lark-cli auth status`
 - documents `user` versus `bot` identity and JSON output handling
 
+### [`wordpress-content`](skills/wordpress-content/SKILL.md)
+
+Manage WordPress editorial content directly through the built-in REST API.
+
+Use when:
+
+- you need to create, inspect, update, schedule, publish, or trash WordPress posts and pages
+- you need to upload media, set a featured image, or manage categories, tags, custom fields, and navigation menus
+- you need to preserve or edit Gutenberg block markup
+- you need a guarded bulk content update through REST endpoints
+
+Features:
+
+- requires no local PHP or WP-CLI installation
+- authenticates through HTTPS with a WordPress Application Password
+- resolves site URL, username, and Application Password from explicit input, environment variables, or a protected local config file
+- verifies configured credentials against the authenticated WordPress user endpoint
+- links to the Frevana WordPress setup guide when first-use configuration is missing or incomplete
+- submits supplied body content without local rewriting or format conversion and checks the returned `content.raw` after publication
+- provides dedicated `verbatim-create` and `verbatim-update` actions; generic executable requests reject JSON body writes
+- provides interactive configuration with hidden password input and `0600` config permissions
+- dry-runs REST writes by default through the bundled request wrapper
+- discovers the target site's available routes and schemas before using optional endpoints
+- preserves the status in the approved payload; body differences are warnings, while a requested publication status that was not applied is reported as a failure
+- preserves plain text, Markdown, HTML, Gutenberg block comments, shortcodes, and plugin-managed markup without automatic conversion
+- supports REST-enabled custom post types, classic menus, and block-theme navigation
+- builds an explicit, reviewable target list before bulk writes
+- trashes by default and requires explicit intent for permanent deletion
+- never stores or prints WordPress credentials
+
 ### [`amazon-search`](skills/amazon-search/SKILL.md)
 
 Search Amazon products by keyword.
@@ -268,6 +300,27 @@ Features:
 - defaults to `United States / English` when marketplace is not specified
 - supported marketplaces: Australia, Austria, Canada, Egypt, France, Germany, India, Italy, Mexico, Netherlands, Saudi Arabia, Singapore, Spain, United Arab Emirates, United Kingdom, United States
 - save results with `--output`
+
+### [`amazon-related-keywords`](skills/amazon-related-keywords/SKILL.md)
+
+Expand one seed keyword into related Amazon keywords.
+
+Use when:
+
+- you want Amazon keyword ideas or related search terms
+- you want synonym-aware keyword expansion
+- you need related-keyword pagination for SEO, PPC, or listing research
+
+Features:
+
+- defaults to `United States / English` when location or language is missing
+- accepts a location name or DataForSEO location code
+- accepts a language name or DataForSEO language code
+- defaults to maximum search depth `4` and page size `1000`
+- automatically advances `offset` while full pages are returned
+- supports custom result limits, starting offsets, seed inclusion, and synonym filtering
+- normalizes the seed keyword to lowercase
+- preserves every raw response page in one aggregate JSON saved to `./out/`
 
 ### Amazon Chrome Extension Skills
 

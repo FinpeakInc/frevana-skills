@@ -32,7 +32,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
         "venv_dir": str(args.venv_dir) if args.venv_dir else None,
     }
     text_modules = ("chromadb", "sentence_transformers", "socksio")
-    docs_modules = ("pypdf", "docx", "openpyxl", "bs4")
+    docs_modules = ("pypdf", "docx", "openpyxl")
     multimodal_modules = ("PIL", "transformers", "qwen_vl_utils", "timm", "einops", "accelerate")
     modules = (
         *text_modules,
@@ -48,18 +48,30 @@ def cmd_doctor(args: argparse.Namespace) -> None:
     text_ok = all(bool(checks[module]) for module in text_modules)
     docs_ok = all(bool(checks[module]) for module in docs_modules)
     multimodal_ok = text_ok and all(bool(checks[module]) for module in multimodal_modules)
-    ok = multimodal_ok if mode == "multimodal" else text_ok
-    message = (
-        "Run doctor --install --with-multimodal if multimodal_ok is false."
-        if mode == "multimodal"
-        else "Run doctor --install if text_ok is false."
-    )
+    docs_required = args.docs
+    usable = multimodal_ok if mode == "multimodal" else text_ok
+    degraded = usable and docs_required and not docs_ok
+    ok = usable
+    if mode == "multimodal" and not usable:
+        message = "Run doctor --install --with-multimodal."
+    elif not usable:
+        message = "Run doctor --install."
+    elif degraded:
+        message = (
+            "Environment is ready with reduced document support. "
+            "Unavailable PDF, DOCX, or XLSX files will be skipped."
+        )
+    else:
+        message = "Environment is ready."
     data = {
         "operation": "doctor",
         "skill": SKILL,
         "mode": mode,
         "ok": ok,
+        "usable": usable,
+        "degraded": degraded,
         "text_ok": text_ok,
+        "docs_required": docs_required,
         "docs_ok": docs_ok,
         "multimodal_ok": multimodal_ok,
         "checks": checks,

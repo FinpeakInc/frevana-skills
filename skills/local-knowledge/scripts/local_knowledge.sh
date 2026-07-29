@@ -53,20 +53,87 @@ create_venv() {
   fi
 }
 
-install_deps() {
-  local with_docs="$1"
-  local with_multimodal="$2"
+install_core_deps() {
   create_venv
   [[ -f "$BASE_REQUIREMENTS" ]] || die "Missing requirements file: $BASE_REQUIREMENTS"
   "$(venv_python)" -m pip install --upgrade pip
   "$(venv_python)" -m pip install -r "$BASE_REQUIREMENTS"
+}
+
+install_document_deps() {
+  create_venv
+  if [[ ! -f "$DOCS_REQUIREMENTS" ]]; then
+    echo "Warning: missing document requirements file: $DOCS_REQUIREMENTS" >&2
+    echo "Warning: continuing without some or all PDF, DOCX, and XLSX support." >&2
+  elif ! "$(venv_python)" -m pip install -r "$DOCS_REQUIREMENTS"; then
+    echo "Warning: document dependency installation failed." >&2
+    echo "Warning: continuing without some or all PDF, DOCX, and XLSX support." >&2
+  fi
+}
+
+install_multimodal_deps() {
+  create_venv
+  [[ -f "$MULTIMODAL_REQUIREMENTS" ]] || die "Missing requirements file: $MULTIMODAL_REQUIREMENTS"
+  "$(venv_python)" -m pip install -r "$MULTIMODAL_REQUIREMENTS"
+}
+
+install_deps() {
+  local with_docs="$1"
+  local with_multimodal="$2"
+  install_core_deps
   if [[ "$with_docs" == "true" ]]; then
-    [[ -f "$DOCS_REQUIREMENTS" ]] || die "Missing requirements file: $DOCS_REQUIREMENTS"
-    "$(venv_python)" -m pip install -r "$DOCS_REQUIREMENTS"
+    install_document_deps
   fi
   if [[ "$with_multimodal" == "true" ]]; then
-    [[ -f "$MULTIMODAL_REQUIREMENTS" ]] || die "Missing requirements file: $MULTIMODAL_REQUIREMENTS"
-    "$(venv_python)" -m pip install -r "$MULTIMODAL_REQUIREMENTS"
+    install_multimodal_deps
+  fi
+}
+
+python_has_modules() {
+  local python="$1"
+  shift
+  "$python" -c \
+    'import importlib, sys
+for name in sys.argv[1:]:
+    try:
+        importlib.import_module(name)
+    except Exception:
+        sys.exit(1)' \
+    "$@"
+}
+
+bootstrap_default_deps() {
+  local python
+  local core_ok=false
+  local docs_ok=false
+
+  if [[ ! -x "$(venv_python)" ]]; then
+    echo "Local Knowledge dependencies are not installed; bootstrapping them now." >&2
+    install_deps true false
+  else
+    python="$(venv_python)"
+    if python_has_modules "$python" chromadb sentence_transformers socksio; then
+      core_ok=true
+    fi
+    if python_has_modules "$python" pypdf docx openpyxl; then
+      docs_ok=true
+    fi
+    if [[ "$core_ok" == "false" ]]; then
+      echo "Core Local Knowledge dependencies are missing; installing them now." >&2
+      install_core_deps
+    fi
+    if [[ "$docs_ok" == "false" ]]; then
+      echo "Document parsers are missing; attempting to install them now." >&2
+      install_document_deps
+    fi
+  fi
+
+  python="$(venv_python)"
+  if ! python_has_modules "$python" chromadb sentence_transformers socksio; then
+    die "Core Local Knowledge dependencies are unavailable after installation."
+  fi
+  if ! python_has_modules "$python" pypdf docx openpyxl; then
+    echo "Warning: continuing in degraded mode; unavailable PDF, DOCX, or XLSX files will be skipped." >&2
   fi
 }
 
@@ -150,9 +217,17 @@ case "$cmd" in
     if [[ "$INSTALL" == "true" ]]; then
       install_deps "$WITH_DOCS" "$WITH_MULTIMODAL"
     fi
+    if [[ "$WITH_DOCS" == "false" ]]; then
+      REST+=("--no-docs")
+    fi
     run_python doctor --data-dir "$DATA_DIR" --venv-dir "$VENV_DIR" "${REST[@]}"
     ;;
-  index|search|ask|status|delete)
+  index|search|ask)
+    configure_paths_from_args "$@"
+    bootstrap_default_deps
+    run_python "$cmd" --data-dir "$DATA_DIR" "$@"
+    ;;
+  status|delete)
     configure_paths_from_args "$@"
     run_python "$cmd" --data-dir "$DATA_DIR" "$@"
     ;;

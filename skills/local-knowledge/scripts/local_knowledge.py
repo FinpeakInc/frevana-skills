@@ -34,6 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("doctor")
     add_common(p)
     p.add_argument("--mode", choices=("text", "multimodal"), default=DEFAULT_MODE)
+    p.add_argument("--no-docs", dest="docs", action="store_false")
+    p.set_defaults(docs=True)
     p.set_defaults(func=cmd_doctor)
 
     p = sub.add_parser("index")
