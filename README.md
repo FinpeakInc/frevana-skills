@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Lark/Feishu CLI setup, Frevana-backed HTTP API lookups, Chrome Extension workflows, WordPress content management, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, MySQL/PostgreSQL/Redis CRUD, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Lark/Feishu and Snowflake CLI workflows, Frevana-backed HTTP API lookups, Chrome Extension workflows, WordPress content management, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, database operations, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -111,6 +111,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | --- | --- | --- | --- |
 | Database | [`mysql-crud`](skills/mysql-crud/SKILL.md) | MySQL CRUD with saved profiles and SSH support | saved profile or connection details |
 | Database | [`postgresql-crud`](skills/postgresql-crud/SKILL.md) | PostgreSQL CRUD with saved profiles and SSH support | saved profile or connection details |
+| Data warehouse | [`snowflake`](skills/snowflake/SKILL.md) | Snowflake connections, safe SQL, objects, and CLI workloads | connection plus SQL or requested object/workload |
 | Database | [`redis-crud`](skills/redis-crud/SKILL.md) | Redis key operations with saved profiles and SSH support | saved profile or connection details |
 | Database | [`mongodb-crud`](skills/mongodb-crud/SKILL.md) | MongoDB document operations with saved profiles and SSH support | saved profile or connection details |
 | Database | [`sqlite-crud`](skills/sqlite-crud/SKILL.md) | SQLite local file CRUD with saved profiles | local SQLite file path |

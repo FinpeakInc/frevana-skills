@@ -1,0 +1,4 @@
+interface:
+  display_name: "Snowflake"
+  short_description: "Set up PAT auth and safely operate Snowflake."
+  default_prompt: "Use $snowflake to initialize a PAT connection from environment variables or safely operate Snowflake."

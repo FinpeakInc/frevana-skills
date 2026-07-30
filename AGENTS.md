@@ -23,6 +23,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana AI Factory API workflows for image generation and HTML generation
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
+- Snowflake CLI workflows for connection management, safe SQL execution, object inspection and mutation, and specialized Snowflake workload or application operations
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -232,6 +233,12 @@ skills/
     SKILL.md
     agents/openai.yaml
     scripts/postgresql_crud.sh
+  snowflake/
+    SKILL.md
+    agents/openai.yaml
+    references/official-cli.md
+    scripts/snowflake.sh
+    tests/test_snowflake.sh
   redis-crud/
     SKILL.md
     agents/openai.yaml
@@ -1211,6 +1218,57 @@ Important behavior:
 - For `ssh-remote`, the remote server needs `bash` and the `psql` client.
 - For `ssh-remote`, pass `--remote-cwd` when the `.env` file exists only after changing into a project directory; pass `--env-file .env` for a relative file or an absolute env path when no working directory is needed.
 - For `direct` and `ssh-tunnel`, the local `psql` client is required.
+
+### Use `snowflake`
+
+Route here when the user wants:
+
+- to install, verify, or use the official Snowflake CLI
+- to list, add, test, remove, or select a default Snowflake connection
+- to execute Snowflake SQL strings or SQL files
+- to inspect, create, describe, list, or drop Snowflake objects
+- to operate Snowflake Native Apps, stages, Snowpark, Streamlit, notebooks, Git repositories, Cortex, data pipelines, or Snowpark Container Services through `snow`
+
+Required input:
+
+- for connection creation: connection name and the authentication-specific account/user or workload identity fields
+- for SQL: a SQL string or SQL file
+- for object inspection: object type and, when describing, an identifier
+- for object creation: object type and a reviewed JSON definition file
+- for object deletion: object type and identifier
+
+Important behavior:
+
+- Prefer `skills/snowflake/scripts/snowflake.sh` for connection, SQL, and common object operations.
+- Before every wrapped operation, check whether `snow` is installed and verify that both its help and version identify a working Snowflake CLI. Reject an unrelated or broken executable with the same name. The wrapper automatically runs `uv tool install snowflake-cli` when it is missing.
+- Automatic installation requires `uv` and Python 3.10 or later. If `uv` is unavailable, stop and surface that prerequisite instead of silently falling back to system `pip`.
+- Use `setup-pat` as the primary initial connection flow. Use `connection-add-pat` when the user already has a reviewed owner-only token file and wants to provide all connection fields explicitly.
+- For the easiest initial setup, require only `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, and `SNOWFLAKE_PAT` or `SNOWFLAKE_TOKEN`. Default the connection name to `default`; prefer official `SNOWFLAKE_DEFAULT_CONNECTION_NAME` when supplied, while retaining `SNOWFLAKE_CONNECTION_NAME` as a compatibility alias.
+- During `setup-pat`, prefer connection-specific `SNOWFLAKE_CONNECTIONS_<NAME>_*` values over generic `SNOWFLAKE_*` values. Reuse an existing protected token file from `--token-file`, `SNOWFLAKE_CONNECTIONS_<NAME>_TOKEN_FILE_PATH`, or `SNOWFLAKE_TOKEN_FILE_PATH`; otherwise persist a raw token from the connection-specific token variable, `SNOWFLAKE_PAT`, or `SNOWFLAKE_TOKEN`.
+- Infer connection-specific environment variables only when the connection name contains letters, digits, and underscores. For names containing dots or hyphens, require explicit options or generic variables rather than applying a lossy name transformation.
+- During `setup-pat`, persist the PAT to a separate `0600` file and let `snow connection add` write only `token_file_path` and non-secret connection settings to Snowflake configuration. Never embed the PAT value in TOML.
+- Create missing PAT directories with `0700`, but never chmod an existing parent directory. Require an existing directory to be current-user-owned, non-symlinked, and not group- or world-writable.
+- Resolve the Snowflake configuration location in official precedence order: `--config-file`, `SNOWFLAKE_HOME`, existing `~/.snowflake`, then the platform default (`${XDG_CONFIG_HOME:-$HOME/.config}/snowflake` on Linux, `%USERPROFILE%\AppData\Local\snowflake` on Windows, or `~/Library/Application Support/snowflake` on macOS). Store the default PAT file in a `pat` subdirectory beside that configuration.
+- If an active sibling `connections.toml` exists, do not let `setup-pat` write an ignored connection into `config.toml`. Stop and direct the user to add the shared connection to `connections.toml` or choose an isolated `--config-file`.
+- When `connections.toml` is active, allow `connection-set-default` but refuse `connection-remove`, because the official removal command edits `config.toml`; require a separately reviewed edit of the shared file.
+- Initial setup must preview first and require `--execute`; refuse to overwrite an existing PAT file. Set the new connection as default and test it automatically unless the user requests `--no-default` or `--skip-test`.
+- Require PAT token files to be non-empty regular files with `0400` or `0600` permissions. Never read, print, or copy their contents into the repository.
+- Before configuring PAT, confirm account/authentication-policy support and applicable network-policy requirements. Prefer a service user and a least-privilege PAT role restriction.
+- Run `check`, `config-info`, then `connection-list` before setup. Run `connection-test` before relying on an unfamiliar connection; `setup-pat --execute` performs that test automatically.
+- Never place Snowflake passwords, raw tokens, OAuth client secrets, private-key contents, or passphrases in the repository or command-line arguments.
+- Validate every token and private-key file used by connection creation as a readable, non-empty, non-symlink regular file with `0400` or `0600` permissions, including generic `connection-add`.
+- Prefer key-pair authentication, workload identity federation, token files, or protected environment variables for AI processes.
+- The wrapper executes clearly read-only SQL automatically; other SQL, connection changes, and object mutations return a preview and require `--execute` after explicit user confirmation.
+- Use `--preview` for untrusted SQL or `SELECT` statements that invoke UDFs, external functions, stored logic, or unfamiliar system functions.
+- Preview every SQL statement containing a `SYSTEM$` function regardless of its leading keyword.
+- Before DML, query and verify the intended target rows; after execution, query them again to verify the result.
+- Treat Snowflake CLI template variables as textual substitution, not bound SQL parameters.
+- Keep `--local-only` enabled for SQL execution unless the user explicitly approves reviewed remote sources; this option only blocks URL-based SQL include/load directives.
+- Use `--single-transaction` for multi-statement writes when supported.
+- Keep `object-create` JSON definitions at or below 32768 bytes and reject secret objects or sensitive-looking fields because the official CLI accepts JSON only through a command argument. Use reviewed DDL with `query --file` for larger or sensitive definitions.
+- Read `skills/snowflake/references/official-cli.md` and inspect live command help before specialized workload or application commands.
+- Prefer `JSON_EXT` output and enhanced exit codes. Do not report success until the command completes and any asynchronous resource reaches the requested state.
+- Save command outputs only to current-user-owned, non-symlink regular files with `0600` permissions, and reject unsafe explicit output targets before invoking Snowflake.
 
 ### Use `redis-crud`
 
