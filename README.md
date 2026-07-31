@@ -121,6 +121,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
+| Publishing | [`frevana-publish`](skills/frevana-publish/SKILL.md) | Upload a local artifact to the user's Frevana custom domain | local file path |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
@@ -193,6 +194,26 @@ Features:
 - retries after `npm i -g @frevana/frevana` only when the login command is unavailable
 - uses `https://api.frevana.com` by default and supports an optional custom `--server`
 - reports the saved config path without exposing the raw API key by default
+
+### [`frevana-publish`](skills/frevana-publish/SKILL.md)
+
+Publish a local file to the user's configured Frevana custom domain.
+
+Use when:
+
+- you need a public URL for an agent-generated HTML page, app result, report, image, or document
+- you want to host or share a local artifact through Frevana
+
+Features:
+
+- checks `custom_domain` through `GET /subscriptions/user` before requesting an upload URL
+- directs users without a custom domain to `https://www.frevana.com/dashboard/domain`
+- requests `POST /s3/custom-upload-url` with fixed `category=agent_app_result`, `scene_type=content_html`, and `publish_type=custom_domain`
+- resolves `agent_id` from the current context with a fixed `frevana-publish` fallback, and uses the current session/task ID when a team ID is unavailable
+- accepts an explicit title or extracts one from HTML, Markdown, JSON, or text content, with a filename fallback
+- uploads with PUT to the returned `presigned_url`
+- automatically publishes the returned `content_id` through the workflow-result publish endpoint
+- returns the public custom-domain URL without exposing the pre-signed upload URL
 
 ### [`lark-cli`](skills/lark-cli/SKILL.md)
 
@@ -1218,6 +1239,7 @@ Features:
 ## Requirements
 
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
+- Frevana publish skill: `bash`, `curl`, `python3`, `FREVANA_TOKEN`, a configured custom domain, and network access to the Frevana API and returned pre-signed upload host.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
 - SendGrid email and stats skills: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
@@ -1246,6 +1268,7 @@ Example prompts:
 
 ```text
 Authenticate Frevana CLI on this machine. If `frevana login` is unavailable, install it and retry.
+Publish ./out/result.html to my Frevana custom domain and return the public URL.
 Search Amazon for wireless earbuds
 Fetch Amazon product details for B0D5XWJQ5R
 Get Amazon keyword demand for wireless earbuds,gaming headset in United States

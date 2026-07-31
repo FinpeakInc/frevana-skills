@@ -9,6 +9,7 @@ Treat this document as the operational guide for the repo. Treat each skill's `S
 This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
+- Frevana custom-domain publishing for local agent-generated files
 - Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
 - Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
@@ -49,6 +50,11 @@ skills/
   frevana-auth/
     SKILL.md
     scripts/login.sh
+  frevana-publish/
+    SKILL.md
+    agents/openai.yaml
+    scripts/publish_file.sh
+    tests/test_publish_file.py
   lark-cli/
     SKILL.md
     scripts/setup_lark_cli.sh
@@ -358,6 +364,41 @@ Important behavior:
 - If that install fails because the package is unavailable in the current registry, ask the user for the correct private registry or local package source.
 - Let the CLI manage device authorization and local credential storage.
 - Do not print the saved API key value back to the user unless they explicitly ask for the raw secret.
+
+### Use `frevana-publish`
+
+Route here when the user wants:
+
+- to publish or host a local file through Frevana
+- a public custom-domain URL for an agent-generated app, HTML page, report, image, document, or other artifact
+- to upload a local result with Frevana's custom upload URL flow
+
+Required input:
+
+- one local file path
+
+Optional input:
+
+- title
+- Agent ID
+- team ID
+- current session/task ID
+- one-time token override
+- API base URL override for local testing
+
+Important behavior:
+
+- Check `custom_domain` from `GET /subscriptions/user` before requesting an upload URL.
+- If `custom_domain` is empty or null, stop and direct the user to `https://www.frevana.com/dashboard/domain`.
+- Prefer `scripts/publish_file.sh` over ad hoc API and object-storage calls.
+- Keep `category=agent_app_result`, `scene_type=content_html`, and `publish_type=custom_domain` fixed.
+- Try to use the current Agent ID. If none is available, let the script use its fixed `frevana-publish` fallback.
+- Try to use the current team ID. If none is available, pass the current conversation/task ID as `--session-id`; omit `team_id` only when neither value is available.
+- Derive `file_extension` and `content_type` from the local file. If the user does not provide a title, extract `file_title` from the article content and fall back to the filename stem.
+- Never forward the Frevana bearer token to the pre-signed upload host.
+- After the object upload succeeds, use the returned `content_id` to call `PUT /agents/workflow-result/content/{content_id}/publish?op_type=publish` with the resolved title and fixed publish type/category.
+- Do not print or return the pre-signed upload URL. Return only the public custom-domain URL unless the user asks for the small JSON result.
+- Do not claim success unless both upload and publish return 2xx and a public URL can be resolved.
 
 ### Use `lark-cli`
 
@@ -2201,6 +2242,7 @@ Do not modify the returned HTML unless the user explicitly asks for edits after 
 Use these rules to avoid bad assumptions:
 
 - If the user wants Frevana CLI login and does not provide a server URL, use `https://api.frevana.com`.
+- If the user wants to publish through Frevana but does not provide a local file path, ask for it.
 - If the user says "search Amazon for this" but does not provide a keyword, ask for the keyword.
 - If the user wants Amazon product details but does not provide an ASIN, ask for the ASIN.
 - If the user says "search eBay for this" but does not provide a keyword or category ID, ask for the keyword or category ID.
@@ -2243,6 +2285,19 @@ For `frevana-auth`:
 6. Retry `frevana login --server <effective-server>` after a successful install.
 7. Let the CLI complete the device authorization flow and save credentials locally.
 8. Report the saved config path, but do not echo the raw API key unless the user explicitly asks for it.
+
+### Frevana custom-domain publishing
+
+For `frevana-publish`:
+
+1. Confirm the user provided one readable local file with an extension.
+2. Prefer `scripts/publish_file.sh` over manual requests.
+3. Let the script use `FREVANA_TOKEN` from the environment first.
+4. Let the script check `custom_domain` before it requests a pre-signed upload destination.
+5. If the domain is not configured, relay `https://www.frevana.com/dashboard/domain` and stop.
+6. Let the script upload the file with PUT to the returned `presigned_url`.
+7. Let the script publish the returned `content_id` with `op_type=publish`.
+8. Return the public URL only after publishing succeeds, and do not expose the bearer token or pre-signed URL.
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
@@ -2638,6 +2693,7 @@ bash skills/wordpress-content/scripts/wordpress_rest.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
+bash skills/frevana-publish/scripts/publish_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
@@ -2655,6 +2711,13 @@ bash skills/frevana-auth/scripts/login.sh
 
 bash skills/frevana-auth/scripts/login.sh \
   --server "http://localhost:3001"
+```
+
+### Frevana publish
+
+```bash
+bash skills/frevana-publish/scripts/publish_file.sh \
+  --file ./out/result.html
 ```
 
 ### Amazon search
