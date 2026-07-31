@@ -19,6 +19,10 @@ SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "publish_file.sh
 class MockState:
     custom_domain: object = "publish.example.com"
     api_payload: dict[str, object] | None = None
+    upload_url_status = 200
+    include_public_url = True
+    public_url = "https://publish.example.com/content/demo-result-id"
+    upload_url_raw_body: bytes | None = None
     upload_body = b""
     upload_content_type = ""
     authorization_on_upload: str | None = None
@@ -58,16 +62,23 @@ class Handler(BaseHTTPRequestHandler):
             self.state.upload_url_requests += 1
             length = int(self.headers.get("Content-Length", "0"))
             self.state.api_payload = json.loads(self.rfile.read(length))
+            if self.state.upload_url_raw_body is not None:
+                body = self.state.upload_url_raw_body
+                self.send_response(self.state.upload_url_status)
+                self.send_header("Content-Type", "text/plain")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             port = self.server.server_port
-            self.send_json(
-                200,
-                {
-                    "presigned_url": f"http://127.0.0.1:{port}/upload/put?signature=secret",
-                    "key": "agent/results/demo.html",
-                    "url": "https://publish.example.com/content/demo-result-id",
-                    "content_id": "result-id",
-                },
-            )
+            payload = {
+                "presigned_url": f"http://127.0.0.1:{port}/upload/put?signature=secret",
+                "key": "agent/results/demo.html",
+                "content_id": "result-id",
+            }
+            if self.state.include_public_url:
+                payload["url"] = self.state.public_url
+            self.send_json(self.state.upload_url_status, payload)
             return
         self.send_json(404, {"message": "not found"})
 
@@ -121,6 +132,10 @@ class PublishFileTests(unittest.TestCase):
     def setUp(self) -> None:
         Handler.state.custom_domain = "publish.example.com"
         Handler.state.api_payload = None
+        Handler.state.upload_url_status = 200
+        Handler.state.include_public_url = True
+        Handler.state.public_url = "https://publish.example.com/content/demo-result-id"
+        Handler.state.upload_url_raw_body = None
         Handler.state.upload_body = b""
         Handler.state.upload_content_type = ""
         Handler.state.authorization_on_upload = None
@@ -218,6 +233,17 @@ class PublishFileTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Handler.state.api_payload["file_title"], "Provided title")
 
+    def test_first_non_empty_html_h1_is_extracted(self) -> None:
+        self.file_path.write_text(
+            "<title>Fallback title</title><h1>  </h1><h1>Article title</h1>",
+            encoding="utf-8",
+        )
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(Handler.state.api_payload["file_title"], "Article title")
+
     def test_markdown_frontmatter_title_is_extracted(self) -> None:
         self.file_path = Path(self.temp_dir.name) / "article.md"
         self.file_path.write_text(
@@ -250,6 +276,72 @@ class PublishFileTests(unittest.TestCase):
         self.assertEqual(result.returncode, 3)
         self.assertIn("https://www.frevana.com/dashboard/domain", result.stderr)
         self.assertEqual(Handler.state.upload_url_requests, 0)
+        self.assertEqual(Handler.state.publish_requests, 0)
+
+    def test_file_key_builds_public_url_when_url_is_missing(self) -> None:
+        Handler.state.include_public_url = False
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            "https://publish.example.com/agent/results/demo.html",
+        )
+        self.assertEqual(Handler.state.publish_requests, 1)
+
+    def test_public_url_without_scheme_uses_custom_domain_scheme(self) -> None:
+        Handler.state.custom_domain = "https://wenjun.frevana.space"
+        Handler.state.public_url = (
+            "wenjun.frevana.space/content/codex-从代码补全到软件工程智能体"
+        )
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            "https://wenjun.frevana.space/content/codex-从代码补全到软件工程智能体",
+        )
+        self.assertEqual(Handler.state.publish_requests, 1)
+
+    def test_public_url_host_does_not_have_to_match_custom_domain(self) -> None:
+        Handler.state.custom_domain = "https://wenjun.frevana.space"
+        Handler.state.public_url = "public.frevana.space/content/result-id"
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.strip(),
+            "https://public.frevana.space/content/result-id",
+        )
+        self.assertEqual(Handler.state.publish_requests, 1)
+
+    def test_upload_url_api_error_does_not_expose_presigned_url(self) -> None:
+        Handler.state.upload_url_status = 500
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("failed with HTTP 500", result.stderr)
+        self.assertNotIn("presigned_url", result.stderr)
+        self.assertNotIn("signature=secret", result.stderr)
+        self.assertEqual(Handler.state.upload_body, b"")
+        self.assertEqual(Handler.state.publish_requests, 0)
+
+    def test_malformed_upload_url_response_does_not_expose_raw_body(self) -> None:
+        Handler.state.upload_url_raw_body = (
+            b"presigned_url=https://storage.example/upload?signature=secret"
+        )
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("returned non-JSON response", result.stderr)
+        self.assertNotIn("presigned_url", result.stderr)
+        self.assertNotIn("signature=secret", result.stderr)
+        self.assertEqual(Handler.state.upload_body, b"")
         self.assertEqual(Handler.state.publish_requests, 0)
 
     def test_missing_extension_is_rejected_before_network_request(self) -> None:

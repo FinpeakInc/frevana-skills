@@ -250,18 +250,19 @@ def normalize_title(value):
 class TitleParser(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.capture = None
-        self.h1_parts = []
-        self.title_parts = []
+        self.current_h1_parts = None
+        self.current_title_parts = None
+        self.h1_candidates = []
+        self.title_candidates = []
         self.meta_titles = []
 
     def handle_starttag(self, tag, attrs):
         tag = tag.lower()
         attributes = {str(key).lower(): value for key, value in attrs}
-        if tag == "h1" and not self.h1_parts:
-            self.capture = "h1"
-        elif tag == "title" and not self.title_parts:
-            self.capture = "title"
+        if tag == "h1" and self.current_h1_parts is None:
+            self.current_h1_parts = []
+        elif tag == "title" and self.current_title_parts is None:
+            self.current_title_parts = []
         elif tag == "meta":
             marker = (attributes.get("property") or attributes.get("name") or "").lower()
             content = attributes.get("content")
@@ -269,24 +270,39 @@ class TitleParser(HTMLParser):
                 self.meta_titles.append(content)
 
     def handle_endtag(self, tag):
-        if tag.lower() == self.capture:
-            self.capture = None
+        tag = tag.lower()
+        if tag == "h1" and self.current_h1_parts is not None:
+            self.h1_candidates.append("".join(self.current_h1_parts))
+            self.current_h1_parts = None
+        elif tag == "title" and self.current_title_parts is not None:
+            self.title_candidates.append("".join(self.current_title_parts))
+            self.current_title_parts = None
 
     def handle_data(self, data):
-        if self.capture == "h1":
-            self.h1_parts.append(data)
-        elif self.capture == "title":
-            self.title_parts.append(data)
+        if self.current_h1_parts is not None:
+            self.current_h1_parts.append(data)
+        if self.current_title_parts is not None:
+            self.current_title_parts.append(data)
+
+    def close(self):
+        super().close()
+        if self.current_h1_parts is not None:
+            self.h1_candidates.append("".join(self.current_h1_parts))
+            self.current_h1_parts = None
+        if self.current_title_parts is not None:
+            self.title_candidates.append("".join(self.current_title_parts))
+            self.current_title_parts = None
 
 def extract_html_title(text):
     parser = TitleParser()
     try:
         parser.feed(text)
+        parser.close()
     except Exception:
         return ""
     candidates = (
-        "".join(parser.h1_parts),
-        "".join(parser.title_parts),
+        *parser.h1_candidates,
+        *parser.title_candidates,
         *parser.meta_titles,
     )
     return next((title for title in map(normalize_title, candidates) if title), "")
@@ -391,7 +407,6 @@ UPLOAD_URL_HTTP_CODE="$(
 
 if [[ "$UPLOAD_URL_HTTP_CODE" -lt 200 || "$UPLOAD_URL_HTTP_CODE" -ge 300 ]]; then
   echo "Frevana custom upload URL API request failed with HTTP $UPLOAD_URL_HTTP_CODE" >&2
-  cat "$UPLOAD_URL_RESPONSE_FILE" >&2
   exit 1
 fi
 [[ -s "$UPLOAD_URL_RESPONSE_FILE" ]] || fail "Frevana custom upload URL API returned an empty response body."
@@ -400,23 +415,25 @@ python3 - \
   "$UPLOAD_URL_RESPONSE_FILE" \
   "$PRESIGNED_URL_FILE" \
   "$PUBLIC_URL_FILE" \
-  "$CONTENT_ID_FILE" <<'PY'
+  "$CONTENT_ID_FILE" \
+  "$CUSTOM_DOMAIN_FILE" <<'PY'
 import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import quote, urlsplit, urlunsplit
 
 response_path = Path(sys.argv[1])
 presigned_url_path = Path(sys.argv[2])
 public_url_path = Path(sys.argv[3])
 content_id_path = Path(sys.argv[4])
+custom_domain_path = Path(sys.argv[5])
 raw = response_path.read_text(encoding="utf-8")
 
 try:
     payload = json.loads(raw)
 except json.JSONDecodeError as exc:
     print(f"Frevana custom upload URL API returned non-JSON response: {exc}", file=sys.stderr)
-    print(raw, file=sys.stderr)
     sys.exit(1)
 
 if not isinstance(payload, dict):
@@ -426,11 +443,9 @@ if not isinstance(payload, dict):
 presigned_url = payload.get("presigned_url")
 public_url = payload.get("url")
 content_id = payload.get("content_id")
+file_key = payload.get("key") or payload.get("file_key")
 if not isinstance(presigned_url, str) or not presigned_url.strip():
     print("Frevana custom upload URL API response is missing 'presigned_url'.", file=sys.stderr)
-    sys.exit(1)
-if not isinstance(public_url, str) or not public_url.strip():
-    print("Frevana custom upload URL API response is missing public 'url'.", file=sys.stderr)
     sys.exit(1)
 if not isinstance(content_id, str) or not content_id.strip():
     print("Frevana custom upload URL API response is missing 'content_id'.", file=sys.stderr)
@@ -439,8 +454,62 @@ if not re.fullmatch(r"[A-Za-z0-9_-]+", content_id.strip()):
     print("Frevana custom upload URL API returned an invalid 'content_id'.", file=sys.stderr)
     sys.exit(1)
 
+custom_domain = custom_domain_path.read_text(encoding="utf-8").strip()
+domain_url = custom_domain if "://" in custom_domain else f"https://{custom_domain}"
+domain_parts = urlsplit(domain_url)
+if domain_parts.scheme not in {"http", "https"} or not domain_parts.hostname:
+    print("Frevana subscription API returned an invalid custom domain.", file=sys.stderr)
+    sys.exit(1)
+
+if isinstance(public_url, str) and public_url.strip():
+    public_url = public_url.strip()
+    if public_url.startswith("//"):
+        public_url = f"{domain_parts.scheme}:{public_url}"
+    elif public_url.startswith("/"):
+        public_url = urlunsplit(
+            (
+                domain_parts.scheme,
+                domain_parts.netloc,
+                public_url,
+                "",
+                "",
+            )
+        )
+    elif "://" not in public_url:
+        public_url = f"{domain_parts.scheme}://{public_url}"
+    public_parts = urlsplit(public_url)
+    if (
+        public_parts.scheme not in {"http", "https"}
+        or not public_parts.hostname
+        or public_parts.username is not None
+        or public_parts.password is not None
+    ):
+        print(
+            "Frevana custom upload URL API returned an invalid public URL.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+else:
+    if not isinstance(file_key, str) or not file_key.strip():
+        print(
+            "Frevana custom upload URL API response is missing both public 'url' and file 'key'.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    base_path = domain_parts.path.rstrip("/")
+    encoded_key = quote(file_key.strip().lstrip("/"), safe="/%")
+    public_url = urlunsplit(
+        (
+            domain_parts.scheme,
+            domain_parts.netloc,
+            f"{base_path}/{encoded_key}",
+            "",
+            "",
+        )
+    )
+
 presigned_url_path.write_text(presigned_url.strip(), encoding="utf-8")
-public_url_path.write_text(public_url.strip(), encoding="utf-8")
+public_url_path.write_text(public_url, encoding="utf-8")
 content_id_path.write_text(content_id.strip(), encoding="utf-8")
 PY
 
