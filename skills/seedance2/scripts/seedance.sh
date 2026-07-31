@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-DEFAULT_API_BASE_URL="https://api.seedance2.ai"
+DEFAULT_API_BASE_URL="https://api.seevio.ai"
 API_BASE_URL="${SEEDANCE_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
 MIN_POLL_INTERVAL=10
 CONNECT_TIMEOUT=10

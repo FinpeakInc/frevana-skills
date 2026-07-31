@@ -2151,7 +2151,7 @@ Fixed Frevana routing contract:
 Route here when the user wants:
 
 - Seedance 2.0 or Seedance2 AI video generation
-- text-to-video, image-to-video, or reference-to-video generation through `api.seedance2.ai`
+- text-to-video, image-to-video, or reference-to-video generation through `api.seevio.ai`
 - to query, wait for, or download the result of an existing Seedance task
 
 Required input:

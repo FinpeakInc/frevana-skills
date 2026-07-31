@@ -1,6 +1,6 @@
 ---
 name: seedance2
-description: Create and retrieve Seedance 2.0 AI video jobs through the seedance2.ai API with fixed 10-second polling, including text-to-video, image-to-video, and reference-to-video generation with image, video, or audio URLs. Use when the user asks to generate a Seedance 2.0 video, check or wait for a Seedance task, download its result, or integrate the Seedance asynchronous video API without webhooks.
+description: Create and retrieve Seedance 2.0 AI video jobs through the Seevio API with fixed 10-second polling, including text-to-video, image-to-video, and reference-to-video generation with image, video, or audio URLs. Use when the user asks to generate a Seedance 2.0 video, check or wait for a Seedance task, download its result, or integrate the Seedance asynchronous video API without webhooks.
 ---
 
 # Seedance 2.0
@@ -15,7 +15,7 @@ Resolve `{baseDir}` to the directory containing this `SKILL.md`, then run:
 bash {baseDir}/scripts/seedance.sh <create|status|wait> [options]
 ```
 
-Require Bash, curl, Python 3, and `SEEDANCE_API_KEY` in the environment. Never print the key or place it directly in a command line. The script accepts only an HTTPS `SEEDANCE_API_BASE_URL` override; otherwise it uses `https://api.seedance2.ai`.
+Require Bash, curl, Python 3, and `SEEDANCE_API_KEY` in the environment. Never print the key or place it directly in a command line. The script accepts only an HTTPS `SEEDANCE_API_BASE_URL` override; otherwise it uses `https://api.seevio.ai`.
 
 ## Workflow
 

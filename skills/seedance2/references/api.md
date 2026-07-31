@@ -4,7 +4,7 @@ Source: https://seedance2.ai/zh/api-docs
 
 ## Endpoints
 
-- Base URL: `https://api.seedance2.ai`
+- Base URL: `https://api.seevio.ai`
 - Create: `POST /v1/videos/generations`
 - Query: `GET /v1/tasks/:id`
 - Authentication: `Authorization: Bearer <API key>`
