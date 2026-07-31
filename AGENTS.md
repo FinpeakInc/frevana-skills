@@ -396,7 +396,7 @@ Important behavior:
 - Try to use the current team ID. If none is available, pass the current conversation/task ID as `--session-id`; omit `team_id` only when neither value is available.
 - Derive `file_extension` and `content_type` from the local file. If the user does not provide a title, extract `file_title` from the article content and fall back to the filename stem.
 - Never forward the Frevana bearer token to the pre-signed upload host.
-- After the object upload succeeds, use the returned `content_id` to call `PUT /agents/workflow-result/content/{content_id}/publish?op_type=publish` with the resolved title and fixed publish type/category.
+- After the object upload succeeds, use the returned `content_id` to call `PUT /s3/content/{content_id}/publish?op_type=publish` with the resolved title and fixed publish type/category.
 - Do not print or return the pre-signed upload URL. Return only the public custom-domain URL unless the user asks for the small JSON result.
 - Do not claim success unless both upload and publish return 2xx and a public URL can be resolved.
 

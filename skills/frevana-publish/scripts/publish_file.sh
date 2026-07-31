@@ -6,7 +6,7 @@ DEFAULT_API_BASE_URL="https://api.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
 SUBSCRIPTION_PATH="/subscriptions/user"
 UPLOAD_URL_PATH="/s3/custom-upload-url"
-PUBLISH_PATH_PREFIX="/agents/workflow-result/content"
+PUBLISH_PATH_PREFIX="/s3/content"
 DOMAIN_SETUP_URL="https://www.frevana.com/dashboard/domain"
 FIXED_CATEGORY="agent_app_result"
 FIXED_SCENE_TYPE="content_html"
@@ -561,7 +561,7 @@ PUBLISH_HTTP_CODE="$(
 )"
 
 if [[ "$PUBLISH_HTTP_CODE" -lt 200 || "$PUBLISH_HTTP_CODE" -ge 300 ]]; then
-  echo "File uploaded, but Frevana publish API request failed with HTTP $PUBLISH_HTTP_CODE" >&2
+  echo "File uploaded, but Frevana S3 content publish API request failed with HTTP $PUBLISH_HTTP_CODE" >&2
   cat "$PUBLISH_RESPONSE_FILE" >&2
   exit 1
 fi

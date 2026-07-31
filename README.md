@@ -212,7 +212,7 @@ Features:
 - resolves `agent_id` from the current context with a fixed `frevana-publish` fallback, and uses the current session/task ID when a team ID is unavailable
 - accepts an explicit title or extracts one from HTML, Markdown, JSON, or text content, with a filename fallback
 - uploads with PUT to the returned `presigned_url`
-- automatically publishes the returned `content_id` through the workflow-result publish endpoint
+- automatically publishes the returned `content_id` through `PUT /s3/content/{content_id}/publish?op_type=publish`
 - returns the public custom-domain URL without exposing the pre-signed upload URL
 
 ### [`lark-cli`](skills/lark-cli/SKILL.md)

@@ -51,7 +51,7 @@ bash <skill-path>/scripts/publish_file.sh \
 
 5. If the script reports that `custom_domain` is not configured, give the user the exact configuration link it prints and stop. Do not request a pre-upload URL or upload the file.
 6. If the custom domain is configured, let the script call `POST /s3/custom-upload-url` and upload the file to the returned pre-signed destination.
-7. After the upload succeeds, let the script call `PUT /agents/workflow-result/content/{content_id}/publish?op_type=publish`.
+7. After the upload succeeds, let the script call `PUT /s3/content/{content_id}/publish?op_type=publish`.
 8. Return the public URL only after both upload and publish succeed. Do not expose the pre-signed upload URL, its query parameters, the bearer token, or raw credential files.
 
 ## Options
@@ -89,7 +89,7 @@ bash <skill-path>/scripts/publish_file.sh \
 - It sends the detected MIME type during the upload.
 - It never forwards the Frevana authorization header to the object-storage upload URL.
 - It reads `content_id` from the custom upload URL response.
-- After a successful object upload, it sends `title`, fixed `publish_type=custom_domain`, and fixed `category=agent_app_result` to the publish endpoint with `op_type=publish`.
+- After a successful object upload, it sends `title`, fixed `publish_type=custom_domain`, and fixed `category=agent_app_result` to `PUT /s3/content/{content_id}/publish?op_type=publish`.
 - It treats the operation as successful only when both upload and publish return 2xx.
 - It uses the public URL returned by the API. If the API returns only a file key, it builds the URL from the configured custom domain and that key.
 - It prints only the final public URL by default.

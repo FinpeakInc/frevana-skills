@@ -93,7 +93,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         parsed = urlsplit(self.path)
         if (
-            parsed.path.startswith("/agents/workflow-result/content/")
+            parsed.path.startswith("/s3/content/")
             and parsed.path.endswith("/publish")
         ):
             self.state.publish_requests += 1
@@ -398,7 +398,10 @@ class PublishFileTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 1)
         self.assertEqual(result.stdout, "")
-        self.assertIn("File uploaded, but Frevana publish API request failed", result.stderr)
+        self.assertIn(
+            "File uploaded, but Frevana S3 content publish API request failed",
+            result.stderr,
+        )
         self.assertEqual(Handler.state.upload_body, b"<h1>Hello</h1>")
         self.assertEqual(Handler.state.publish_requests, 1)
 
