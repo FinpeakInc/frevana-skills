@@ -22,6 +22,7 @@ Usage:
 
 Options:
   --file        Local file to publish
+  --file-key    Previous file_key. Pass it only when updating existing content.
   --title       Optional title. When omitted, extract it from the file content.
   --agent-id    Optional Frevana Agent ID
   --team-id     Optional desktop team ID
@@ -48,6 +49,8 @@ fail() {
 }
 
 FILE_PATH=""
+FILE_KEY=""
+FILE_KEY_PROVIDED=0
 FILE_TITLE=""
 AGENT_ID="${FREVANA_AGENT_ID:-${CODEX_AGENT_ID:-}}"
 TEAM_ID="${FREVANA_TEAM_ID:-${CODEX_TEAM_ID:-}}"
@@ -62,6 +65,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --file)
       FILE_PATH="${2:-}"
+      shift 2
+      ;;
+    --file-key)
+      [[ $# -ge 2 ]] || fail "--file-key requires the previous file_key value."
+      FILE_KEY_PROVIDED=1
+      FILE_KEY="${2:-}"
       shift 2
       ;;
     --title)
@@ -99,6 +108,9 @@ done
 [[ -n "$FILE_PATH" ]] || fail "Missing required argument: --file"
 [[ -f "$FILE_PATH" ]] || fail "File not found or not a regular file: $FILE_PATH"
 [[ -r "$FILE_PATH" ]] || fail "File is not readable: $FILE_PATH"
+if [[ "$FILE_KEY_PROVIDED" -eq 1 && -z "$FILE_KEY" ]]; then
+  fail "--file-key requires the previous file_key value."
+fi
 AGENT_ID="${AGENT_ID:-$FALLBACK_AGENT_ID}"
 TEAM_ID="${TEAM_ID:-$SESSION_ID_FALLBACK}"
 FILE_BASENAME="${FILE_PATH##*/}"
@@ -123,6 +135,7 @@ UPLOAD_URL_RESPONSE_FILE="$(mktemp)"
 PRESIGNED_URL_FILE="$(mktemp)"
 PUBLIC_URL_FILE="$(mktemp)"
 CONTENT_ID_FILE="$(mktemp)"
+RESULT_FILE_KEY_FILE="$(mktemp)"
 UPLOAD_RESPONSE_FILE="$(mktemp)"
 PUBLISH_PAYLOAD_FILE="$(mktemp)"
 PUBLISH_RESPONSE_FILE="$(mktemp)"
@@ -136,6 +149,7 @@ cleanup() {
     "$PRESIGNED_URL_FILE" \
     "$PUBLIC_URL_FILE" \
     "$CONTENT_ID_FILE" \
+    "$RESULT_FILE_KEY_FILE" \
     "$UPLOAD_RESPONSE_FILE" \
     "$PUBLISH_PAYLOAD_FILE" \
     "$PUBLISH_RESPONSE_FILE"
@@ -225,7 +239,8 @@ python3 - \
   "$PAYLOAD_FILE" \
   "$FIXED_CATEGORY" \
   "$FIXED_SCENE_TYPE" \
-  "$FIXED_PUBLISH_TYPE" <<'PY'
+  "$FIXED_PUBLISH_TYPE" \
+  "$FILE_KEY" <<'PY'
 import json
 import mimetypes
 import re
@@ -241,6 +256,7 @@ payload_path = Path(sys.argv[5])
 category = sys.argv[6]
 scene_type = sys.argv[7]
 publish_type = sys.argv[8]
+file_key = sys.argv[9]
 
 def normalize_title(value):
     if not isinstance(value, str):
@@ -379,6 +395,8 @@ payload = {
 }
 if team_id:
     payload["team_id"] = team_id
+if file_key:
+    payload["file_key"] = file_key
 payload_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 PY
 
@@ -416,7 +434,8 @@ python3 - \
   "$PRESIGNED_URL_FILE" \
   "$PUBLIC_URL_FILE" \
   "$CONTENT_ID_FILE" \
-  "$CUSTOM_DOMAIN_FILE" <<'PY'
+  "$CUSTOM_DOMAIN_FILE" \
+  "$RESULT_FILE_KEY_FILE" <<'PY'
 import json
 import re
 import sys
@@ -428,6 +447,7 @@ presigned_url_path = Path(sys.argv[2])
 public_url_path = Path(sys.argv[3])
 content_id_path = Path(sys.argv[4])
 custom_domain_path = Path(sys.argv[5])
+file_key_path = Path(sys.argv[6])
 raw = response_path.read_text(encoding="utf-8")
 
 try:
@@ -511,6 +531,10 @@ else:
 presigned_url_path.write_text(presigned_url.strip(), encoding="utf-8")
 public_url_path.write_text(public_url, encoding="utf-8")
 content_id_path.write_text(content_id.strip(), encoding="utf-8")
+file_key_path.write_text(
+    file_key.strip() if isinstance(file_key, str) else "",
+    encoding="utf-8",
+)
 PY
 
 PRESIGNED_URL="$(<"$PRESIGNED_URL_FILE")"
@@ -567,5 +591,26 @@ if [[ "$PUBLISH_HTTP_CODE" -lt 200 || "$PUBLISH_HTTP_CODE" -ge 300 ]]; then
   exit 1
 fi
 
-cat "$PUBLIC_URL_FILE"
-printf '\n'
+PUBLIC_URL="$(<"$PUBLIC_URL_FILE")"
+RESULT_FILE_KEY="$(<"$RESULT_FILE_KEY_FILE")"
+RESOLVED_FILE_KEY="${RESULT_FILE_KEY:-$FILE_KEY}"
+
+python3 - "$PUBLIC_URL" "$RESOLVED_FILE_KEY" "$CONTENT_ID" <<'PY'
+import json
+import sys
+
+print(
+    json.dumps(
+        {
+            "url": sys.argv[1],
+            "file_key": sys.argv[2],
+            "content_id": sys.argv[3],
+        },
+        ensure_ascii=False,
+    )
+)
+PY
+
+if [[ -z "$RESOLVED_FILE_KEY" ]]; then
+  echo "Warning: Frevana did not return a file_key, so the caller cannot use this result for a later update." >&2
+fi

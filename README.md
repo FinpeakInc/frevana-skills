@@ -121,7 +121,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
-| Publishing | [`frevana-publish`](skills/frevana-publish/SKILL.md) | Upload a local artifact to the user's Frevana custom domain | local file path |
+| Publishing | [`frevana-publish`](skills/frevana-publish/SKILL.md) | Publish or update a local artifact on the user's Frevana custom domain | local file path; previous `file_key` for updates |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
@@ -197,7 +197,7 @@ Features:
 
 ### [`frevana-publish`](skills/frevana-publish/SKILL.md)
 
-Publish a local file to the user's configured Frevana custom domain.
+Publish or update a local file on the user's configured Frevana custom domain.
 
 Use when:
 
@@ -212,9 +212,12 @@ Features:
 - resolves `agent_id` from the current context with a fixed `frevana-publish` fallback, and uses the current session/task ID when a team ID is unavailable
 - accepts an explicit title or extracts one from HTML, Markdown, JSON, or text content, with a filename fallback
 - passes the selected file path directly to the upload command without modifying it
+- supports updating existing content by sending its previous `file_key` when requesting the pre-signed upload URL
+- returns the public URL, `file_key`, and `content_id` as JSON so the caller can associate and persist them with its own Agent App ID
+- defines the returned `file_key` as the update handle that must be reused unchanged as the `file_key` parameter for later updates
 - uploads with PUT to the returned `presigned_url`
 - automatically publishes the returned `content_id` through `PUT /s3/content/{content_id}/publish?op_type=publish`
-- returns the public custom-domain URL without exposing the pre-signed upload URL
+- keeps no local publication state and never exposes the pre-signed upload URL
 
 ### [`lark-cli`](skills/lark-cli/SKILL.md)
 

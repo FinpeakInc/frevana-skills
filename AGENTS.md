@@ -370,6 +370,7 @@ Important behavior:
 Route here when the user wants:
 
 - to publish or host a local file through Frevana
+- to update an existing Frevana publication with a replacement local file
 - a public custom-domain URL for an agent-generated app, HTML page, report, image, document, or other artifact
 - to upload a local result with Frevana's custom upload URL flow
 
@@ -380,6 +381,7 @@ Required input:
 Optional input:
 
 - title
+- previous `file_key` supplied by the caller when updating existing content
 - Agent ID
 - team ID
 - current session/task ID
@@ -395,11 +397,14 @@ Important behavior:
 - Try to use the current Agent ID. If none is available, let the script use its fixed `frevana-publish` fallback.
 - Try to use the current team ID. If none is available, pass the current conversation/task ID as `--session-id`; omit `team_id` only when neither value is available.
 - Derive `file_extension` and `content_type` from the local file. If the user does not provide a title, extract `file_title` from the article content and fall back to the filename stem.
+- For a new publication, omit `file_key`. When the user asks to update existing content, require the previous publication's `file_key` from the caller and send it to `POST /s3/custom-upload-url`; do not guess it.
 - Pass the user-selected file path directly to the upload command and do not modify that file during publishing.
 - Never forward the Frevana bearer token to the pre-signed upload host.
 - After the object upload succeeds, use the returned `content_id` to call `PUT /s3/content/{content_id}/publish?op_type=publish` with the resolved title and fixed publish type/category.
-- Do not print or return the pre-signed upload URL. Return only the public custom-domain URL unless the user asks for the small JSON result.
+- Do not print or return the pre-signed upload URL. Return the small JSON result containing `url`, `file_key`, and `content_id`.
 - Do not claim success unless both upload and publish return 2xx and a public URL can be resolved.
+- Keep the skill stateless. Do not save publication history locally; let the caller associate and persist the returned result with its own Agent App ID.
+- When returning a successful result, explicitly state that a later update must reuse the returned `file_key` unchanged as the `file_key` request parameter, or pass it through the script's `--file-key` option.
 
 ### Use `lark-cli`
 
@@ -2292,13 +2297,16 @@ For `frevana-auth`:
 For `frevana-publish`:
 
 1. Confirm the user provided one readable local file with an extension.
-2. Prefer `scripts/publish_file.sh` over manual requests.
-3. Let the script use `FREVANA_TOKEN` from the environment first.
-4. Let the script check `custom_domain` before it requests a pre-signed upload destination.
-5. If the domain is not configured, relay `https://www.frevana.com/dashboard/domain` and stop.
-6. Let the script upload the file with PUT to the returned `presigned_url`.
-7. Let the script publish the returned `content_id` with `op_type=publish`.
-8. Return the public URL only after publishing succeeds, and do not expose the bearer token or pre-signed URL.
+2. If the user wants to update existing content, require the previous `file_key` from the caller and pass it as `--file-key`; omit this option for new content.
+3. Prefer `scripts/publish_file.sh` over manual requests.
+4. Let the script use `FREVANA_TOKEN` from the environment first.
+5. Let the script check `custom_domain` before it requests a pre-signed upload destination.
+6. If the domain is not configured, relay `https://www.frevana.com/dashboard/domain` and stop.
+7. Let the script upload the file with PUT to the returned `presigned_url`.
+8. Let the script publish the returned `content_id` with `op_type=publish`.
+9. Return the `url`, `file_key`, and `content_id` JSON only after publishing succeeds, and do not expose the bearer token or pre-signed URL.
+10. Tell the caller to save the returned `file_key` and reuse it unchanged as the `file_key` parameter for a future update (`--file-key` in the bundled script).
+11. Do not persist publication state inside the skill; the caller owns storage and Agent App identification.
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 

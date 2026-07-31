@@ -23,6 +23,7 @@ class MockState:
     include_public_url = True
     public_url = "https://publish.example.com/content/demo-result-id"
     upload_url_raw_body: bytes | None = None
+    returned_file_key = "agent/results/demo.html"
     upload_body = b""
     upload_content_type = ""
     authorization_on_upload: str | None = None
@@ -73,7 +74,7 @@ class Handler(BaseHTTPRequestHandler):
             port = self.server.server_port
             payload = {
                 "presigned_url": f"http://127.0.0.1:{port}/upload/put?signature=secret",
-                "key": "agent/results/demo.html",
+                "key": self.state.returned_file_key,
                 "content_id": "result-id",
             }
             if self.state.include_public_url:
@@ -136,6 +137,7 @@ class PublishFileTests(unittest.TestCase):
         Handler.state.include_public_url = True
         Handler.state.public_url = "https://publish.example.com/content/demo-result-id"
         Handler.state.upload_url_raw_body = None
+        Handler.state.returned_file_key = "agent/results/demo.html"
         Handler.state.upload_body = b""
         Handler.state.upload_content_type = ""
         Handler.state.authorization_on_upload = None
@@ -169,6 +171,7 @@ class PublishFileTests(unittest.TestCase):
         env.pop("FREVANA_SESSION_ID", None)
         env.pop("CODEX_THREAD_ID", None)
         env.pop("CODEX_SESSION_ID", None)
+        env.pop("FREVANA_PUBLISH_HISTORY_FILE", None)
         env["FREVANA_API_BASE_URL"] = self.api_base_url
         if env_overrides:
             env.update(env_overrides)
@@ -191,13 +194,21 @@ class PublishFileTests(unittest.TestCase):
             check=False,
         )
 
+    @staticmethod
+    def parse_result(result: subprocess.CompletedProcess[str]) -> dict[str, object]:
+        return json.loads(result.stdout)
+
     def test_put_upload_and_public_url(self) -> None:
         result = self.run_script()
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            result.stdout.strip(),
-            "https://publish.example.com/content/demo-result-id",
+            self.parse_result(result),
+            {
+                "url": "https://publish.example.com/content/demo-result-id",
+                "file_key": "agent/results/demo.html",
+                "content_id": "result-id",
+            },
         )
         self.assertEqual(Handler.state.upload_body, b"<h1>Hello</h1>")
         self.assertEqual(Handler.state.upload_content_type, "text/html")
@@ -232,6 +243,64 @@ class PublishFileTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Handler.state.api_payload["file_title"], "Provided title")
+
+    def test_successful_publish_returns_metadata_without_saving_it(self) -> None:
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.parse_result(result),
+            {
+                "url": "https://publish.example.com/content/demo-result-id",
+                "file_key": "agent/results/demo.html",
+                "content_id": "result-id",
+            },
+        )
+        self.assertFalse((self.file_path.parent / ".frevana").exists())
+        self.assertNotIn("test-token", result.stdout)
+        self.assertNotIn("signature=secret", result.stdout)
+        self.assertNotIn("presigned_url", result.stdout)
+
+    def test_update_sends_previous_file_key_to_upload_url_api(self) -> None:
+        Handler.state.returned_file_key = "agent/results/existing-content.html"
+        result = self.run_script(
+            "--file-key",
+            "agent/results/existing-content.html",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            Handler.state.api_payload["file_key"],
+            "agent/results/existing-content.html",
+        )
+        self.assertEqual(Handler.state.upload_body, b"<h1>Hello</h1>")
+        self.assertEqual(Handler.state.publish_requests, 1)
+        self.assertEqual(
+            self.parse_result(result)["file_key"],
+            "agent/results/existing-content.html",
+        )
+
+    def test_update_result_retains_previous_key_when_response_omits_it(self) -> None:
+        Handler.state.returned_file_key = ""
+
+        result = self.run_script(
+            "--file-key",
+            "agent/results/existing-content.html",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.parse_result(result)["file_key"],
+            "agent/results/existing-content.html",
+        )
+
+    def test_empty_update_file_key_is_rejected_before_network_request(self) -> None:
+        result = self.run_script("--file-key", "")
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("requires the previous file_key", result.stderr)
+        self.assertEqual(Handler.state.subscription_requests, 0)
+        self.assertEqual(Handler.state.upload_url_requests, 0)
 
     def test_first_non_empty_html_h1_is_extracted(self) -> None:
         self.file_path.write_text(
@@ -285,7 +354,7 @@ class PublishFileTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            result.stdout.strip(),
+            self.parse_result(result)["url"],
             "https://publish.example.com/agent/results/demo.html",
         )
         self.assertEqual(Handler.state.publish_requests, 1)
@@ -300,7 +369,7 @@ class PublishFileTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            result.stdout.strip(),
+            self.parse_result(result)["url"],
             "https://wenjun.frevana.space/content/codex-从代码补全到软件工程智能体",
         )
         self.assertEqual(Handler.state.publish_requests, 1)
@@ -313,7 +382,7 @@ class PublishFileTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            result.stdout.strip(),
+            self.parse_result(result)["url"],
             "https://public.frevana.space/content/result-id",
         )
         self.assertEqual(Handler.state.publish_requests, 1)
@@ -404,6 +473,7 @@ class PublishFileTests(unittest.TestCase):
         )
         self.assertEqual(Handler.state.upload_body, b"<h1>Hello</h1>")
         self.assertEqual(Handler.state.publish_requests, 1)
+        self.assertFalse((self.file_path.parent / ".frevana").exists())
 
 
 if __name__ == "__main__":
