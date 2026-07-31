@@ -395,6 +395,7 @@ Important behavior:
 - Try to use the current Agent ID. If none is available, let the script use its fixed `frevana-publish` fallback.
 - Try to use the current team ID. If none is available, pass the current conversation/task ID as `--session-id`; omit `team_id` only when neither value is available.
 - Derive `file_extension` and `content_type` from the local file. If the user does not provide a title, extract `file_title` from the article content and fall back to the filename stem.
+- Pass the user-selected file path directly to the upload command and do not modify that file during publishing.
 - Never forward the Frevana bearer token to the pre-signed upload host.
 - After the object upload succeeds, use the returned `content_id` to call `PUT /s3/content/{content_id}/publish?op_type=publish` with the resolved title and fixed publish type/category.
 - Do not print or return the pre-signed upload URL. Return only the public custom-domain URL unless the user asks for the small JSON result.

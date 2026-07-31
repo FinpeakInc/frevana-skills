@@ -211,6 +211,7 @@ Features:
 - requests `POST /s3/custom-upload-url` with fixed `category=agent_app_result`, `scene_type=content_html`, and `publish_type=custom_domain`
 - resolves `agent_id` from the current context with a fixed `frevana-publish` fallback, and uses the current session/task ID when a team ID is unavailable
 - accepts an explicit title or extracts one from HTML, Markdown, JSON, or text content, with a filename fallback
+- passes the selected file path directly to the upload command without modifying it
 - uploads with PUT to the returned `presigned_url`
 - automatically publishes the returned `content_id` through `PUT /s3/content/{content_id}/publish?op_type=publish`
 - returns the public custom-domain URL without exposing the pre-signed upload URL

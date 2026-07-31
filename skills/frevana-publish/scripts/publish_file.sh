@@ -514,6 +514,7 @@ content_id_path.write_text(content_id.strip(), encoding="utf-8")
 PY
 
 PRESIGNED_URL="$(<"$PRESIGNED_URL_FILE")"
+# Upload the user-specified file path directly.
 UPLOAD_HTTP_CODE="$(
   curl -sS \
     --connect-timeout "$CONNECT_TIMEOUT" \

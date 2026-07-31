@@ -34,8 +34,10 @@ The bundled script owns these request values:
 - `file_extension`: derived from the local filename without the leading dot
 - `content_type`: derived from the local filename
 - `file_title`: use `--title` when provided; otherwise extract it from the article and fall back to the filename stem
+- source file: pass the user-specified path directly to the upload command
 
 Do not override or reproduce this payload with ad hoc API calls.
+Do not modify the specified file as part of the publishing workflow.
 
 ## Execution Order
 
@@ -50,7 +52,7 @@ bash <skill-path>/scripts/publish_file.sh \
 ```
 
 5. If the script reports that `custom_domain` is not configured, give the user the exact configuration link it prints and stop. Do not request a pre-upload URL or upload the file.
-6. If the custom domain is configured, let the script call `POST /s3/custom-upload-url` and upload the file to the returned pre-signed destination.
+6. If the custom domain is configured, let the script call `POST /s3/custom-upload-url` and upload the specified file directly to the returned pre-signed destination.
 7. After the upload succeeds, let the script call `PUT /s3/content/{content_id}/publish?op_type=publish`.
 8. Return the public URL only after both upload and publish succeed. Do not expose the pre-signed upload URL, its query parameters, the bearer token, or raw credential files.
 
@@ -86,6 +88,8 @@ bash <skill-path>/scripts/publish_file.sh \
 ## Upload Behavior
 
 - The script uploads the file with PUT to the returned `presigned_url`.
+- It passes the original path directly to `curl --upload-file`; it does not create or upload a transformed copy.
+- Title extraction and MIME detection only produce request metadata and never write to the source file.
 - It sends the detected MIME type during the upload.
 - It never forwards the Frevana authorization header to the object-storage upload URL.
 - It reads `content_id` from the custom upload URL response.
