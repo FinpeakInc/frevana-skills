@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frevana Space CMS"
+  short_description: "Publish or update an HTML file with Frevana Space CMS."
+  default_prompt: "Use $frevana-space-cms to publish or update my local HTML file and return its public URL, file key, and content ID."

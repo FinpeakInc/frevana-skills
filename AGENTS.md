@@ -50,7 +50,7 @@ skills/
   frevana-auth/
     SKILL.md
     scripts/login.sh
-  frevana-publish/
+  frevana-space-cms/
     SKILL.md
     agents/openai.yaml
     scripts/publish_file.sh
@@ -365,18 +365,18 @@ Important behavior:
 - Let the CLI manage device authorization and local credential storage.
 - Do not print the saved API key value back to the user unless they explicitly ask for the raw secret.
 
-### Use `frevana-publish`
+### Use `frevana-space-cms`
 
 Route here when the user wants:
 
-- to publish or host a local file through Frevana
-- to update an existing Frevana publication with a replacement local file
-- a public custom-domain URL for an agent-generated app, HTML page, report, image, document, or other artifact
+- to publish or host a local HTML file through Frevana
+- to update an existing Frevana HTML publication with a replacement local HTML file
+- a public custom-domain URL for an agent-generated HTML app, page, or report
 - to upload a local result with Frevana's custom upload URL flow
 
 Required input:
 
-- one local file path
+- one local `.html` file path
 
 Optional input:
 
@@ -394,9 +394,9 @@ Important behavior:
 - If `custom_domain` is empty or null, stop and direct the user to `https://www.frevana.com/dashboard/domain`.
 - Prefer `scripts/publish_file.sh` over ad hoc API and object-storage calls.
 - Keep `category=agent_app_result`, `scene_type=content_html`, and `publish_type=custom_domain` fixed.
-- Try to use the current Agent ID. If none is available, let the script use its fixed `frevana-publish` fallback.
+- Try to use the current Agent ID. If none is available, let the script use its fixed `frevana-space-cms` fallback.
 - Try to use the current team ID. If none is available, pass the current conversation/task ID as `--session-id`; omit `team_id` only when neither value is available.
-- Derive `file_extension` and `content_type` from the local file. If the user does not provide a title, extract `file_title` from the article content and fall back to the filename stem.
+- Reject every non-`.html` input before any network request. Tell the user that Frevana Space CMS only supports `.html` files and ask them to provide one. Keep `file_extension=html` and `content_type=text/html` fixed. If the user does not provide a title, extract `file_title` from the HTML and fall back to the filename stem.
 - For a new publication, omit `file_key`. When the user asks to update existing content, require the previous publication's `file_key` from the caller and send it to `POST /s3/custom-upload-url`; do not guess it.
 - Pass the user-selected file path directly to the upload command and do not modify that file during publishing.
 - Never forward the Frevana bearer token to the pre-signed upload host.
@@ -2294,9 +2294,9 @@ For `frevana-auth`:
 
 ### Frevana custom-domain publishing
 
-For `frevana-publish`:
+For `frevana-space-cms`:
 
-1. Confirm the user provided one readable local file with an extension.
+1. Confirm the user provided one readable local `.html` file. Reject every other extension before any network request, tell the user that Frevana Space CMS only supports `.html`, and ask for an `.html` file.
 2. If the user wants to update existing content, require the previous `file_key` from the caller and pass it as `--file-key`; omit this option for new content.
 3. Prefer `scripts/publish_file.sh` over manual requests.
 4. Let the script use `FREVANA_TOKEN` from the environment first.
@@ -2702,7 +2702,7 @@ bash skills/wordpress-content/scripts/wordpress_rest.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
-bash skills/frevana-publish/scripts/publish_file.sh
+bash skills/frevana-space-cms/scripts/publish_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
@@ -2725,7 +2725,7 @@ bash skills/frevana-auth/scripts/login.sh \
 ### Frevana publish
 
 ```bash
-bash skills/frevana-publish/scripts/publish_file.sh \
+bash skills/frevana-space-cms/scripts/publish_file.sh \
   --file ./out/result.html
 ```
 

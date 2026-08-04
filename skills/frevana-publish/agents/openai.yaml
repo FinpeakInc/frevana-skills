@@ -1,4 +1,0 @@
-interface:
-  display_name: "Frevana Publish"
-  short_description: "Publish or update a local file on a Frevana custom domain."
-  default_prompt: "Use $frevana-publish to publish or update my local file and return its public URL, file key, and content ID."

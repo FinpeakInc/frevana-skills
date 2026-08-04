@@ -171,7 +171,6 @@ class PublishFileTests(unittest.TestCase):
         env.pop("FREVANA_SESSION_ID", None)
         env.pop("CODEX_THREAD_ID", None)
         env.pop("CODEX_SESSION_ID", None)
-        env.pop("FREVANA_PUBLISH_HISTORY_FILE", None)
         env["FREVANA_API_BASE_URL"] = self.api_base_url
         if env_overrides:
             env.update(env_overrides)
@@ -313,7 +312,7 @@ class PublishFileTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(Handler.state.api_payload["file_title"], "Article title")
 
-    def test_markdown_frontmatter_title_is_extracted(self) -> None:
+    def test_markdown_is_rejected_before_network_request(self) -> None:
         self.file_path = Path(self.temp_dir.name) / "article.md"
         self.file_path.write_text(
             "---\ntitle: Quarterly Growth Report\n---\n\n# Ignored heading\n",
@@ -322,20 +321,43 @@ class PublishFileTests(unittest.TestCase):
 
         result = self.run_script()
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(
-            Handler.state.api_payload["file_title"],
-            "Quarterly Growth Report",
-        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Frevana Space CMS only supports .html files", result.stderr)
+        self.assertEqual(Handler.state.subscription_requests, 0)
+        self.assertEqual(Handler.state.upload_url_requests, 0)
 
-    def test_filename_is_used_when_content_has_no_title(self) -> None:
+    def test_binary_file_is_rejected_before_network_request(self) -> None:
         self.file_path = Path(self.temp_dir.name) / "artifact.bin"
         self.file_path.write_bytes(b"\x00\x01\x02")
 
         result = self.run_script()
 
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Frevana Space CMS only supports .html files", result.stderr)
+        self.assertEqual(Handler.state.subscription_requests, 0)
+        self.assertEqual(Handler.state.upload_url_requests, 0)
+
+    def test_htm_file_is_rejected_before_network_request(self) -> None:
+        self.file_path = Path(self.temp_dir.name) / "article.htm"
+        self.file_path.write_text("<h1>Article</h1>", encoding="utf-8")
+
+        result = self.run_script()
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Frevana Space CMS only supports .html files", result.stderr)
+        self.assertEqual(Handler.state.subscription_requests, 0)
+        self.assertEqual(Handler.state.upload_url_requests, 0)
+
+    def test_uppercase_html_extension_is_accepted(self) -> None:
+        self.file_path = Path(self.temp_dir.name) / "ARTICLE.HTML"
+        self.file_path.write_text("<h1>Uppercase HTML</h1>", encoding="utf-8")
+
+        result = self.run_script()
+
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(Handler.state.api_payload["file_title"], "artifact")
+        self.assertEqual(Handler.state.api_payload["file_extension"], "html")
+        self.assertEqual(Handler.state.api_payload["content_type"], "text/html")
+        self.assertEqual(Handler.state.api_payload["file_title"], "Uppercase HTML")
 
     def test_missing_custom_domain_stops_before_upload_url_request(self) -> None:
         Handler.state.custom_domain = ""
@@ -421,7 +443,7 @@ class PublishFileTests(unittest.TestCase):
         result = self.run_script()
 
         self.assertEqual(result.returncode, 1)
-        self.assertIn("must have an extension", result.stderr)
+        self.assertIn("Frevana Space CMS only supports .html files", result.stderr)
         self.assertEqual(Handler.state.subscription_requests, 0)
         self.assertEqual(Handler.state.upload_url_requests, 0)
 
@@ -432,7 +454,7 @@ class PublishFileTests(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(Handler.state.api_payload["agent_id"], "frevana-publish")
+        self.assertEqual(Handler.state.api_payload["agent_id"], "frevana-space-cms")
         self.assertEqual(Handler.state.api_payload["team_id"], "session-456")
 
     def test_team_id_takes_precedence_over_session_id(self) -> None:

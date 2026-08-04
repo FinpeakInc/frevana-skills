@@ -121,7 +121,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
-| Publishing | [`frevana-publish`](skills/frevana-publish/SKILL.md) | Publish or update a local artifact on the user's Frevana custom domain | local file path; previous `file_key` for updates |
+| Publishing | [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md) | Publish or update a local HTML file with Frevana Space CMS on the user's custom domain | local `.html` path; previous `file_key` for updates |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
@@ -195,22 +195,24 @@ Features:
 - uses `https://api.frevana.com` by default and supports an optional custom `--server`
 - reports the saved config path without exposing the raw API key by default
 
-### [`frevana-publish`](skills/frevana-publish/SKILL.md)
+### [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md)
 
-Publish or update a local file on the user's configured Frevana custom domain.
+Publish or update one local `.html` file on the user's configured Frevana custom domain.
 
 Use when:
 
-- you need a public URL for an agent-generated HTML page, app result, report, image, or document
-- you want to host or share a local artifact through Frevana
+- you need a public URL for an agent-generated HTML page, app result, or report
+- you want to host or share a local HTML artifact through Frevana
 
 Features:
 
 - checks `custom_domain` through `GET /subscriptions/user` before requesting an upload URL
 - directs users without a custom domain to `https://www.frevana.com/dashboard/domain`
 - requests `POST /s3/custom-upload-url` with fixed `category=agent_app_result`, `scene_type=content_html`, and `publish_type=custom_domain`
-- resolves `agent_id` from the current context with a fixed `frevana-publish` fallback, and uses the current session/task ID when a team ID is unavailable
-- accepts an explicit title or extracts one from HTML, Markdown, JSON, or text content, with a filename fallback
+- resolves `agent_id` from the current context with a fixed `frevana-space-cms` fallback, and uses the current session/task ID when a team ID is unavailable
+- rejects non-`.html` inputs before any network request and tells the user to provide an `.html` file
+- fixes upload metadata to `file_extension=html` and `content_type=text/html`
+- accepts an explicit title or extracts one from HTML, with a filename fallback
 - passes the selected file path directly to the upload command without modifying it
 - supports updating existing content by sending its previous `file_key` when requesting the pre-signed upload URL
 - returns the public URL, `file_key`, and `content_id` as JSON so the caller can associate and persist them with its own Agent App ID

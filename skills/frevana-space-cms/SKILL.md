@@ -1,11 +1,11 @@
 ---
-name: frevana-publish
-description: Publish or update a local file on the user's Frevana custom domain and return its public URL, file key, and content ID to the caller. Use this skill whenever the user asks to publish, update, host, share, or upload an agent-generated app, HTML page, report, image, document, or other local artifact through Frevana.
+name: frevana-space-cms
+description: Publish or update one local HTML file with Frevana Space CMS on the user's Frevana custom domain and return its public URL, file key, and content ID to the caller. Use this skill whenever the user asks to publish, update, host, share, or upload an agent-generated HTML app, page, or report through Frevana Space CMS. For non-HTML input, tell the user that only .html files are supported and ask for an .html file.
 ---
 
-# Frevana Publish
+# Frevana Space CMS
 
-Publish one local file through Frevana's custom-domain upload flow.
+Publish one local `.html` file through Frevana's custom-domain upload flow.
 
 The script first checks `custom_domain` from `GET /subscriptions/user`. When no custom domain is configured, it stops before requesting an upload URL and directs the user to:
 
@@ -13,7 +13,7 @@ https://www.frevana.com/dashboard/domain
 
 ## What This Skill Needs
 
-- one user-specified local file path
+- one user-specified local `.html` file path
 - the previous `file_key` supplied by the caller when the user wants to update existing content
 - `FREVANA_TOKEN` in the environment, or a one-time `--token` override
 - `curl`
@@ -30,11 +30,11 @@ The bundled script owns these request values:
 - `category`: `agent_app_result`
 - `scene_type`: `content_html`
 - `publish_type`: `custom_domain`
-- `agent_id`: use the available Agent ID; fall back to `frevana-publish`
+- `agent_id`: use the available Agent ID; fall back to `frevana-space-cms`
 - `team_id`: use the available team ID; otherwise use the current session/task ID; omit only when neither is available
-- `file_extension`: derived from the local filename without the leading dot
-- `content_type`: derived from the local filename
-- `file_title`: use `--title` when provided; otherwise extract it from the article and fall back to the filename stem
+- `file_extension`: fixed to `html`
+- `content_type`: fixed to `text/html`
+- `file_title`: use `--title` when provided; otherwise extract it from the HTML and fall back to the filename stem
 - source file: pass the user-specified path directly to the upload command
 - `file_key`: omit for a new publication; for an update, pass the exact value from the previous publication
 
@@ -43,7 +43,7 @@ Do not modify the specified file as part of the publishing workflow.
 
 ## Execution Order
 
-1. Confirm the requested path exists and is a regular file.
+1. Confirm the requested path exists, is a regular file, and ends in `.html` (case-insensitive). Before any network request, reject every other file type, tell the user that Frevana Space CMS only supports `.html`, and ask for an `.html` file.
 2. Determine whether the user wants a new publication or an update. For an update, require the previous `file_key` from the caller; do not guess it or silently create new content.
 3. Prefer the bundled script over manual HTTP calls.
 4. Let the script read `FREVANA_TOKEN`.
@@ -75,7 +75,7 @@ bash <skill-path>/scripts/publish_file.sh \
 
 ```text
 --token <token>          One-time Frevana bearer token override
---file <path>            Local file to publish
+--file <path>            Local .html file to publish
 --file-key <key>         Previous file_key; include only when updating existing content
 --title <title>          Optional title override
 --agent-id <id>          Optional Frevana Agent ID
@@ -87,19 +87,17 @@ bash <skill-path>/scripts/publish_file.sh \
 
 ## ID Resolution
 
-- Resolve `agent_id` in this order: `--agent-id`, `FREVANA_AGENT_ID`, `CODEX_AGENT_ID`, then fixed fallback `frevana-publish`.
+- Resolve `agent_id` in this order: `--agent-id`, `FREVANA_AGENT_ID`, `CODEX_AGENT_ID`, then fixed fallback `frevana-space-cms`.
 - Resolve `team_id` in this order: `--team-id`, `FREVANA_TEAM_ID`, `CODEX_TEAM_ID`, then the session fallback.
 - Resolve the session fallback in this order: `--session-id`, `FREVANA_SESSION_ID`, `CODEX_THREAD_ID`, `CODEX_SESSION_ID`.
 - If neither a team ID nor session ID is available, omit optional `team_id`.
 
-## Title Resolution
+## HTML and Title Resolution
 
 1. Use `--title` when the user explicitly provides a title.
-2. For HTML, use the first non-empty `<h1>`, then `<title>`, then `og:title` or `twitter:title`.
-3. For Markdown, use frontmatter `title`, then the first level-one heading.
-4. For JSON, use the top-level `title`, `headline`, or `name`.
-5. For other text files, use the first non-empty line.
-6. If the file does not contain a usable title, use the filename without its final extension.
+2. Otherwise use the first non-empty `<h1>`, then `<title>`, then `og:title` or `twitter:title`.
+3. If the HTML does not contain a usable title, use the filename without its `.html` extension.
+4. Reject `.htm`, Markdown, JSON, images, PDFs, documents, and every other non-`.html` input before checking the custom domain or calling Frevana.
 
 ## Upload Behavior
 
@@ -107,8 +105,8 @@ bash <skill-path>/scripts/publish_file.sh \
 - For an update, the custom upload URL request includes the exact previous `file_key` so Frevana updates the existing content instead of creating a new item.
 - The script uploads the file with PUT to the returned `presigned_url`.
 - It passes the original path directly to `curl --upload-file`; it does not create or upload a transformed copy.
-- Title extraction and MIME detection only produce request metadata and never write to the source file.
-- It sends the detected MIME type during the upload.
+- Title extraction and fixed HTML metadata construction never write to the source file.
+- It sends `Content-Type: text/html` during the upload.
 - It never forwards the Frevana authorization header to the object-storage upload URL.
 - It reads `content_id` from the custom upload URL response.
 - After a successful object upload, it sends `title`, fixed `publish_type=custom_domain`, and fixed `category=agent_app_result` to `PUT /s3/content/{content_id}/publish?op_type=publish`.
@@ -134,8 +132,8 @@ bash <skill-path>/scripts/publish_file.sh \
 ## Error Handling
 
 - Missing or unreadable file: ask the user for a valid local file path.
+- Non-`.html` input: reject it before any network request, tell the user that Frevana Space CMS only supports `.html`, and ask for a local `.html` file.
 - Update requested without a caller-supplied previous `file_key`: ask the caller for it and stop before any API request.
-- Filename without an extension: ask the user to rename the file with its real extension because the API requires `file_extension`.
 - Missing token in a non-interactive run: tell the user to set `FREVANA_TOKEN` or use `--token`.
 - Missing custom domain: direct the user to `https://www.frevana.com/dashboard/domain`.
 - Unexpected API response: report the error without printing credentials or a pre-signed URL.

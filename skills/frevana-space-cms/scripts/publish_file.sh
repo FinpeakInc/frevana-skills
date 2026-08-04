@@ -11,7 +11,7 @@ DOMAIN_SETUP_URL="https://www.frevana.com/dashboard/domain"
 FIXED_CATEGORY="agent_app_result"
 FIXED_SCENE_TYPE="content_html"
 FIXED_PUBLISH_TYPE="custom_domain"
-FALLBACK_AGENT_ID="frevana-publish"
+FALLBACK_AGENT_ID="frevana-space-cms"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 
@@ -21,7 +21,7 @@ Usage:
   publish_file.sh --file /path/to/result.html [options]
 
 Options:
-  --file        Local file to publish
+  --file        Local .html file to publish
   --file-key    Previous file_key. Pass it only when updating existing content.
   --title       Optional title. When omitted, extract it from the file content.
   --agent-id    Optional Frevana Agent ID
@@ -114,8 +114,8 @@ fi
 AGENT_ID="${AGENT_ID:-$FALLBACK_AGENT_ID}"
 TEAM_ID="${TEAM_ID:-$SESSION_ID_FALLBACK}"
 FILE_BASENAME="${FILE_PATH##*/}"
-if [[ "$FILE_BASENAME" != *.* || -z "${FILE_BASENAME##*.}" ]]; then
-  fail "The file must have an extension so file_extension can be sent to Frevana."
+if [[ ! "$FILE_BASENAME" =~ \.[Hh][Tt][Mm][Ll]$ ]]; then
+  fail "Frevana Space CMS only supports .html files. Please provide a local .html file: $FILE_PATH"
 fi
 
 command -v curl >/dev/null 2>&1 || fail "curl is required but was not found in PATH."
@@ -242,7 +242,6 @@ python3 - \
   "$FIXED_PUBLISH_TYPE" \
   "$FILE_KEY" <<'PY'
 import json
-import mimetypes
 import re
 import sys
 from html.parser import HTMLParser
@@ -323,70 +322,17 @@ def extract_html_title(text):
     )
     return next((title for title in map(normalize_title, candidates) if title), "")
 
-def extract_markdown_title(text):
-    frontmatter = re.match(r"^\s*---\s*\n(.*?)\n---\s*(?:\n|$)", text, re.DOTALL)
-    if frontmatter:
-        title_match = re.search(
-            r"(?mi)^\s*title\s*:\s*[\"']?(.*?)[\"']?\s*$",
-            frontmatter.group(1),
-        )
-        if title_match:
-            title = normalize_title(title_match.group(1))
-            if title:
-                return title
-    heading = re.search(r"(?m)^\s*#\s+(.+?)\s*#*\s*$", text)
-    return normalize_title(heading.group(1)) if heading else ""
-
-def extract_json_title(text):
-    try:
-        value = json.loads(text)
-    except json.JSONDecodeError:
-        return ""
-    if not isinstance(value, dict):
-        return ""
-    for key in ("title", "headline", "name"):
-        title = normalize_title(value.get(key))
-        if title:
-            return title
-    return ""
-
-def extract_text_title(text):
-    for line in text.splitlines():
-        title = normalize_title(re.sub(r"^\s*#+\s*", "", line))
-        if title:
-            return title
-    return ""
-
 def extract_title(path):
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return ""
-    suffix = path.suffix.lower()
-    content_type = mimetypes.guess_type(path.name)[0] or ""
-    if suffix in {".html", ".htm"} or content_type == "text/html":
-        return extract_html_title(text)
-    if suffix in {".md", ".markdown", ".mdx"}:
-        return extract_markdown_title(text)
-    if suffix == ".json" or content_type == "application/json":
-        return extract_json_title(text)
-    if content_type.startswith("text/"):
-        return extract_text_title(text)
-    return ""
+    return extract_html_title(text)
 
-extension = file_path.suffix.lower().lstrip(".")
-if not extension:
-    print(
-        "The file must have an extension so file_extension can be sent to Frevana.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
-
-content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
 file_title = explicit_title or extract_title(file_path) or file_path.stem
 payload = {
-    "file_extension": extension,
-    "content_type": content_type,
+    "file_extension": "html",
+    "content_type": "text/html",
     "agent_id": agent_id,
     "scene_type": scene_type,
     "publish_type": publish_type,
