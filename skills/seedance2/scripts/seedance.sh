@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-DEFAULT_API_BASE_URL="https://api.seevio.ai"
-API_BASE_URL="${SEEDANCE_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-MIN_POLL_INTERVAL=10
+DEFAULT_API_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
+API_BASE_URL="${ARK_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
+POLL_INTERVAL=10
 CONNECT_TIMEOUT=10
 REQUEST_TIMEOUT=120
 
@@ -23,7 +23,7 @@ trap cleanup EXIT
 
 usage() {
   cat <<'EOF'
-Seedance 2.0 video CLI
+Seedance 2.0 video CLI for Volcengine Ark
 
 Usage:
   seedance.sh create --prompt TEXT [options]
@@ -32,7 +32,8 @@ Usage:
 
 Create options:
   --prompt TEXT                       Required video prompt
-  --model MODEL                       seedance-2-0 (default), seedance-2-0-fast, seedance-2-0-mini
+  --model MODEL                       seedance-2-0 (default), seedance-2-0-fast, seedance-2-0-mini,
+                                      or the full Ark model ID
   --generation-type TYPE              text-to-video (default), image-to-video, reference-to-video
   --image-url URL                     Repeatable public image URL
   --video-url URL                     Repeatable public video URL
@@ -50,15 +51,15 @@ Create options:
 Wait options:
   Polling runs at a fixed 10-second interval.
   --timeout SECONDS                   Stop after this many seconds (default: 900; 0 disables)
-  --download-dir DIRECTORY            Download completed results and optional last frame
+  --download-dir DIRECTORY            Download completed video and optional last frame
 
 Common options:
   --output FILE                       Save the final raw API JSON to a file
   -h, --help                          Show help
 
 Environment:
-  SEEDANCE_API_KEY                    Required Bearer API key
-  SEEDANCE_API_BASE_URL               Optional API base override
+  ARK_API_KEY                         Required Volcengine Ark API key
+  ARK_API_BASE_URL                    Optional Ark API base override
 EOF
 }
 
@@ -133,6 +134,23 @@ contains_value() {
   return 1
 }
 
+resolve_model() {
+  case "$1" in
+    seedance-2-0|doubao-seedance-2-0|doubao-seedance-2-0-260128)
+      echo "doubao-seedance-2-0-260128"
+      ;;
+    seedance-2-0-fast|doubao-seedance-2-0-fast|doubao-seedance-2-0-fast-260128)
+      echo "doubao-seedance-2-0-fast-260128"
+      ;;
+    seedance-2-0-mini|doubao-seedance-2-0-mini|doubao-seedance-2-0-mini-260615)
+      echo "doubao-seedance-2-0-mini-260615"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 ACTION="${1-}"
 if [[ -z "$ACTION" || "$ACTION" == "--help" || "$ACTION" == "-h" ]]; then
   usage
@@ -154,7 +172,6 @@ RETURN_LAST_FRAME="false"
 SEED="-1"
 TASK_ID=""
 WAIT_FOR_TASK="false"
-POLL_INTERVAL="10"
 WAIT_TIMEOUT="900"
 DOWNLOAD_DIR=""
 OUTPUT_FILE=""
@@ -387,26 +404,36 @@ for value in media_args:
     elif current is not None:
         groups[current].append(value)
 
-input_data = {
-    "prompt": prompt,
-    "generation_type": generation_type,
-    "duration": int(duration),
-    "aspect_ratio": aspect_ratio,
-    "resolution": resolution,
+content = [{"type": "text", "text": prompt}]
+if generation_type == "image-to-video":
+    roles = ["first_frame", "last_frame"]
+    for index, url in enumerate(groups["--images"]):
+        item = {"type": "image_url", "image_url": {"url": url}}
+        item["role"] = roles[index]
+        content.append(item)
+elif generation_type == "reference-to-video":
+    for url in groups["--images"]:
+        content.append({"type": "image_url", "image_url": {"url": url}, "role": "reference_image"})
+    for url in groups["--videos"]:
+        content.append({"type": "video_url", "video_url": {"url": url}, "role": "reference_video"})
+    for url in groups["--audios"]:
+        content.append({"type": "audio_url", "audio_url": {"url": url}, "role": "reference_audio"})
+
+body = {
+    "model": model,
+    "content": content,
     "generate_audio": generate_audio == "true",
+    "ratio": aspect_ratio,
+    "duration": int(duration),
+    "resolution": resolution,
     "watermark": watermark == "true",
-    "web_search": web_search == "true",
-    "return_last_frame": return_last_frame == "true",
     "seed": int(seed),
 }
-if groups["--images"]:
-    input_data["image_urls"] = groups["--images"]
-if groups["--videos"]:
-    input_data["video_urls"] = groups["--videos"]
-if groups["--audios"]:
-    input_data["audio_urls"] = groups["--audios"]
+if web_search == "true":
+    body["tools"] = [{"type": "web_search"}]
+if return_last_frame == "true":
+    body["return_last_frame"] = True
 
-body = {"model": model, "input": input_data}
 with open(output_file, "w", encoding="utf-8") as handle:
     json.dump(body, handle, ensure_ascii=False, separators=(",", ":"))
 PY
@@ -414,7 +441,7 @@ PY
 
 validate_create_options() {
   [[ -n "${PROMPT//[[:space:]]/}" ]] || fail "--prompt is required for create"
-  contains_value "$MODEL" seedance-2-0 seedance-2-0-fast seedance-2-0-mini || fail "unsupported --model: $MODEL"
+  MODEL="$(resolve_model "$MODEL")" || fail "unsupported --model: $MODEL"
   contains_value "$GENERATION_TYPE" text-to-video image-to-video reference-to-video || fail "unsupported --generation-type: $GENERATION_TYPE"
   contains_value "$ASPECT_RATIO" 16:9 4:3 1:1 3:4 9:16 21:9 adaptive || fail "unsupported --aspect-ratio: $ASPECT_RATIO"
   contains_value "$RESOLUTION" 480p 720p 1080p 4k || fail "unsupported --resolution: $RESOLUTION"
@@ -464,7 +491,7 @@ import urllib.parse
 print(urllib.parse.quote(sys.argv[1], safe=""))
 PY
 )"
-  api_request GET "/v1/tasks/$encoded_task_id"
+  api_request GET "/contents/generations/tasks/$encoded_task_id"
 }
 
 retry_after_seconds() {
@@ -489,7 +516,7 @@ wait_for_task() {
       local status
       status="$(json_field "$HTTP_BODY" status)"
       echo "Task $task_id: ${status:-unknown}" >&2
-      if [[ "$status" == "completed" || "$status" == "failed" ]]; then
+      if [[ "$status" == "succeeded" || "$status" == "failed" || "$status" == "cancelled" || "$status" == "expired" ]]; then
         return 0
       fi
     elif [[ "$HTTP_STATUS" == "429" || "$HTTP_STATUS" =~ ^5[0-9][0-9]$ ]]; then
@@ -541,48 +568,41 @@ print(value or "result")
 PY
 }
 
+download_url() {
+  local label="$1"
+  local url="$2"
+  local target="$3"
+  curl --fail --silent --show-error --location --connect-timeout "$CONNECT_TIMEOUT" \
+    --max-time 600 --output "$target" "$url"
+  echo "Downloaded $label: $target" >&2
+}
+
 download_results() {
   local response_file="$1"
   local directory="$2"
   local status
   status="$(json_field "$response_file" status)"
-  [[ "$status" == "completed" ]] || return 0
+  [[ "$status" == "succeeded" ]] || return 0
   mkdir -p "$directory"
   local task_id
   task_id="$(json_field "$response_file" id)"
   [[ -n "$task_id" ]] || task_id="result"
   task_id="$(safe_filename_component "$task_id")"
 
-  local index=0
-  local url
-  while IFS= read -r url; do
-    [[ -n "$url" ]] || continue
-    index=$((index + 1))
+  local video_url
+  video_url="$(json_field "$response_file" content.video_url)"
+  if [[ -n "$video_url" ]]; then
     local extension
-    extension="$(safe_extension "$url" .mp4)"
-    local target="$directory/seedance-${task_id}-${index}${extension}"
-    curl --fail --silent --show-error --location --connect-timeout "$CONNECT_TIMEOUT" \
-      --max-time 600 --output "$target" "$url"
-    echo "Downloaded video: $target" >&2
-  done < <(python3 - "$response_file" <<'PY'
-import json
-import sys
-with open(sys.argv[1], encoding="utf-8") as handle:
-    data = json.load(handle)
-for url in data.get("data", {}).get("results", []):
-    print(url)
-PY
-)
+    extension="$(safe_extension "$video_url" .mp4)"
+    download_url "video" "$video_url" "$directory/seedance-${task_id}${extension}"
+  fi
 
   local last_frame_url
-  last_frame_url="$(json_field "$response_file" data.last_frame_url)"
+  last_frame_url="$(json_field "$response_file" content.last_frame_url)"
   if [[ -n "$last_frame_url" ]]; then
     local extension
-    extension="$(safe_extension "$last_frame_url" .jpg)"
-    local target="$directory/seedance-${task_id}-last-frame${extension}"
-    curl --fail --silent --show-error --location --connect-timeout "$CONNECT_TIMEOUT" \
-      --max-time 600 --output "$target" "$last_frame_url"
-    echo "Downloaded last frame: $target" >&2
+    extension="$(safe_extension "$last_frame_url" .png)"
+    download_url "last frame" "$last_frame_url" "$directory/seedance-${task_id}-last-frame${extension}"
   fi
 }
 
@@ -607,22 +627,22 @@ fi
 
 require_command curl
 require_command python3
-[[ -n "${SEEDANCE_API_KEY:-}" ]] || fail "SEEDANCE_API_KEY is not set"
-if [[ "$SEEDANCE_API_KEY" == *$'\n'* || "$SEEDANCE_API_KEY" == *$'\r'* ]]; then
-  fail "SEEDANCE_API_KEY contains an invalid newline"
+[[ -n "${ARK_API_KEY:-}" ]] || fail "ARK_API_KEY is not set"
+if [[ "$ARK_API_KEY" == *$'\n'* || "$ARK_API_KEY" == *$'\r'* ]]; then
+  fail "ARK_API_KEY contains an invalid newline"
 fi
-validate_https_url "$API_BASE_URL" "SEEDANCE_API_BASE_URL"
+validate_https_url "$API_BASE_URL" "ARK_API_BASE_URL"
 API_BASE_URL="${API_BASE_URL%/}"
 
 TEMP_DIR="$(mktemp -d)"
 AUTH_HEADER_FILE="$TEMP_DIR/auth-header.txt"
-printf 'Authorization: Bearer %s\n' "$SEEDANCE_API_KEY" > "$AUTH_HEADER_FILE"
+printf 'Authorization: Bearer %s\n' "$ARK_API_KEY" > "$AUTH_HEADER_FILE"
 chmod 600 "$AUTH_HEADER_FILE"
 
 if [[ "$ACTION" == "create" ]]; then
   REQUEST_FILE="$TEMP_DIR/request.json"
   build_request_file "$REQUEST_FILE"
-  api_request POST /v1/videos/generations "$REQUEST_FILE"
+  api_request POST /contents/generations/tasks "$REQUEST_FILE"
   if ! is_success_status "$HTTP_STATUS"; then
     print_api_error
     exit 1
@@ -631,8 +651,8 @@ if [[ "$ACTION" == "create" ]]; then
     save_and_print "$HTTP_BODY"
     exit 0
   fi
-  TASK_ID="$(json_field "$HTTP_BODY" taskId)"
-  [[ -n "$TASK_ID" ]] || fail "create response did not include taskId"
+  TASK_ID="$(json_field "$HTTP_BODY" id)"
+  [[ -n "$TASK_ID" ]] || fail "create response did not include id"
   echo "Created task $TASK_ID; waiting for terminal status" >&2
   wait_for_task "$TASK_ID"
 else
@@ -653,6 +673,6 @@ fi
 save_and_print "$HTTP_BODY"
 
 FINAL_STATUS="$(json_field "$HTTP_BODY" status)"
-if [[ "$FINAL_STATUS" == "failed" ]]; then
+if [[ "$FINAL_STATUS" == "failed" || "$FINAL_STATUS" == "cancelled" || "$FINAL_STATUS" == "expired" ]]; then
   exit 2
 fi
