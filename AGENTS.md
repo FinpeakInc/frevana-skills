@@ -18,6 +18,7 @@ This repository contains reusable skills for four main workflow families:
 - SendGrid Email Logs workflows for per-message activity, opened/clicked checks, and status lookups
 - Slack Incoming Webhook workflows for posting Slack messages and notifications
 - Telegram Bot API workflows for bot inspection, messaging, updates, webhooks, commands, and chat/message management
+- TikTok Business API v1.3 workflows for local OAuth authorization and advertiser, campaign, ad group, ad, creative, audience, measurement, reporting, Business Center, catalog, and automation management
 - WordPress content workflows through the built-in REST API for posts, pages, media, taxonomies, menus, scheduling, and bulk operations
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
@@ -215,6 +216,13 @@ skills/
   telegram-bot/
     SKILL.md
     scripts/telegram_bot.sh
+  tiktok-ads/
+    SKILL.md
+    agents/openai.yaml
+    references/api-capabilities.md
+    scripts/tiktok_ads.sh
+    scripts/tiktok_ads.py
+    tests/test_tiktok_ads.py
   wordpress-content/
     SKILL.md
     agents/openai.yaml
@@ -1692,6 +1700,35 @@ Important behavior:
 - Confirm target `chat_id`, message content, moderation target, webhook URL, or message ID before running write actions with `--execute`.
 - Do not print or log the bot token. If the user shares a token in chat, advise them to rotate it with BotFather.
 - Telegram bots cannot message users first; the user must start the bot or otherwise expose a chat to the bot.
+
+### Use `tiktok-ads`
+
+Route here when the user wants:
+
+- to inspect authorized TikTok advertisers or ad accounts
+- to list, create, update, or change status for campaigns, ad groups, or ads
+- to manage TikTok creatives, media assets, audiences, pixels, offline events, catalogs, comments, or automated rules
+- to query TikTok integrated or asynchronous reports
+- to manage TikTok Business Center members, partners, assets, balances, billing groups, or transfers
+- to start a local OAuth callback server and obtain an Access-Token
+- to invoke another documented TikTok Business API v1.3 endpoint directly
+
+Required input:
+
+- a valid TikTok access token for authenticated operations, or an approved TikTok developer app for the local OAuth flow
+- method-specific identifiers and fields, normally including an advertiser ID
+- an explicit confirmed payload before executing any non-GET operation
+
+Important behavior:
+
+- Do not install or use the TikTok SDK. Prefer `scripts/tiktok_ads.sh` over handwritten Python, `curl`, or another HTTP client.
+- Use `authorize` for the local OAuth callback flow. Require the loopback redirect URI to exactly match the callback registered in the TikTok developer app.
+- Use `list-actions` and `describe` for built-in aliases, then verify parameters against the official API v1.3 reference.
+- Execute GET operations directly. Preview every non-GET operation and require `--execute` only after confirming exact IDs, budgets, bids, targeting, schedule, status, and impact.
+- Resolve access tokens and app secrets from environment variables or owner-only secret files. Never print or store them in the repository.
+- Use only `https://business-api.tiktok.com` and paths under `/open_api/v1.3/`.
+- Verify affected objects after mutations and treat nonzero TikTok response codes as failures.
+- Read `skills/tiktok-ads/references/api-capabilities.md` for API-family selection; use the official v1.3 documentation as the final source of truth.
 
 ### Use `instantly-send-email`
 

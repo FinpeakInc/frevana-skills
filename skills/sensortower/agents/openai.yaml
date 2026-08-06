@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sensor Tower"
+  short_description: "Query Sensor Tower app intelligence data"
+  default_prompt: "Use $sensortower to query Sensor Tower app intelligence data."

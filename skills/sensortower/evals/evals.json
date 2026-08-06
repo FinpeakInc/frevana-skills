@@ -1,0 +1,41 @@
+{
+  "skill_name": "sensortower",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我查 Royal Match 在 Sensor Tower 上的应用 ID",
+      "expected_output": "Selects the sensortower skill and uses the search action with entity-type app without inventing a platform-specific ID.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "查询这个 iOS 游戏 2026 年 3 月在美国和英国的下载与收入估算",
+      "expected_output": "Selects the sensortower skill, asks for the missing iOS app ID if absent, then uses sales with os=ios, countries=US,GB, and the requested date range.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Show me the top 20 US mobile games by revenue using SensorTower",
+      "expected_output": "Selects the sensortower skill and uses top-charts with measure=revenue, countries=US, category=6014, and limit=20.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "这个 Android app 上个月的 DAU 是多少？",
+      "expected_output": "Selects the sensortower skill, requires the Android package ID and dates, and uses active-users with os=android and metric=DAU.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "列出 Supercell 在 Sensor Tower 里的所有应用",
+      "expected_output": "Selects the sensortower skill, resolves or requests the publisher ID, then uses publisher-apps.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "看看这个竞品最近在美国投放了哪些广告素材",
+      "expected_output": "Selects the sensortower skill, requests the app ID if absent, and uses ad-intelligence with action=creatives and countries=US.",
+      "files": []
+    }
+  ]
+}
