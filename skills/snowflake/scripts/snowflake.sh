@@ -290,41 +290,229 @@ verify_snow_binary() {
   printf '%s' "$version_output" | grep -Eqi 'Snowflake CLI'
 }
 
+# Directory where Frevana-managed binaries (uv, etc.) are installed.
+FREVANA_BIN_DIR="${FREVANA_BIN_DIR:-$HOME/.frevana/bin}"
+
+resolve_uv() {
+  # Return the path to uv. Check PATH first, then FREVANA_BIN_DIR, then common locations.
+  if command -v uv >/dev/null 2>&1; then
+    printf '%s' "$(command -v uv)"
+    return 0
+  fi
+  if [[ -x "${FREVANA_BIN_DIR}/uv" ]]; then
+    printf '%s' "${FREVANA_BIN_DIR}/uv"
+    return 0
+  fi
+  local candidate
+  for candidate in \
+    "$HOME/.frevana/python/bin/uv" \
+    "$HOME/.local/bin/uv" \
+    "$HOME/.cargo/bin/uv" \
+    "/opt/homebrew/bin/uv" \
+    "/usr/local/bin/uv" \
+    "/usr/bin/uv"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+install_uv() {
+  local target_dir="${FREVANA_BIN_DIR}"
+  (umask 077; mkdir -p "$target_dir")
+
+  # Detect OS environment
+  local os_type
+  os_type="$(uname -s 2>/dev/null || echo "Unknown")"
+
+  # ── 1. Windows Environment (MSYS, MINGW, Cygwin) ──────────────────────────
+  case "$os_type" in
+    *MINGW*|*MSYS*|*CYGWIN*)
+      if command -v powershell >/dev/null 2>&1; then
+        echo "Installing uv via official PowerShell installer..." >&2
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex" >&2 && return 0
+      fi
+      if command -v winget >/dev/null 2>&1; then
+        echo "Installing uv via winget..." >&2
+        winget install --id=astral-sh.uv -e >&2 && return 0
+      fi
+      if command -v scoop >/dev/null 2>&1; then
+        echo "Installing uv via scoop..." >&2
+        scoop install main/uv >&2 && return 0
+      fi
+      ;;
+  esac
+
+  # ── 2. Official Standalone Installer (macOS / Linux) ─────────────────────
+  # Recommended primary method per Astral docs (https://docs.astral.sh/uv/getting-started/installation/)
+  if command -v curl >/dev/null 2>&1; then
+    echo "Installing uv into ${target_dir} via official installer (curl)..." >&2
+    if curl -LsSf https://astral.sh/uv/install.sh | \
+      UV_INSTALL_DIR="$target_dir" INSTALLER_NO_MODIFY_PATH=1 sh >&2; then
+      hash -r 2>/dev/null || true
+      if [[ -x "${target_dir}/uv" ]]; then
+        echo "uv installed at: ${target_dir}/uv" >&2
+        return 0
+      fi
+    fi
+  elif command -v wget >/dev/null 2>&1; then
+    echo "Installing uv into ${target_dir} via official installer (wget)..." >&2
+    if wget -qO- https://astral.sh/uv/install.sh | \
+      UV_INSTALL_DIR="$target_dir" INSTALLER_NO_MODIFY_PATH=1 sh >&2; then
+      hash -r 2>/dev/null || true
+      if [[ -x "${target_dir}/uv" ]]; then
+        echo "uv installed at: ${target_dir}/uv" >&2
+        return 0
+      fi
+    fi
+  fi
+
+  # ── 3. Homebrew Fallback (macOS / Linux) ──────────────────────────────────
+  if command -v brew >/dev/null 2>&1; then
+    echo "Installing uv via Homebrew..." >&2
+    if brew install uv >&2; then
+      hash -r 2>/dev/null || true
+      local brew_uv
+      brew_uv="$(command -v uv 2>/dev/null || true)"
+      if [[ -n "$brew_uv" && -x "$brew_uv" ]]; then
+        ln -sf "$brew_uv" "${target_dir}/uv" 2>/dev/null || true
+        echo "uv installed via Homebrew at: ${brew_uv}" >&2
+        return 0
+      fi
+    fi
+  fi
+
+  # ── 4. pip / pip3 Fallback ───────────────────────────────────────────────
+  local PIP_BIN=""
+  if [[ -x "${target_dir}/pip" ]];  then PIP_BIN="${target_dir}/pip"
+  elif [[ -x "${target_dir}/pip3" ]]; then PIP_BIN="${target_dir}/pip3"
+  elif command -v pip >/dev/null 2>&1;  then PIP_BIN="pip"
+  elif command -v pip3 >/dev/null 2>&1; then PIP_BIN="pip3"
+  fi
+
+  if [[ -n "$PIP_BIN" ]]; then
+    echo "Installing uv via ${PIP_BIN} install uv..." >&2
+    if "$PIP_BIN" install --quiet uv >&2; then
+      hash -r 2>/dev/null || true
+
+      local real_pip pip_bin_dir uv_in_py_bin
+      real_pip="$(readlink -f "$PIP_BIN" 2>/dev/null || realpath "$PIP_BIN" 2>/dev/null || true)"
+      if [[ -n "$real_pip" ]]; then
+        pip_bin_dir="$(dirname "$real_pip")"
+        uv_in_py_bin="${pip_bin_dir}/uv"
+      fi
+
+      if [[ -x "${target_dir}/uv" ]]; then
+        echo "uv installed at: ${target_dir}/uv" >&2
+        return 0
+      fi
+
+      if [[ -n "${uv_in_py_bin:-}" && -x "$uv_in_py_bin" ]]; then
+        ln -sf "$uv_in_py_bin" "${target_dir}/uv"
+        echo "uv installed at: ${target_dir}/uv -> ${uv_in_py_bin}" >&2
+        return 0
+      fi
+
+      if command -v uv >/dev/null 2>&1; then
+        echo "uv installed at: $(command -v uv)" >&2
+        return 0
+      fi
+    fi
+  fi
+
+  # ── 5. Cargo Fallback (Rust) ──────────────────────────────────────────────
+  if command -v cargo >/dev/null 2>&1; then
+    echo "Installing uv via cargo..." >&2
+    if cargo install --locked uv --root "$target_dir" >&2; then
+      hash -r 2>/dev/null || true
+      if [[ -x "${target_dir}/bin/uv" ]]; then
+        ln -sf "${target_dir}/bin/uv" "${target_dir}/uv" 2>/dev/null || true
+        echo "uv installed via cargo at: ${target_dir}/uv" >&2
+        return 0
+      fi
+    fi
+  fi
+
+  echo "Failed to install uv automatically. All methods (standalone installer, Homebrew, pip, cargo) were unavailable or failed." >&2
+  echo "Please install uv manually (https://docs.astral.sh/uv/getting-started/installation/), then retry." >&2
+  return 127
+}
+
 ensure_snow() {
+  if [[ -x "${FREVANA_BIN_DIR}/snow" ]] && verify_snow_binary "${FREVANA_BIN_DIR}/snow"; then
+    SNOW_BIN="${FREVANA_BIN_DIR}/snow"
+    return
+  fi
+
   if command -v snow >/dev/null 2>&1; then
     if verify_snow_binary "snow"; then
-      SNOW_BIN="snow"
+      SNOW_BIN="$(command -v snow)"
+      (umask 077; mkdir -p "$FREVANA_BIN_DIR")
+      local real_snow
+      real_snow="$(readlink -f "$SNOW_BIN" 2>/dev/null || realpath "$SNOW_BIN" 2>/dev/null || printf '%s' "$SNOW_BIN")"
+      if [[ -n "$real_snow" && "$real_snow" != "${FREVANA_BIN_DIR}/snow" && -x "$real_snow" ]]; then
+        ln -sf "$real_snow" "${FREVANA_BIN_DIR}/snow" 2>/dev/null || true
+      fi
       return
     fi
     die "A command named 'snow' exists but is not a working Snowflake CLI executable"
   fi
 
-  command -v uv >/dev/null 2>&1 || {
-    echo "Snowflake CLI executable 'snow' was not found, and 'uv' is required for automatic installation." >&2
-    echo "Install uv, ensure Python 3.10 or later is available, then retry." >&2
-    exit 127
-  }
+  # Resolve uv; install it automatically if missing.
+  local UV_BIN
+  UV_BIN="$(resolve_uv 2>/dev/null || true)"
+  if [[ -z "$UV_BIN" ]]; then
+    install_uv
+    UV_BIN="$(resolve_uv 2>/dev/null || true)"
+    if [[ -z "$UV_BIN" ]]; then
+      echo "uv installation did not produce a usable uv binary." >&2
+      echo "Install uv manually (https://docs.astral.sh/uv/getting-started/installation/), then retry." >&2
+      exit 127
+    fi
+  fi
 
   echo "Snowflake CLI executable 'snow' was not found. Installing with: uv tool install snowflake-cli" >&2
-  uv tool install snowflake-cli 1>&2
-  hash -r
+  "$UV_BIN" tool install snowflake-cli 1>&2
+  hash -r 2>/dev/null || true
 
   if command -v snow >/dev/null 2>&1; then
-    SNOW_BIN="snow"
+    SNOW_BIN="$(command -v snow)"
   else
     local uv_bin_dir
-    uv_bin_dir="$(uv tool dir --bin 2>/dev/null || true)"
-    if [[ -n "$uv_bin_dir" && -x "${uv_bin_dir}/snow" ]]; then
+    uv_bin_dir="$("$UV_BIN" tool dir --bin 2>/dev/null || true)"
+    if [[ -z "$uv_bin_dir" ]]; then
+      # Fallback: derive bin dir from uv tool dir (tools dir lives at <uv_data>/tools,
+      # bin dir is typically <uv_data>/../../bin → ~/.local/bin on Linux/macOS).
+      local uv_tools_dir
+      uv_tools_dir="$("$UV_BIN" tool dir 2>/dev/null || true)"
+      if [[ -n "$uv_tools_dir" ]]; then
+        uv_bin_dir="$(dirname "$(dirname "$uv_tools_dir")")/bin"
+      fi
+    fi
+    if [[ -z "$uv_bin_dir" ]]; then
+      uv_bin_dir="$HOME/.local/bin"
+    fi
+    if [[ -x "${uv_bin_dir}/snow" ]]; then
       SNOW_BIN="${uv_bin_dir}/snow"
     else
       echo "Snowflake CLI was installed, but 'snow' is not available on PATH." >&2
-      echo "Run 'uv tool update-shell', restart the shell, and retry." >&2
+      echo "Run '$UV_BIN tool update-shell', restart the shell, and retry." >&2
       exit 127
     fi
   fi
 
   verify_snow_binary "$SNOW_BIN" ||
     die "Installed 'snow' executable failed Snowflake CLI verification"
+
+  (umask 077; mkdir -p "${FREVANA_BIN_DIR}")
+  local real_snow
+  real_snow="$(readlink -f "$SNOW_BIN" 2>/dev/null || realpath "$SNOW_BIN" 2>/dev/null || printf '%s' "$SNOW_BIN")"
+  if [[ -n "$real_snow" && "$real_snow" != "${FREVANA_BIN_DIR}/snow" && -x "$real_snow" ]]; then
+    ln -sf "$real_snow" "${FREVANA_BIN_DIR}/snow" 2>/dev/null || true
+  fi
+
   echo "Snowflake CLI installation verified." >&2
 }
 

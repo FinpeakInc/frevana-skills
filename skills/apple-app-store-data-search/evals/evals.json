@@ -1,0 +1,17 @@
+{
+  "skill_name": "apple-app-store-data-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Apple App Store for instagram with country=us, lang=en-us, and save the raw JSON.",
+      "expected_output": "Uses apple-app-store-data-search, calls scripts/search_apple_app_store.sh with --term instagram --country us --lang en-us, saves JSON to file, and returns or summarizes the validated JSON.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "获取 Apple App Store product_id 6444058226 的应用详情与最新评论。",
+      "expected_output": "Uses apple-app-store-data-search scripts/get_apple_product.sh --product-id 6444058226 and scripts/get_apple_reviews.sh --product-id 6444058226 --sort mostrecent, saving output JSONs.",
+      "files": []
+    }
+  ]
+}

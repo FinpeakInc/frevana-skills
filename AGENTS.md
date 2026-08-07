@@ -11,7 +11,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana CLI auth bootstrap and local API key setup
 - Frevana custom-domain publishing for local agent-generated files
 - Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
-- Amazon, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
+- Amazon, Apple App Store, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending and SendGrid Stats API workflows for global email statistics
@@ -107,6 +107,11 @@ skills/
   walmart-product-sellers/
     SKILL.md
     scripts/search_walmart_product_sellers.sh
+  apple-app-store-data-search/
+    SKILL.md
+    scripts/search_apple_app_store.sh
+    scripts/get_apple_product.sh
+    scripts/get_apple_reviews.sh
   google-search/
     SKILL.md
     scripts/search_google.sh
@@ -733,6 +738,30 @@ If the user gives only a product name, keyword, or Walmart URL without a clear i
 Do not invent `store_id` when the user did not provide it.
 The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the sellers API again.
+
+### Use `apple-app-store-data-search`
+
+Route here when the user wants:
+
+- Apple App Store search results by keyword, term, developer, or category
+- Apple App Store product page details by `product_id`
+- Apple App Store app reviews by `product_id`, page, or sort criteria
+- to call the Frevana `apple-app-store-search`, `apple-product`, or `apple-reviews` endpoints
+
+Required input:
+
+- `term` for App Store search (`scripts/search_apple_app_store.sh`)
+- `product_id` for product page details (`scripts/get_apple_product.sh`) and app reviews (`scripts/get_apple_reviews.sh`)
+
+Optional input:
+
+- `country`, `lang`, `num`, `page`, `disallow_explicit`, `property`, `category_id`, `device` for search
+- `type`, `country` for product details
+- `country`, `page`, `sort` for app reviews
+- output file path override
+- one-time token override
+
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the API again.
 
 ### Use `google-search`
 

@@ -9,12 +9,13 @@ Operate Snowflake through the official `snow` CLI. Use the bundled wrapper for c
 
 ## Requirements
 
-- Require `uv` and Python 3.10 or later for automatic installation.
+- Require Python 3.10 or later for Snowflake CLI.
 - Use the bundled wrapper for every operation. Before it runs a Snowflake command, it checks that `snow --help` succeeds and `snow --version` identifies Snowflake CLI; reject an unrelated or broken executable with the same name.
 - If `snow` is missing, automatically run `uv tool install snowflake-cli`.
-- After installation, resolve `snow` from `PATH` or the uv tool bin directory and verify it with `snow --help`.
+- `uv` is resolved automatically: the wrapper first searches common install locations (`~/.local/bin`, `~/.cargo/bin`, `/opt/homebrew/bin`, `${FREVANA_BIN_DIR}`, etc.). If missing, it auto-detects the environment and installs `uv` according to official Astral guidelines (PowerShell/winget/scoop on Windows; standalone installer `https://astral.sh/uv/install.sh` via `curl`/`wget` on macOS/Linux, with Homebrew, `pip`, and `cargo` fallbacks). Manual `uv` installation is only required if all installation methods are unavailable or blocked.
+- After installation, resolve `snow` from `PATH` or the uv tool bin directory, symlink it to `${FREVANA_BIN_DIR}/snow` (`~/.frevana/bin/snow`), and verify it with `snow --help`.
 - Run `scripts/snowflake.sh check` before the first operation to report the installed version.
-- If `uv` is missing or the installed executable cannot be resolved, stop with a clear setup error. Do not silently fall back to system `pip`.
+- If `uv` cannot be resolved or installed and the executable cannot be found, stop with a clear setup error. Do not silently fall back to system `pip`.
 
 ## Safety Rules
 
