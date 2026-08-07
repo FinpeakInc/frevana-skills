@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Ads"
+  short_description: "Authorize, refresh tokens, and manage TikTok ads via API v1.3."
+  default_prompt: "Use $tiktok-ads to authorize, retain or refresh credentials, or safely manage my TikTok advertising account through the official API."
