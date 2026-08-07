@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-API_BASE_URL="https://ai-factory.frevana.com"
+API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
 WALMART_PRODUCT_SELLERS_PATH="/service/walmart-product-sellers"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
