@@ -1,0 +1,11 @@
+{
+  "skill_name": "apple-app-store-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search Apple App Store for instagram with country=us, lang=en-us, and save the raw JSON.",
+      "expected_output": "Uses apple-app-store-search, calls scripts/search_apple_app_store.sh with --term instagram --country us --lang en-us, saves JSON to file, and returns or summarizes the validated JSON.",
+      "files": []
+    }
+  ]
+}

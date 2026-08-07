@@ -1,0 +1,11 @@
+{
+  "skill_name": "apple-app-store-reviews",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Get page 1 reviews for App Store product_id 6444058226 sorted by mostrecent and save JSON.",
+      "expected_output": "Uses apple-app-store-reviews, calls scripts/get_apple_reviews.sh with --product-id 6444058226 --page 1 --sort mostrecent, saves JSON to file, and returns or summarizes the validated JSON.",
+      "files": []
+    }
+  ]
+}

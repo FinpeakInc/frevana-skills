@@ -1,0 +1,11 @@
+{
+  "skill_name": "apple-app-store-product",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fetch Apple product details for product_id 6444058226 in country us and save JSON.",
+      "expected_output": "Uses apple-app-store-product, calls scripts/get_apple_product.sh with --product-id 6444058226 --country us, saves JSON to file, and returns or summarizes the validated JSON.",
+      "files": []
+    }
+  ]
+}

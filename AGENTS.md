@@ -107,10 +107,14 @@ skills/
   walmart-product-sellers/
     SKILL.md
     scripts/search_walmart_product_sellers.sh
-  apple-app-store-data-search/
+  apple-app-store-search/
     SKILL.md
     scripts/search_apple_app_store.sh
+  apple-app-store-product/
+    SKILL.md
     scripts/get_apple_product.sh
+  apple-app-store-reviews/
+    SKILL.md
     scripts/get_apple_reviews.sh
   google-search/
     SKILL.md
@@ -739,25 +743,61 @@ Do not invent `store_id` when the user did not provide it.
 The Frevana endpoint schema currently exposes only `product_id` and `store_id`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the sellers API again.
 
-### Use `apple-app-store-data-search`
+### Use `apple-app-store-search`
 
 Route here when the user wants:
 
 - Apple App Store search results by keyword, term, developer, or category
-- Apple App Store product page details by `product_id`
-- Apple App Store app reviews by `product_id`, page, or sort criteria
-- to call the Frevana `apple-app-store-search`, `apple-product`, or `apple-reviews` endpoints
+- to call the Frevana `apple-app-store-search` endpoint
 
 Required input:
 
-- `term` for App Store search (`scripts/search_apple_app_store.sh`)
-- `product_id` for product page details (`scripts/get_apple_product.sh`) and app reviews (`scripts/get_apple_reviews.sh`)
+- `term` search query keyword
 
 Optional input:
 
-- `country`, `lang`, `num`, `page`, `disallow_explicit`, `property`, `category_id`, `device` for search
-- `type`, `country` for product details
-- `country`, `page`, `sort` for app reviews
+- `country`, `lang`, `num`, `page`, `disallow_explicit`, `property`, `category_id`, `device`
+- output file path override
+- one-time token override
+
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the API again.
+
+### Use `apple-app-store-product`
+
+Route here when the user wants:
+
+- Apple App Store product page details by `product_id`
+- to call the Frevana `apple-product` endpoint
+
+Required input:
+
+- `product_id`
+
+Optional input:
+
+- `type`
+- `country`
+- output file path override
+- one-time token override
+
+The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the API again.
+
+### Use `apple-app-store-reviews`
+
+Route here when the user wants:
+
+- Apple App Store app reviews by `product_id`, page, or sort criteria
+- to call the Frevana `apple-reviews` endpoint
+
+Required input:
+
+- `product_id`
+
+Optional input:
+
+- `country`
+- `page`
+- `sort` (`mostrecent`, `mosthelpful`, `mostfavorable`, `mostcritical`)
 - output file path override
 - one-time token override
 
@@ -2376,7 +2416,7 @@ For `frevana-space-cms`:
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
-For `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `amazon-related-keywords`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
+For `apple-app-store-search`, `apple-app-store-product`, `apple-app-store-reviews`, `amazon-search`, `amazon-product`, `amazon-keyword-search-volume`, `amazon-related-keywords`, `ebay-search`, `home-depot-search`, `walmart-search`, `walmart-product-reviews`, `walmart-product-sellers`, `google-ads-transparency-center`, `google-ads-keywords-search-volume`, `google-ads-keywords-for-keywords`, `google-ads-ad-traffic-by-keywords`, `google-search`, `google-forums-search`, `google-patents-search`, `google-news-search`, `google-maps-search`, `facebook-profile`, `google-related-questions`, `google-trends`, `google-shopping-search`, `google-shopping-light-search`, `google-immersive-product`, and `youtube-search`:
 
 1. Extract the user inputs.
 2. Prefer the repo script over ad hoc `curl`.
