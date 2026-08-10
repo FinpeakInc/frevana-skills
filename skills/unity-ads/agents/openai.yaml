@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity Ads"
+  short_description: "Query and safely manage Unity Ads workflows"
+  default_prompt: "Use $unity-ads to report on or safely manage my Unity Ads account."

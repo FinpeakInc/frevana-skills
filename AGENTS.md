@@ -12,6 +12,8 @@ This repository contains reusable skills for four main workflow families:
 - Frevana custom-domain publishing for local agent-generated files
 - Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
 - Amazon, Apple App Store, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
+- AppsFlyer Master API freshness and KPI reports plus Aggregate Pull API partner, daily, and geo reports
+- Moloco Ads API authentication, analytics, report and log exports, and guarded campaign-resource management
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending and SendGrid Stats API workflows for global email statistics
@@ -113,6 +115,23 @@ skills/
   apple-app-store-product/
     SKILL.md
     scripts/get_apple_product.sh
+  appsflyer-reporting/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/appsflyer_reporting.sh
+    scripts/appsflyer_reporting.py
+    tests/test_appsflyer_reporting.py
+  moloco-ads/
+    SKILL.md
+    agents/openai.yaml
+    evals/evals.json
+    references/api-capabilities.md
+    references/campaign-management.md
+    references/reporting.md
+    scripts/moloco_ads.sh
+    scripts/moloco_ads.py
+    tests/test_moloco_ads.py
   apple-app-store-reviews/
     SKILL.md
     scripts/get_apple_reviews.sh
@@ -232,6 +251,15 @@ skills/
     scripts/tiktok_ads.sh
     scripts/tiktok_ads.py
     tests/test_tiktok_ads.py
+  unity-ads/
+    SKILL.md
+    agents/openai.yaml
+    references/acquire-management.md
+    references/acquire-reporting.md
+    references/monetization.md
+    scripts/unity_ads.sh
+    scripts/unity_ads.py
+    tests/test_unity_ads.py
   wordpress-content/
     SKILL.md
     agents/openai.yaml
@@ -802,6 +830,62 @@ Optional input:
 - one-time token override
 
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the API again.
+
+### Use `appsflyer-reporting`
+
+Route here when the user wants:
+
+- AppsFlyer Master API LTV, activity, retention, cohort, or Protect360 campaign KPIs
+- the latest AppsFlyer Master data update time
+- AppsFlyer Aggregate Pull API partner, partner-daily, daily, geo, or geo-daily reports
+- AppsFlyer aggregate reports exported as CSV or converted locally to JSON
+
+Required input for Master reports:
+
+- `app_id`
+- `from` and `to` dates
+- one or more API `groupings`
+- one or more `kpis`
+
+Required input for Pull reports:
+
+- Pull report name
+- `app_id`
+- `from` and `to` dates
+
+Important behavior:
+
+- Read `APPSFLYER_API_TOKEN` from the environment; never accept or print it on the command line.
+- Use `scripts/appsflyer_reporting.sh` instead of constructing request URLs manually.
+- Use AppsFlyer API field names such as `install_time`, `pid`, and `c`; do not substitute dashboard labels such as date, media source, or campaign.
+- Check Master `lastupdate` before a Master report unless the caller explicitly opts out.
+- Reject Master ranges over 31 inclusive days. Split and merge only date-grouped Pull reports (`daily`, `partners-daily`, and `geo-daily`); keep `partners` and `geo` as one aggregate call.
+- Preserve raw CSV by default. Convert Pull CSV to JSON only when the user asks for JSON.
+- Save reports without printing the full body by default; use `--stdout` only when the user explicitly asks for raw output.
+- Treat `standard`, `facebook`, and `organic` as the verified Pull categories; do not send the documentation-inconsistent `twitter` category without a verified API update.
+- If `401` occurs, mention that AppsFlyer revoked API V2 tokens generated before March 10, 2026 at 19:00 UTC.
+- Summarize the report by default and return the saved output path instead of pasting large report bodies.
+
+### Use `moloco-ads`
+
+Route here when the user wants:
+
+- Moloco Ads spend, impressions, clicks, installs, revenue, ROAS, Analytics, Report API, or SKAdNetwork performance data
+- Moloco Ads report or event-log exports in JSON, CSV, Avro, or Parquet
+- to list or inspect Moloco ad accounts, products, campaigns, ad groups, creative groups, creatives, audience targets, customer sets, or tracking links
+- to safely create, update, pause, enable, or delete a Moloco Ads campaign-management resource
+
+Important behavior:
+
+- Do not route Moloco Commerce Media (MCM) or Moloco Publisher SDK tasks here.
+- Read `MOLOCO_ADS_API_KEY` only from the environment and never print it. Let the bundled CLI exchange it for a cached 16-hour access token.
+- Use `scripts/moloco_ads.sh`; keep the origin fixed to `https://api.moloco.cloud`, paths under `/cm/v1/`, and the organization-wide version in `Moloco-Cloud-Api-Version`.
+- Execute Analytics, report/log generation, status checks, downloads, and GET resource reads directly.
+- Preview entity create, update, and delete operations by default. Require explicit confirmation and `--execute` before applying them.
+- Retrieve the current entity before update or delete. Verify an update by reading the entity again and comparing the returned `before` and `after` objects.
+- Do not automatically retry entity mutations, report creation, or log creation, including after `401`. Retry only safe reads and Analytics requests.
+- Never forward Moloco authorization or API-version headers to report/log storage URLs, and never print pre-signed download locations.
+- Read `skills/moloco-ads/references/reporting.md` for Analytics, Report, and Log routing. Read `skills/moloco-ads/references/campaign-management.md` before a write.
 
 ### Use `google-search`
 
@@ -1798,6 +1882,33 @@ Important behavior:
 - Use only `https://business-api.tiktok.com` and paths under `/open_api/v1.3/`.
 - Verify affected objects after mutations and treat nonzero TikTok response codes as failures.
 - Read `skills/tiktok-ads/references/api-capabilities.md` for API-family selection; use the official v1.3 documentation as the final source of truth.
+
+### Use `unity-ads`
+
+Route here when the user wants:
+
+- Unity Ads publisher monetization revenue, inventory, request, start, or view reports
+- Unity Acquire acquisition or SKAdNetwork performance reports
+- to inspect or manage Unity Ads apps, campaigns, budgets, bids, targeting, creatives, or creative packs
+- to call another documented Unity Advertising Management API v1 JSON endpoint
+
+Required input:
+
+- the relevant Unity Organization Core ID
+- a Monetization Stats API key for monetization reporting, or Unity service-account credentials/bearer token for Acquire reporting and management
+- report dates, metrics, and dimensions for reporting operations
+- exact app, campaign, or resource IDs and an explicitly confirmed JSON payload for management mutations
+
+Important behavior:
+
+- Use `scripts/unity_ads.sh` and route internally to `monetization`, `reporting`, or `management`; do not construct ad hoc Unity URLs.
+- Keep API hosts fixed to `monetization.api.unity.com` and `services.api.unity.com`.
+- Read credentials from environment variables or owner-only secret files and never print them.
+- Execute GET operations directly. Preview every non-GET operation and require `--execute` after explicit confirmation.
+- Fetch current state before `PATCH`, `PUT`, or `DELETE`; verify every successful mutation by comparing requested fields with a GET; never automatically retry a mutation.
+- Treat deleting an app as destructive and unrecoverable because it also deletes its campaigns, bids, and creative packs.
+- Use `--eof-marker` for large Acquire CSV reports and split high-cardinality reports by day when needed.
+- Read the module-specific file under `skills/unity-ads/references/` and use the current official Unity API documentation as the final source of truth.
 
 ### Use `instantly-send-email`
 

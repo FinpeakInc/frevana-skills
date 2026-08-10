@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mintegral Ads"
+  short_description: "Query and safely manage Mintegral advertising"
+  default_prompt: "Use $mintegral-ads to inspect or safely update my Mintegral campaigns and offers."

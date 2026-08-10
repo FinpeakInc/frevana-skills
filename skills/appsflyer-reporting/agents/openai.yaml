@@ -1,0 +1,4 @@
+interface:
+  display_name: "AppsFlyer Reporting"
+  short_description: "Query AppsFlyer Master and aggregate Pull reports."
+  default_prompt: "Use $appsflyer-reporting to retrieve an AppsFlyer Master or aggregate Pull report."

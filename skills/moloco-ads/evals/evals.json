@@ -1,0 +1,23 @@
+{
+  "skill_name": "moloco-ads",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Pull Moloco Ads spend, impressions, clicks, and installs for ad account acct_123 from 2026-08-01 through 2026-08-07, grouped by date and campaign, and save the raw result.",
+      "expected_output": "Uses analytics-detail with exact API enum values, requires MOLOCO_ADS_API_KEY, saves JSON, and does not expose credentials.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Create a CSV Moloco report for account acct_123 for yesterday grouped by campaign and creative, wait until it is ready, and download it.",
+      "expected_output": "Uses report-create with a one-day range and --wait, downloads from the returned location without forwarding the bearer token, and returns a saved file path.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Pause Moloco campaign cmp_456 using the payload in /tmp/pause-campaign.json.",
+      "expected_output": "Retrieves the current campaign, previews the PUT without executing, asks for confirmation, and only then uses --execute and verifies the updated object.",
+      "files": []
+    }
+  ]
+}

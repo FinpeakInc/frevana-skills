@@ -1,0 +1,4 @@
+interface:
+  display_name: "Moloco Ads"
+  short_description: "Analyze reports and safely manage Moloco Ads."
+  default_prompt: "Use $moloco-ads to query performance, export reports or logs, or safely inspect and manage my Moloco Ads resources."
