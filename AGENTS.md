@@ -510,16 +510,30 @@ Route here when the user wants:
 
 Required input:
 
-- search keyword
+- exactly one of `query` or `node`
 
 Optional input:
 
+- `amazon_domain`
+- `language`
 - page number
 - delivery ZIP code
+- `shipping_location`
+- `sort_by`
+- `rh`
+- `device`
+- `no_cache`
+- `async`
+- `zero_trace`
 - output file path
 - one-time token override
 
 Do not use this skill when the user gives only a product name but explicitly wants a single known product record by ASIN. Use `amazon-product` instead.
+Require exactly one of `query` or `node`, and do not send both together.
+Keep local `--output` as the save path only. Do not pass the request field `output`.
+Validate `page` and `node` as integers >= 1, `device` as `desktop|mobile`, `sort_by` as `review-rank|price-asc-rank|price-desc-rank|date-desc-rank|relevanceblender`, and `no_cache` / `async` / `zero_trace` as `true|false`.
+`delivery_zip` may be used together with `shipping_location`; the endpoint prioritizes `delivery_zip`.
+Require valid JSON and return it unchanged.
 
 ### Use `amazon-product`
 
