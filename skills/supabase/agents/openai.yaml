@@ -1,0 +1,4 @@
+interface:
+  display_name: "Supabase"
+  short_description: "Configure a Supabase token, then manage projects and databases."
+  default_prompt: "Use $supabase to help me configure my Supabase access token, verify access, and operate my project and database."
