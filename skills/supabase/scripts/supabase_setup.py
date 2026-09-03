@@ -14,11 +14,6 @@ def frevana_bin_dir():
                                str(Path.home() / ".frevana/bin"))).expanduser().resolve()
 
 
-def managed_cli_dir():
-    return Path(os.environ.get("FREVANA_SUPABASE_CLI_DIR",
-                               str(Path.home() / ".frevana/supabase-cli"))).expanduser().resolve()
-
-
 def executable(path):
     if not path.is_file():
         return False
@@ -28,27 +23,25 @@ def executable(path):
 
 
 def link_frevana_bin(binary):
+    """Expose a newly installed CLI without replacing any existing user entry."""
     try:
         bin_dir = frevana_bin_dir()
         bin_dir.mkdir(parents=True, exist_ok=True)
         target = Path(binary).resolve()
-        
-        # On Windows, symlink may require Administrator privilege; create a .cmd wrapper shim
+        # Exclusive creation also preserves existing files and dangling symlinks.
+        # Windows symlinks may need Administrator privileges; use a .cmd shim.
         if os.name == "nt":
             cmd_shim = bin_dir / "supabase.cmd"
-            try:
-                cmd_shim.write_text(f'@echo off\r\n"{target}" %*\r\n', encoding="utf-8")
-            except OSError:
-                pass
-
-        link = bin_dir / "supabase"
-        if link.is_symlink() or link.exists():
-            if link.resolve() == target:
-                return
-            link.unlink()
-        link.symlink_to(target)
-    except OSError:
-        pass
+            with cmd_shim.open("x", encoding="utf-8", newline="") as stream:
+                stream.write(f'@echo off\r\n"{target}" %*\r\n')
+        else:
+            (bin_dir / "supabase").symlink_to(target)
+    except FileExistsError:
+        # The installed binary is still used directly for this operation.
+        return
+    except OSError as error:
+        print(f"WARNING: Could not create the optional Supabase launcher ({error.strerror}); "
+              "using the installed CLI directly.", file=sys.stderr)
 
 
 def resolve_global_npm_supabase(npm):
@@ -131,7 +124,7 @@ def install_cli(workdir):
         binary = resolve_global_npm_supabase(npm)
         if binary is None:
             raise ValueError("Installer finished without a usable Supabase binary; no operation was run.")
-    elif binary is None and brew:
+    elif command[0] == brew:
         result = subprocess.run([brew, "--prefix", "supabase"], capture_output=True,
                                 text=True, timeout=30)
         if result.returncode or not result.stdout.strip():
@@ -150,11 +143,9 @@ def cli_path(workdir, auto_install=True):
         for name in ("supabase", "supabase.cmd", "supabase.exe", "supabase.bat"):
             candidate = directory / f"node_modules/.bin/{name}"
             if executable(candidate):
-                link_frevana_bin(candidate)
                 return str(candidate)
     installed = shutil.which("supabase")
     if installed:
-        link_frevana_bin(installed)
         return installed
     bin_dir = frevana_bin_dir()
     for name in ("supabase", "supabase.cmd", "supabase.exe", "supabase.bat"):

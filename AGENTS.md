@@ -28,7 +28,7 @@ This repository contains reusable skills for four main workflow families:
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 - Snowflake CLI workflows for connection management, safe SQL execution, object inspection and mutation, and specialized Snowflake workload or application operations
-- Supabase CLI workflows for cloud project management, migrations, TypeScript typegen, Deno Edge Functions, database diagnostics, and remote resource management
+- Supabase Management API workflows for cloud projects and databases, with CLI repository migrations, file deployment, diagnostics, and remote resource management
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
@@ -295,6 +295,7 @@ skills/
     SKILL.md
     agents/openai.yaml
     references/cli-reference.md
+    references/api-capabilities.md
     references/projects.md
     references/database.md
     references/plugin-setup.md
@@ -306,8 +307,11 @@ skills/
     scripts/supabase_db.py
     scripts/supabase_resources.py
     scripts/supabase_common.py
+    scripts/supabase_api.py
+    scripts/supabase_cli_policy.py
     tests/test_supabase_helper.sh
     tests/test_supabase_helper.py
+    tests/test_supabase_api.py
   redis-crud/
     SKILL.md
     agents/openai.yaml
@@ -1512,33 +1516,17 @@ Important behavior:
 
 ### Use `supabase`
 
-Route here when the user wants:
+Route Supabase project creation, rename, configuration/deletion, SQL/data changes, migrations, diagnostics, types, Functions, Storage, Secrets, branches and network tasks here, including natural-language requests without explicit CLI/skill names.
 
-- to configure a Supabase personal access token (PAT), verify CLI access, select organizations/projects, create/list/delete projects, link/unlink application directories, or push supported cloud configuration
-- to connect to Supabase databases, run SQL/CRUD, manage migrations, dump/restore, inspect performance, verify RLS/privileges, generate types, or run DB tests against linked/cloud projects
-- to access Storage, Edge Functions, Secrets, branches, SSO, domains, network/SSL restrictions, Postgres settings, snippets, and other documented CLI resources
-
-Required input:
-
-- the caller's application workdir for project-bound operations; never assume this skill repository is the target application
-- a resolved organization/project ref or explicit linked/custom DB target when the operation requires one; login and account-level listing do not require a project ref
-- operation-specific inputs (migration name, SQL file, project name/region, resource id/settings) as described by the skill and installed CLI help
-
-Important behavior:
-
-- Read `skills/supabase/SKILL.md`, then the relevant project, DB or resource reference.
-- Default authentication is PAT in `SUPABASE_ACCESS_TOKEN`. If missing, guide the user to https://supabase.com/dashboard/account/tokens and secure environment configuration; never ask for the token in chat. The helper inherits its process environment and does not auto-load `.env`.
-- Check token presence with `supabase_auth.py status`; verify with `supabase_auth.py verify` (read-only `projects list`), not CLI `check`. Do not automatically launch `login`/OAuth or switch accounts after a token error. Use saved login/OAuth only when selected by the user or required by the chosen platform. Request a separate DB password only when needed.
-- Use capability-specific scripts: `supabase_setup.py` for installation, `supabase_auth.py` for token checks, `supabase_project.py` for project/config, `supabase_db.py` for DB, and `supabase_resources.py` for other native resources. The original helper remains a compatible dispatcher.
-- Check using `python3 scripts/supabase_setup.py check --workdir <dir>`. The helper needs Python 3 and reuses project/PATH/Frevana installations. If missing, it automatically installs via npm global install (`npm install -g supabase@latest`), or Homebrew, symlinks to `~/.frevana/bin/supabase`, verifies the version, then continues; no repeated confirmation is needed.
-- Use official installation sources; keep app manifests/lockfiles unchanged for managed tool installation. Stop on installation failure and preserve structured stdout. `--no-install` is for explicitly offline diagnostics.
-- When the requested task needs the Supabase agent plugin, detect and reuse it; if missing, automatically install for the current agent using `references/plugin-setup.md`. Installation does not establish account authentication or replace platform-enforced approval; prefer PAT and do not require OAuth for token-based CLI operations. Do not reinstall an already-loaded plugin or install to unrelated agents.
-- Strict shortcuts reject unsupported flags. Use `cli [helper options] -- <native CLI arguments>` for the complete resource entry point; it preserves native prompts and side effects, not an authorization filter.
-- Resolve targets before writes. Reuse existing authorization, but never infer remote reset/deletion permission from a general setup or inspection request. Add `--yes` only for a supported, already-authorized operation.
-- DB shortcuts operate against the linked remote project.
-- `db lint` is not an RLS/security audit. Verify exposed-schema permissions and RLS separately, with the actual client roles.
-- Never print PATs, service-role/secret keys or DB passwords. Raw CLI status/start/key commands may contain secrets.
-- Helper output paths are relative to workdir and are atomically replaced only on success. Verify the resulting resource state before claiming completion.
+- Read `skills/supabase/SKILL.md` and its operation-specific references. Use bundled capability scripts, not ad hoc HTTP requests.
+- Cloud project/DB actions default to Management API; repository migrations, file deployment/transfer and diagnostics retain reviewed CLI routes. Preserve old helper behavior where documented; do not apply a migration through both interfaces.
+- Reuse `SUPABASE_ACCESS_TOKEN`; guide secure setup only when missing. `supabase_auth.py verify --project-ref REF` verifies the selected read permission without CLI installation. List projects only to resolve ambiguity; fine-grained tokens need only the intended operation's permissions.
+- API targets are explicit refs, not inferred local links. No API-only init/link, CLI installation, OAuth or plugin prerequisite. Helpers do not load `.env` or store tokens. --profile is CLI-only.
+- Check/install the CLI only when the chosen workflow needs it; reuse existing project/PATH installations and existing bootstrap authorization. Install a missing agent plugin only when actually needed through the host-supported workflow, respecting its rules.
+- The shared CLI gate allows help but blocks unreviewed/local/Docker-dependent execution. Do not bypass it by running the same command directly. Functions deployment/download requires --use-api. Cloud resources only: no Docker installation/start/request or Docker runner fallback. Local files/init/link support cloud operations, not local database development.
+- Resolve the exact target and authorized scope before writes. Dry-run is a plan/read preview, not execution. SQL defaults to server-enforced read_only; --write permits authorized changes. Destructive project deletion/PITR requires matching --confirm-project-ref as an execution check, not new user authorization.
+- Do not automatically retry uncertain writes or change transport/accounts after errors. Read current state first. Accepted creation/restore/migration is not verified completion; check actual resource state/data.
+- Never print PATs, passwords, secret keys or secret values. Protect SQL/config outputs; helper files are atomically replaced only on success. Administrative SQL does not prove end-user RLS behavior.
 
 ### Use `redis-crud`
 

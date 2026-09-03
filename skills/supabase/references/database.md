@@ -1,72 +1,60 @@
 # Database operations
 
-Set `SCRIPTS` to this skill's absolute scripts directory. Use `python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" -- <arguments>` for native DB commands below. Database shortcuts are on the same script, and project init/link on `supabase_project.py`. The legacy helper remains compatible. Before running a version-dependent command, inspect its `--help`. Use `--linked` or a supported `--db-url` when appropriate; flags differ by command.
+Set `SCRIPTS` to this skill's absolute scripts directory. Use explicit cloud project refs for API actions. The operation map and exact paths are in [API capabilities](api-capabilities.md). CLI is retained for repository workflows and diagnostics; API is the default for ad hoc SQL, table inspection, TypeScript generation, migration history and hosted backup management.
 
-## Connect, inspect and run SQL / CRUD
-
-Resolve the actual project/environment first. A Management API login does not necessarily provide DB credentials. Obtain connection settings from that project's Dashboard Connect panel; do not fabricate a pooler hostname or reuse a connection URL from another project.
-
-- Hosted DB: select the documented direct connection or session pooler according to network availability and tooling. Prefer direct/session connections for migrations and session-dependent SQL. Read the connection guide before selecting transaction pooling for such operations.
-- Custom Postgres connection: use `--db-url` only where the command advertises support. Avoid passing credential-bearing URLs in logged argv; prefer protected `psql` profiles for ad hoc SQL.
-
-For SQL, first check `db --help`. If this CLI exposes `db query`, inspect `db query --help` for its actual target and SQL-file flags. Do not assume every supported CLI version has it. When unavailable, use standard `psql`:
-
-1. Configure connection fields through existing `PGSERVICE`/`PGSERVICEFILE`, or `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and appropriate TLS settings. Use the caller's approved host, role and CA/SSL configuration.
-2. Supply credentials via a private `PGPASSFILE` (0600) or a protected password prompt; don't echo/commit passwords or put them into shell history. Profiles should name environments clearly. Confirm the profile mapping before connecting.
-3. For inspection, use an actual read-only session and stop on SQL errors:
+## SQL and data changes
 
 ```bash
-# SQL_FILE is a reviewed file; connection/profile variables are already configured.
-PGOPTIONS='-c default_transaction_read_only=on' psql -X -v ON_ERROR_STOP=1 --file "$SQL_FILE"
+python3 "$SCRIPTS/supabase_db.py" tables --project-ref "$PROJECT_REF" --schema public
+python3 "$SCRIPTS/supabase_db.py" query --project-ref "$PROJECT_REF" --file "$SQL_FILE"
+python3 "$SCRIPTS/supabase_db.py" query --project-ref "$PROJECT_REF" --file "$SQL_FILE" --parameters-file "$PARAMETERS_FILE"
+# Only for reviewed, already-authorized SQL writes:
+python3 "$SCRIPTS/supabase_db.py" query --project-ref "$PROJECT_REF" --file "$SQL_FILE" --write
 ```
 
-Start by checking `current_database()`, `current_user`, `inet_server_addr()` and `version()`, then inspect requested tables with explicit columns and bounded results. Don't dump customer data by default.
+The [SQL API](https://supabase.com/docs/reference/api/v1-run-a-query) is Beta. Default requests include `read_only=true`, including queries calling functions. `--write` disables that restriction only for the authorized operation. Files prevent SQL/parameter literals entering process arguments; keep sensitive files private and outside source control. `--dry-run` is a local plan: it never executes SQL or validates it against the database. Do not substitute a regex SQL classifier or execute arbitrary statements under a pretend rollback preview.
 
-For INSERT/UPDATE/DELETE, review predicates and expected row counts in a read-only query first. Execute only the authorized SQL using `psql -X -v ON_ERROR_STOP=1 --single-transaction --file "$SQL_FILE"` when the statements support transactions. Use `RETURNING`/follow-up queries to verify affected rows. Don't pretend a keyword/regex SQL classifier establishes read-only safety. `TRUNCATE`, broad deletes and other destructive operations need explicit scope. Prefer migrations for persistent schema changes; SQL access remains available for ordinary queries and data operations.
+Before INSERT/UPDATE/DELETE, read the intended rows and estimate the effect using the same predicate. Keep transactions and batches scoped; not every SQL statement supports a transaction. Verify `RETURNING`/actual rows after the write, not just HTTP success. Do not retry uncertain writes through CLI or another account. API helpers return provider rows unchanged, so the agent must interpret actual outcomes. Limit result size and avoid unnecessary customer-data exports.
 
-Sources: [connections](https://supabase.com/docs/guides/database/connecting-to-postgres), [psql](https://www.postgresql.org/docs/current/app-psql.html).
+For schema inspection use parameterized information_schema/pg_catalog SQL rather than the deprecated `/database/context` endpoint. Use reviewed migrations for persistent table, index, grant and RLS changes. Cron/Queues can use their documented SQL APIs, but dequeuing/acknowledging is a mutation even when phrased as a read.
 
-## Migrate existing or new schemas
+## Migration ownership
 
-1. Inspect the app's existing migrations, config, link and `migration list --linked` before modifying history. For an existing remote DB without local history, use `db pull` to establish a reviewed baseline; do not push an empty/new template blindly.
-2. Preserve the project's schema workflow. If it uses declarative schema paths, edit those files and generate a diff. Otherwise run `migration new NAME` and write the migration. Do not hand-invent timestamps or rewrite already-applied migrations.
-3. Review generated SQL: publication changes, Storage buckets and security-invoker views may not be captured completely. Do not equate an empty diff with verification of all resources.
-4. Run relevant DB tests, lint and RLS/privilege checks below. For remote deployment, verify the link, run `db push --linked --dry-run`, inspect planned migrations, then `db push --linked` under the existing authorization.
-5. Verify `migration list --linked` and the changed schema/behavior. A migration can partially fail depending on its SQL; inspect actual state before retrying. `migration repair`, squash and down require deliberate history/state reconciliation, not an automatic response to mismatch errors.
-
-**Remote reset:** native `db reset --linked` or `--db-url` can drop user-created objects in the remote DB. It is not a routine migration/deployment method. Require exact target/data-loss authorization and a recovery plan. Do not automatically add `--yes`.
-
-Sources: [migrations](https://supabase.com/docs/reference/cli/introduction#supabase-migration), [db reset](https://supabase.com/docs/reference/cli/introduction#supabase-db-reset).
-
-## Backup and restore
-
-Inspect `db dump --help`. By default dumps exclude data/custom roles and Supabase-managed schemas; a schema-only dump is not a full backup. Keep sensitive exports outside tracked directories. Example with atomic helper stdout saving:
+For a repository already using `supabase/migrations`, preserve its migration files, versions and history. Inspect the link and history, create a migration with the CLI, review its SQL, preview pending changes, then deploy under existing authorization:
 
 ```bash
-python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" --output "$BACKUP_DIR/schema.sql" -- db dump --linked
-python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" --output "$BACKUP_DIR/data.sql" -- db dump --linked --data-only
-python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" --output "$BACKUP_DIR/roles.sql" -- db dump --linked --role-only
+python3 "$SCRIPTS/supabase_db.py" migration-new "$MIGRATION_NAME" --workdir "$PROJECT_DIR"
+python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" -- migration list --linked
+python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" -- db push --linked --dry-run
+python3 "$SCRIPTS/supabase_db.py" cli --workdir "$PROJECT_DIR" -- db push --linked
 ```
 
-Use a private absolute `BACKUP_DIR`. Check each exit status and output; don't claim these files include Storage object contents, all managed schemas, or a consistent cross-file snapshot. For production recovery requirements use a suitable verified backup/PITR/export strategy.
+Verify migration history and changed schema/behavior. The CLI may need a separate DB password; request it only then. Do not replay the same migration through API, change applied files, or automatically repair/squash history. The API `migrations` action is a read and can inspect the same remote history.
 
-Restore only into the expressly chosen destination. Review roles, ownership, grants and statement compatibility, then use the documented restore workflow with `psql`/`pg_restore` appropriate to the backup format. Verify restoration in an isolated target when practical. Do not restore over a linked production DB just to test a dump.
+For ordinary PAT-based standalone cloud work without a repository migration workflow, use `query --write` with reviewed schema SQL. The separate [migration API](https://supabase.com/docs/reference/api/v1-apply-a-migration) is available only to selected partner OAuth apps. An eligible integration may use `migration-apply --project-ref REF --file FILE --name NAME --partner-api-access`, optionally with `--rollback-file FILE`; the flag asserts already-confirmed eligibility and cannot grant it. The helper rejects a workdir containing existing `supabase/migrations/*.sql`; do not evade this check by changing workdir. The returned status is accepted, not proof of schema correctness. Optional rollback SQL does not make every migration reversible; never infer undo SQL or invoke rollback automatically.
 
-Sources: [dump](https://supabase.com/docs/reference/cli/introduction#supabase-db-dump), [backup restoration](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+For missing baselines, recover original migrations or use `migration fetch --linked` after inspecting help and preserving local files. This recovers recorded history, not every unrecorded Dashboard edit. Native schema-only export is an alternative when necessary; reconcile dependencies, managed schemas, grants and already-applied history deliberately. Never replay a baseline over existing objects.
 
-## Lint, RLS and privileges are different checks
+## Cloud operations only; no Docker dependency
 
-- `db lint` uses `plpgsql_check` for database code/schema errors. It does not establish RLS coverage, policy correctness, or index efficiency. Helper `db-lint` defaults to `--fail-on error`; inspect warnings too. Use native help if an older CLI does not expose this flag.
-- Inspect RLS and policies separately via SQL (`pg_class.relrowsecurity`, `pg_namespace`, `pg_policies`) for **all exposed schemas**, not just `public`. Review role/schema/table privileges. Enable RLS for exposed tables and define policies for the real ownership/access model; don't default to public SELECT.
-- RLS alone does not grant API access. New tables may require explicit GRANTs to intended roles under the project's Data API settings. Grant only requested access, and keep RLS in place.
-- Verify both allowed and denied operations as the actual anon/authenticated roles and relevant JWT context or client session. Tests as `postgres`/service-role can bypass RLS and are not sufficient.
-- Review view security-invoker behavior and privileged functions if changed. If the CLI provides advisors, inspect its help before using it; otherwise use documented Dashboard/API checks. Do not invent `db advisors` on an unsupported version.
+The scripts block local stack commands, `--local`/`--db-url`, `db pull/diff/dump/start/schema`, `test db`, and unreviewed modes before execution. CLI `--help` remains available. Merely using a remote target or a preview flag does not remove container dependencies. Do not bypass this policy through the native binary or install/start Docker. Preserve declarative schema files, but do not claim automatic diff generation when the available engine requires local containers.
 
-Sources: [lint](https://supabase.com/docs/reference/cli/introduction#supabase-db-lint), [securing the Data API](https://supabase.com/docs/guides/api/securing-your-api), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+Do not redirect unsupported diff/test operations to Docker on another runner. Use a verified container-free cloud workflow, or a scoped native PostgreSQL client connected to the cloud database for an explicitly requested export/import. Local database development and self-hosting are outside this skill. Do not provision paid infrastructure implicitly. If no suitable route exists, report that capability as unperformed. New Docker-free CLI modes require implementation/version review and an explicit policy update before execution.
 
-## Diagnostics, types and tests
+## Hosted backup versus logical export
 
-- `inspect db --help` discovers metrics; use `table-record-counts`, `index-usage`, `locks`, `cache-hit`, `long-running-queries`, `vacuum-stats` as supported. Helper `inspect METRIC --target linked --output FILE` saves raw stdout, which may contain sensitive SQL text.
-- Helper `gen-types --target local|linked --schema public --output types/database.ts` writes only after success. Native `gen types --help` exposes additional languages/targets.
-- `test db --help` / `test new --help` provide pgTAP entry points. Run tests against the chosen local/disposable DB unless remote test execution is explicitly intended. Test fixtures may mutate data.
-- For errors/timeouts, inspect exit status and targeted logs; fetch [monitoring/debugging guidance](https://supabase.com/docs/guides/monitoring-and-debugging) before diagnosing provider behavior. Don't loop resets, repair migration history, or disable RLS to hide a failure.
+`backups --project-ref REF` reads hosted backup inventory. `restore-pitr --project-ref REF --confirm-project-ref REF --timestamp SECONDS` requests destructive recovery; resolve the exact project/time, available recovery window, plan entitlement, authorization and recovery plan first. `--dry-run` does not initiate or validate recovery. A successful request is accepted, not proof of completed restoration. Read project status and validate restored data without resubmitting the restore. See [PITR endpoint](https://supabase.com/docs/reference/api/v1-restore-pitr-backup).
+
+Hosted backups are not an on-demand logical dump or a complete backup of Storage files. For a requested logical export, use compatible native `pg_dump` or an existing authorized container-free cloud export workflow; install only the required client tools when missing. Do not start a database server. A PAT is not a DB password: obtain the actual selected project's connection settings, prefer direct/session connections as required, and preserve TLS settings. Use a private `PGPASSFILE` or protected prompt, never credential-bearing URLs in logged argv. The script CLI gate intentionally rejects `--db-url`; native-client work is a separate documented workflow, not an escape to a local Supabase stack.
+
+Write exports to a unique private directory (umask 077), stage partial output and publish only on exit 0. Scope schemas/tables explicitly, use a compatible server/client major version, preserve dependencies and record excluded resources. Independent exports need not share one snapshot. Inspect archives with `pg_restore --list`; restore only to the authorized destination with reviewed ownership, grants, privileges and RLS. Do not overwrite production merely to test a backup. See [pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html) and [Supabase restore guidance](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+
+## Diagnostics, types and RLS
+
+Use CLI `db advisors --linked --project-ref REF`, `db-lint` or `inspect METRIC` with an initialized and linked remote workdir. CLI 2.116.0 rejects `--project-ref` for these diagnostics unless `--linked` is also present. The HTTP advisors endpoints are deprecated/experimental; avoiding direct dependence does not guarantee the CLI uses a different provider backend. Inspect installed help and report failures without claiming equivalent checks ran. `db lint` checks database code; it does not establish RLS coverage or index efficiency. See [CLI reference](https://supabase.com/docs/reference/cli/introduction).
+
+Inspect RLS/policies and grants separately across all exposed schemas, not only public. RLS does not grant privileges. Review view security-invoker behavior and privileged functions when changed. Administrative SQL/service-role execution is not an end-user access test: verify both allowed and denied operations using the intended role/JWT context. Never modify auth/storage managed tables to imitate supported service APIs.
+
+Use `types --project-ref REF --schema public --output types/database.ts` for API TypeScript generation. The helper validates the `types` response and saves only source text, atomically. Old `gen-types` retains linked CLI behavior for compatibility; other languages can be discovered through CLI `gen types --help`, but execution remains blocked until a Docker-free implementation is reviewed. SQL/diagnostic output may be sensitive.
+
+DB fixtures, extension setup and tests may mutate data; use an expressly authorized disposable/remote test target, not production by default. Verify actual TAP/assertion results; successful SQL execution alone does not prove tests passed.

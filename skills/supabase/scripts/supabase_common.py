@@ -10,14 +10,19 @@ import sys
 import tempfile
 
 
-def parser(commands, description):
+def parser(commands, description, configure=None):
     root = argparse.ArgumentParser(description=description, allow_abbrev=False)
+    native_help = "For Supabase help: cli [helper options] -- [group] [subcommand] --help"
+    if "cli" in commands:
+        root.epilog = native_help
     sub = root.add_subparsers(dest="command", required=True)
     for name in commands:
         p = sub.add_parser(name, allow_abbrev=False)
+        if name == "cli":
+            p.epilog = native_help + "; help before the separator describes only this helper."
         p.add_argument("--workdir", default=".", help="Existing project directory")
         p.add_argument("--profile", help="Supabase CLI authentication profile")
-        p.add_argument("--no-install", action="store_true", help="Check/use existing CLI only (offline diagnostics)")
+        p.add_argument("--no-install", action="store_true", help="Use existing CLI only; commands may still access the network")
         if name in ("gen-types", "db-lint", "inspect"):
             p.add_argument("--target", choices=("linked",), default="linked")
         if name in ("gen-types", "db-lint"):
@@ -28,6 +33,13 @@ def parser(commands, description):
             p.add_argument("--fail-on", choices=("none", "warning", "error"), default="error")
         if name in ("migration-new", "inspect", "link"):
             p.add_argument("value", help="Migration name, metric, or project ref")
+        if name == "rename":
+            p.add_argument("--project-ref", required=True, help="Exact cloud project ref")
+            p.add_argument("--name", required=True, help="New cloud project display name")
+            p.add_argument("--expect-name", help="Abort if the current name differs from this value")
+            p.add_argument("--dry-run", action="store_true", help="Read target and preview only; do not rename")
+        if configure:
+            configure(name, p)
     return root
 
 
@@ -53,7 +65,20 @@ def output_path(workdir, value):
     return path
 
 
+def write_output(output, content):
+    fd, temporary = tempfile.mkstemp(prefix=".supabase-", dir=output.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(content)
+        os.replace(temporary, output)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def execute(argv, cwd, output=None):
+    from supabase_cli_policy import validate_cli
+    validate_cli(argv[1:])
     if output is None:
         return subprocess.run(argv, cwd=cwd).returncode
     # Stage in the destination directory so replacement is atomic on this filesystem.
@@ -71,21 +96,25 @@ def execute(argv, cwd, output=None):
             os.unlink(temporary)
 
 
-def parse_arguments(commands, description, argv=None, native_groups=None):
+def parse_arguments(commands, description, argv=None, native_groups=None, configure=None):
     arguments = list(sys.argv[1:] if argv is None else argv)
     native = None
     if arguments and arguments[0] == "cli" and "--" in arguments:
         split = arguments.index("--")
         arguments, native = arguments[:split], arguments[split + 1:]
-    p = parser(commands, description)
+    p = parser(commands, description, configure)
     args = p.parse_args(arguments)
     if args.command == "cli" and not native:
         p.error("cli requires an explicit separator: cli [helper options] -- <CLI arguments>")
     # The wrapper owns workdir so CLI selection and relative output paths stay coherent.
     if native and any(a == "--workdir" or a.startswith("--workdir=") for a in native):
         p.error("put --workdir before the cli separator")
-    if native and native_groups and native[0] not in native_groups:
+    root_help = native in (["--help"], ["-h"])
+    if native and native_groups and not root_help and native[0] not in native_groups:
         p.error("this entry accepts CLI groups: " + ", ".join(native_groups))
+    if native:
+        from supabase_cli_policy import validate_cli
+        validate_cli(native)
     workdir = Path(args.workdir).expanduser().resolve()
     if not workdir.is_dir():
         p.error("--workdir must be an existing directory")

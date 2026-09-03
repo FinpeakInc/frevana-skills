@@ -1,4 +1,6 @@
 interface:
   display_name: "Supabase"
-  short_description: "Configure a Supabase token, then manage projects and databases."
-  default_prompt: "Use $supabase to help me configure my Supabase access token, verify access, and operate my project and database."
+  short_description: "Manage Supabase projects, SQL, functions, and storage."
+  default_prompt: "Use $supabase to operate my Supabase resources through its bundled scripts, including renaming projects, modifying database data, or deploying functions. Reuse my configured token; help configure one only if missing. Use the Management API for cloud operations and the CLI for repository migrations and file deployment; operate cloud resources only, with no Docker dependency."
+policy:
+  allow_implicit_invocation: true

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline behavior tests; never invoke a real CLI, Docker, or cloud account."""
 import json
+import contextlib
+import io
 import os
 from pathlib import Path
 import stat
@@ -8,8 +10,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
+from urllib.error import HTTPError, URLError
 
 HELPER = Path(__file__).resolve().parents[1] / "scripts/supabase_helper.py"
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(HELPER.parent))
+import supabase_project as project_module
+import supabase_api as api_module
 MOCK = '''#!{python}
 import json, os, pathlib, sys
 args = sys.argv[1:]
@@ -20,6 +28,8 @@ if os.environ.get('MOCK_FAIL'):
     sys.exit(7)
 if '--version' in args:
     print('2.99.0')
+elif '--help' in args or '-h' in args:
+    print('raw output')
 elif 'status' in args:
     print(json.dumps({{'API_URL': 'http://user:password@localhost:54321?key=secret',
                       'STUDIO_URL': 'http://localhost:54323', 'DB_URL': 'postgres://secret',
@@ -50,8 +60,6 @@ class HelperTests(unittest.TestCase):
         for key in list(self.env):
             if key.startswith(('SUPABASE_', 'MOCK_FAIL')):
                 self.env.pop(key)
-        self.cache = self.root / "managed-cli"
-        self.env["FREVANA_SUPABASE_CLI_DIR"] = str(self.cache)
         self.frevana_bin = self.root / "frevana-bin"
         self.env["FREVANA_BIN_DIR"] = str(self.frevana_bin)
         self.install_log = self.root / "installs.jsonl"
@@ -149,6 +157,61 @@ print('installer progress')
         self.installer()
         self.assertEqual(self.run_helper('check').returncode, 0)
         self.assertFalse(self.install_log.exists())
+        self.assertFalse(self.frevana_bin.exists())
+
+    def test_project_discovery_never_rewrites_shared_launcher(self):
+        local = self.project / 'node_modules/.bin/supabase'
+        self.install(local)
+        self.frevana_bin.mkdir()
+        shared = self.frevana_bin / 'supabase'
+        original = b'#!/bin/sh\n# user-managed launcher\n'
+        for kind in ('file', 'symlink', 'dangling-symlink'):
+            with self.subTest(kind=kind):
+                if kind == 'file':
+                    shared.write_bytes(original)
+                else:
+                    target = self.bin / ('supabase' if kind == 'symlink' else 'missing')
+                    shared.symlink_to(target)
+                for flags in ((), ('--no-install',)):
+                    result = self.run_helper('check', *flags)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(json.loads(result.stdout)['path'], str(local))
+                    if kind == 'file':
+                        self.assertFalse(shared.is_symlink())
+                        self.assertEqual(shared.read_bytes(), original)
+                    else:
+                        self.assertTrue(shared.is_symlink())
+                        self.assertEqual(os.readlink(shared), str(target))
+                shared.unlink()
+
+    def test_path_discovery_no_install_does_not_create_launcher(self):
+        result = self.run_helper('check', '--no-install')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.frevana_bin.exists())
+
+    def test_install_preserves_existing_nonexecutable_launcher(self):
+        (self.bin / 'supabase').unlink()
+        self.installer()
+        self.frevana_bin.mkdir()
+        shared = self.frevana_bin / 'supabase'
+        shared.write_text('user-owned file\n')
+        shared.chmod(0o600)
+        result = self.run_helper('check')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(shared.is_symlink())
+        self.assertEqual(shared.read_text(), 'user-owned file\n')
+        self.assertEqual(json.loads(result.stdout)['path'], str(self.root / 'global-npm/bin/supabase'))
+
+    def test_install_preserves_dangling_launcher(self):
+        (self.bin / 'supabase').unlink()
+        self.installer()
+        self.frevana_bin.mkdir()
+        shared = self.frevana_bin / 'supabase'
+        target = self.root / 'missing-user-binary'
+        shared.symlink_to(target)
+        result = self.run_helper('check')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(os.readlink(shared), str(target))
 
     def test_no_install_and_help_never_invoke_installer(self):
         (self.bin / 'supabase').unlink()
@@ -348,6 +411,40 @@ print('installer progress')
             self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [])
 
+    def test_native_help_reaches_cli_instead_of_helper_parser(self):
+        cases = [
+            ('supabase_db.py', ['db', 'query', '--help']),
+            ('supabase_db.py', ['db', 'advisors', '-h']),
+            ('supabase_db.py', ['db', 'schema', 'declarative', 'sync', '--help']),
+            ('supabase_db.py', ['migrations', '--help']),
+            ('supabase_project.py', ['projects', 'create', '--help']),
+            ('supabase_project.py', ['link', '--help']),
+            ('supabase_project.py', ['init', '-h']),
+            ('supabase_resources.py', ['backups', 'restore', '--help']),
+            ('supabase_resources.py', ['encryption', '--help']),
+        ]
+        for script, native in cases:
+            with self.subTest(script=script, native=native):
+                result = self.run_helper('cli', '--no-install', '--', *native, script=script)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout, 'raw output\n')
+                self.assertEqual(self.calls()[-1]['args'], ['--workdir', str(self.project), *native])
+        self.assertFalse(self.install_log.exists())
+
+    def test_all_native_entries_allow_root_help_without_broadening_groups(self):
+        for script in ('supabase_db.py', 'supabase_project.py', 'supabase_resources.py',
+                       'supabase_helper.py'):
+            for flag in ('--help', '-h'):
+                with self.subTest(script=script, flag=flag):
+                    result = self.run_helper('cli', '--no-install', '--', flag, script=script)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(self.calls()[-1]['args'], ['--workdir', str(self.project), flag])
+        count = len(self.calls())
+        # A help flag must not make unrelated commands pass a capability's group check.
+        result = self.run_helper('cli', '--', 'projects', 'delete', '--help', script='supabase_db.py')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(self.calls()), count)
+
     def test_auth_status_is_secret_free_and_offline(self):
         (self.bin / 'supabase').unlink()
         result = self.run_helper('status', script='supabase_auth.py')
@@ -358,32 +455,149 @@ print('installer progress')
         self.assertEqual(json.loads(result.stdout)['configured'], True)
         self.assertNotIn(token, result.stdout + result.stderr)
         self.assertEqual(self.calls(), [])
-        self.assertFalse(self.cache.exists())
+        self.assertFalse(self.frevana_bin.exists())
 
     def test_auth_verify_requires_token_without_login_or_install(self):
         (self.bin / 'supabase').unlink()
         self.installer()
         result = self.run_helper('verify', script='supabase_auth.py')
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn('Configure SUPABASE_ACCESS_TOKEN', result.stderr)
+        self.assertIn('SUPABASE_ACCESS_TOKEN', result.stderr)
         self.assertEqual(self.calls(), [])
         self.assertFalse(self.install_log.exists())
 
-    def test_auth_verify_uses_read_only_discovery_and_keeps_token_out_of_argv(self):
-        token = 'fake-token-for-offline-tests'
-        self.env['SUPABASE_ACCESS_TOKEN'] = token
-        result = self.run_helper('verify', script='supabase_auth.py')
+
+    def test_cli_policy_blocks_before_install_or_execution_but_preserves_help(self):
+        (self.bin / 'supabase').unlink()
+        self.installer()
+        for args in [('start',), ('db', 'dump', '--linked'), ('functions', 'deploy', 'hello'),
+                     ('future-resource', 'run')]:
+            with self.subTest(args=args):
+                result = self.run_helper('cli', '--', *args, script='supabase_resources.py')
+                self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.calls(), [])
+        self.assertFalse(self.install_log.exists())
+        self.install(self.bin / 'supabase')
+        result = self.run_helper('cli', '--', 'db', 'dump', '--help', script='supabase_resources.py')
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.calls()[0]['args'][-2:], ['projects', 'list'])
-        self.assertNotIn(token, self.log.read_text() + result.stdout + result.stderr)
         self.assertEqual(len(self.calls()), 1)
 
-    def test_auth_failure_does_not_fallback_to_login(self):
-        self.env['SUPABASE_ACCESS_TOKEN'] = 'fake-token-for-offline-tests'
-        result = self.run_helper('verify', script='supabase_auth.py', fail=True)
-        self.assertEqual(result.returncode, 7)
-        self.assertEqual(len(self.calls()), 1)
-        self.assertEqual(self.calls()[0]['args'][-2:], ['projects', 'list'])
+
+class ProjectRenameTests(unittest.TestCase):
+    token = "fake-token-for-rename-tests"
+    ref = "abcdefghijklmnopqrst"
+    new_name = "新项目 demo"
+
+    def setUp(self):
+        self.opener = Mock()
+        self.factory = patch.object(api_module, "build_opener", return_value=self.opener).start()
+        self.addCleanup(patch.stopall)
+        patch.dict(os.environ, {"SUPABASE_ACCESS_TOKEN": self.token}).start()
+        patch.object(project_module, "prepare", side_effect=AssertionError("No CLI needed")).start()
+        self.stdout = io.StringIO()
+
+    def response(self, name, ref=None):
+        response = io.BytesIO(json.dumps({"ref": ref or self.ref, "name": name}).encode())
+        response.status = 200
+        return response
+
+    def invoke(self, *extra):
+        with contextlib.redirect_stdout(self.stdout):
+            return project_module.main(["rename", "--project-ref", self.ref,
+                                        "--name", self.new_name, *extra])
+
+    def methods(self):
+        return [call.args[0].get_method() for call in self.opener.open.call_args_list]
+
+    def test_rename_updates_only_name_and_verifies_exact_target(self):
+        self.opener.open.side_effect = [self.response("old"), self.response(self.new_name),
+                                       self.response(self.new_name)]
+        self.assertEqual(self.invoke("--expect-name", "old"), 0)
+        self.assertEqual(self.methods(), ["GET", "PATCH", "GET"])
+        for call in self.opener.open.call_args_list:
+            request = call.args[0]
+            self.assertEqual(request.full_url, "https://api.supabase.com/v1/projects/" + self.ref)
+            self.assertEqual(request.get_header("Authorization"), "Bearer " + self.token)
+            self.assertEqual(request.get_header("User-agent"), api_module.USER_AGENT)
+            self.assertEqual(call.kwargs["timeout"], 30)
+        request = self.opener.open.call_args_list[1].args[0]
+        self.assertEqual(json.loads(request.data), {"name": self.new_name})
+        result = json.loads(self.stdout.getvalue())
+        self.assertEqual(result["status"], "renamed")
+        self.assertTrue(result["verified"])
+        self.assertNotIn(self.token, self.stdout.getvalue())
+
+    def test_preview_and_already_named_never_patch(self):
+        for args, current, status in [(('--dry-run',), 'old', 'preview'),
+                                      ((), self.new_name, 'already_named')]:
+            with self.subTest(status=status):
+                self.opener.open.reset_mock()
+                self.opener.open.side_effect = [self.response(current)]
+                self.stdout = io.StringIO()
+                self.assertEqual(self.invoke(*args), 0)
+                self.assertEqual(self.methods(), ["GET"])
+                self.assertEqual(json.loads(self.stdout.getvalue())["status"], status)
+
+    def test_expected_name_mismatch_prevents_write(self):
+        self.opener.open.side_effect = [self.response("changed elsewhere")]
+        with self.assertRaisesRegex(ValueError, "differs from --expect-name"):
+            self.invoke("--expect-name", "old")
+        self.assertEqual(self.methods(), ["GET"])
+        self.assertEqual(self.stdout.getvalue(), "")
+
+    def test_wrong_project_response_prevents_write(self):
+        self.opener.open.side_effect = [self.response("old", ref="another-project")]
+        with self.assertRaisesRegex(ValueError, "Could not verify"):
+            self.invoke()
+        self.assertEqual(self.methods(), ["GET"])
+
+    def test_invalid_inputs_fail_before_network(self):
+        for args in [("--project-ref", "https://evil.example/x"), ("--name", "  "),
+                     ("--name", "bad\nname"), ("--profile", "other-account")]:
+            with self.subTest(args=args), self.assertRaises(ValueError):
+                self.invoke(*args)
+        self.factory.assert_not_called()
+
+    def test_missing_or_invalid_token_never_connects(self):
+        for token in ("", "contains\nnewline", "contains\x01control"):
+            with self.subTest(token=repr(token)), patch.dict(os.environ, {"SUPABASE_ACCESS_TOKEN": token}):
+                with self.assertRaisesRegex(ValueError, "Configure a valid"):
+                    self.invoke()
+        self.factory.assert_not_called()
+
+    def test_failed_patch_is_sanitized_and_not_retried(self):
+        for error in (HTTPError("https://example/" + self.token, 403, self.token, {},
+                                io.BytesIO(self.token.encode())), URLError(self.token)):
+            with self.subTest(error=type(error).__name__):
+                self.opener.open.reset_mock()
+                self.opener.open.side_effect = [self.response("old"), error]
+                with self.assertRaises(ValueError) as caught:
+                    self.invoke()
+                self.assertIn("Write may have applied", str(caught.exception))
+                self.assertNotIn(self.token, str(caught.exception))
+                self.assertEqual(self.methods(), ["GET", "PATCH"])
+        self.assertEqual(self.stdout.getvalue(), "")
+
+    def test_readback_mismatch_never_reports_success_or_retries(self):
+        self.opener.open.side_effect = [self.response("old"), self.response(self.new_name),
+                                       self.response("unexpected")]
+        with self.assertRaisesRegex(ValueError, "Rename may have applied"):
+            self.invoke()
+        self.assertEqual(self.methods(), ["GET", "PATCH", "GET"])
+        self.assertEqual(self.stdout.getvalue(), "")
+
+    def test_redirects_are_not_followed(self):
+        handler = api_module.NoRedirect()
+        self.assertIsNone(handler.redirect_request(None, None, 302, "redirect", {},
+                                                   "https://another-host.example"))
+
+    def test_rename_help_is_offline_and_lists_required_inputs(self):
+        with self.assertRaises(SystemExit) as caught:
+            self.invoke("--help")
+        self.assertEqual(caught.exception.code, 0)
+        self.assertIn("--project-ref", self.stdout.getvalue())
+        self.assertIn("--dry-run", self.stdout.getvalue())
+        self.factory.assert_not_called()
 
 
 if __name__ == '__main__':
