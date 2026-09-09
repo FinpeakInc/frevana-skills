@@ -15,6 +15,7 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 - optional reference image inputs: `--image`, `--image-url`, `--image-dir`, `--mask`
 - optional Frevana image options: `n`, `size`, `quality`, `background`, `output_format`, `output_compression`
 - `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
+- optional `FREVANA_AGENT_APP_INSTANCE_ID`; when non-empty, the script sends it as the `x-frevana-agent-app-instance-id` header on the image generation request
 - `curl`
 - `bash`
 - `python3`
@@ -29,9 +30,10 @@ This skill returns the validated API response JSON unchanged. Treat `data[0].ima
 6. Do not ask for or pass through image routing overrides; the Frevana script owns them.
 7. Prefer the script over ad hoc `curl` commands.
 8. Let the script read `FREVANA_TOKEN` first.
-9. In non-interactive runs, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token`.
-10. Return the raw API response JSON, or the first image URL when the user only wants the hosted asset.
-11. Save the JSON with `--output` when useful.
+9. When `FREVANA_AGENT_APP_INSTANCE_ID` is non-empty, let the script attach it to the image generation request as `x-frevana-agent-app-instance-id`.
+10. In non-interactive runs, fail fast if the token is missing and tell the user to set `FREVANA_TOKEN` or pass `--token`.
+11. Return the raw API response JSON, or the first image URL when the user only wants the hosted asset.
+12. Save the JSON with `--output` when useful.
 
 ## Allowed Options
 

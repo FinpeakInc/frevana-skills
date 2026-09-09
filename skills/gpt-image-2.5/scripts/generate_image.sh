@@ -317,6 +317,9 @@ PY
 fi
 
 CURL_ARGS=(-sS --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" -o "$RESPONSE_FILE" -w '%{http_code}' -X POST "$API_BASE_URL$OPENAI_IMAGE_PATH" -H "Authorization: Bearer $TOKEN")
+if [[ -n "${FREVANA_AGENT_APP_INSTANCE_ID:-}" ]]; then
+  CURL_ARGS+=(-H "x-frevana-agent-app-instance-id: $FREVANA_AGENT_APP_INSTANCE_ID")
+fi
 if (( IMAGE_COUNT > 0 )); then
   CURL_ARGS+=(--form-string "prompt=$PROMPT" --form-string "model=$MODEL")
   [[ -n "$N" ]] && CURL_ARGS+=(--form-string "n=$N")

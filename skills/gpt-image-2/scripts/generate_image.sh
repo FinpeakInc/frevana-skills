@@ -577,6 +577,10 @@ CURL_ARGS=(
   -H "Authorization: Bearer $TOKEN"
 )
 
+if [[ -n "${FREVANA_AGENT_APP_INSTANCE_ID:-}" ]]; then
+  CURL_ARGS+=(-H "x-frevana-agent-app-instance-id: $FREVANA_AGENT_APP_INSTANCE_ID")
+fi
+
 if (( USE_MULTIPART )); then
   CURL_ARGS+=(--form-string "prompt=$PROMPT")
   CURL_ARGS+=(--form-string "model=$FIXED_MODEL")

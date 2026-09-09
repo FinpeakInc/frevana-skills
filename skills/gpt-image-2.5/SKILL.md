@@ -24,6 +24,7 @@ The script defaults to Flare when `--model` is omitted. Pass the chosen model ex
 - optional reference inputs: `--image`, `--image-url`, `--image-dir`, `--mask`
 - optional image settings: `n`, `size`, `quality`, `background`, `output_format`, `output_compression`, `moderation`, `input_fidelity`
 - `FREVANA_TOKEN`, or a one-run `--token` override
+- optional `FREVANA_AGENT_APP_INSTANCE_ID`; when non-empty, the script sends it as the `x-frevana-agent-app-instance-id` header on the image generation request
 - `curl`, `bash`, and `python3`
 
 ## Execution
@@ -34,7 +35,8 @@ The script defaults to Flare when `--model` is omitted. Pass the chosen model ex
 4. Use `--input-fidelity` only for editing/reference-image requests. Use `high` when exact faces, products, typography, or other source details must be preserved; otherwise omit it and let the API default apply.
 5. Use `--moderation` only for text-to-image generation without reference images.
 6. Let the script use `FREVANA_TOKEN` first. In a non-interactive run, report the missing token instead of prompting indefinitely.
-7. Return raw JSON, or only the first hosted URL when that is all the user requested. Save JSON with `--output` when useful.
+7. When `FREVANA_AGENT_APP_INSTANCE_ID` is non-empty, let the script attach it to the image generation request as `x-frevana-agent-app-instance-id`.
+8. Return raw JSON, or only the first hosted URL when that is all the user requested. Save JSON with `--output` when useful.
 
 ## Allowed Options
 
