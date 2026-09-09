@@ -132,6 +132,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
 | Email | [`klaviyo-send-email`](skills/klaviyo-send-email/SKILL.md) | Manage Klaviyo campaigns and audiences | campaign or audience details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
+| Image | [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
 | Video | [`seedance2`](skills/seedance2/SKILL.md) | Seedance 2.0 video generation, polling, and downloads | prompt or task ID |
@@ -923,6 +924,17 @@ Features:
 - returns a hosted image link
 - supported options: `--n`, `--size`, `--quality`, `--background` (`opaque` or `auto`; transparent backgrounds are not supported), `--output-format`, `--output-compression`
 
+### [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md)
+
+Generate or edit Frevana-hosted images with GPT Image 2.5.
+
+Features:
+
+- defaults to fast, high-quality `gpt-image-2.5-flare`
+- supports explicit or intent-based selection of precision-focused `gpt-image-2.5-sunburst`
+- supports custom valid resolutions, `xhigh`/`max` quality, transparent backgrounds, moderation, and edit input fidelity
+- accepts local files, remote URLs, directories, and PNG masks as reference inputs
+
 ### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
 
 Generate Frevana-hosted images with Nano Banana 2.
@@ -1312,6 +1324,8 @@ Configure sqlite-crud profile local with path /Users/me/app/data.sqlite
 Use sqlite-crud to inspect tables
 Use sqlite-crud to query users where email is test@example.com
 Generate an image with gpt-image-2 for a matte black espresso machine
+Generate an image with gpt-image-2.5 for a matte black espresso machine
+Use gpt-image-2.5-sunburst to preserve this product exactly while changing only the label
 Use gpt-image-2 with the images under ./refs/product to create one polished hero shot
 Use gpt-image-2 with https://example.com/reference.png as the reference image
 Generate a dashboard illustration with Nano Banana Pro

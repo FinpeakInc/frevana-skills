@@ -379,6 +379,10 @@ skills/
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
+  gpt-image-2-5/
+    SKILL.md
+    scripts/generate_image.sh
+    tests/test_generate_image.py
   nano-banana-2/
     SKILL.md
     scripts/generate_image.sh
@@ -2410,6 +2414,16 @@ Fixed Frevana routing contract:
 
 Do not pass or ask for alternate image routing values.
 
+### Use `gpt-image-2-5`
+
+Route here when the user wants GPT Image 2.5 or either `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst` through Frevana.
+
+Required input: `prompt` or `contents`.
+
+Honor an explicit model choice. Otherwise default to Flare for most generation and fast/high-volume work; choose Sunburst when the request prioritizes maximum editing precision, reference preservation, production-ready creative, polished product imagery, complex layouts, or exact detail over latency.
+
+The skill supports `n`, valid custom `size`, `quality` through `xhigh`/`max`, transparent backgrounds, output format/compression, generation `moderation`, edit `input_fidelity`, reference images/URLs/directories, and a PNG mask. Use the fixed `gpt-image-2-5` script and backend route; do not accept any other provider or model.
+
 ### Use `nano-banana-2`
 
 Route here when the user wants:
@@ -2730,7 +2744,7 @@ For `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
 
 ### Frevana image skills
 
-For `gpt-image-2`, `nano-banana-2`, and `nano-banana-pro`:
+For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, and `nano-banana-pro`:
 
 1. Confirm the user supplied `prompt` or `contents`.
 2. Prefer the repo script over ad hoc `curl`.
@@ -2923,6 +2937,7 @@ Never echo bearer tokens back to the user.
 - Preserve the raw JSON response when returning structured output.
 - Treat the first image URL as the primary asset:
   - `gpt-image-2`: `data[0].image_url`
+  - `gpt-image-2-5`: `data[0].image_url`
   - `nano-banana-2`: `generated_images[0].image_url`
   - `nano-banana-pro`: `generated_images[0].image_url`
 - Do not proxy, rewrite, or transform returned image URLs unless the user asks for it.
@@ -2971,6 +2986,7 @@ bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/frevana-space-cms/scripts/publish_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
+bash skills/gpt-image-2-5/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
 bash skills/frevana-gen-report/scripts/generate_report.sh
