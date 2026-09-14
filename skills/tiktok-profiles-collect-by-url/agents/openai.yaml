@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Profile Collector"
+  short_description: "Collect TikTok profiles by URL"
+  default_prompt: "Use $tiktok-profiles-collect-by-url to collect TikTok profile URLs and wait for the raw result."

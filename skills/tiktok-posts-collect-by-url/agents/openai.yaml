@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Post Collector"
+  short_description: "Collect TikTok posts by URL"
+  default_prompt: "Use $tiktok-posts-collect-by-url to collect TikTok post URLs and wait for the raw result."

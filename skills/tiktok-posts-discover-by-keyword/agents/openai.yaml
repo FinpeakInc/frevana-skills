@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Posts by Keyword"
+  short_description: "Discover TikTok posts by keyword"
+  default_prompt: "Use $tiktok-posts-discover-by-keyword to create a keyword discovery task and wait for its raw result."

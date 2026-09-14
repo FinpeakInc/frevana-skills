@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Posts by Profile"
+  short_description: "Discover TikTok posts from a profile"
+  default_prompt: "Use $tiktok-posts-discover-by-profile-url to create a profile post discovery task and wait for its raw result."

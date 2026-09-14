@@ -20,6 +20,7 @@ This repository contains reusable skills for four main workflow families:
 - SendGrid Email Logs workflows for per-message activity, opened/clicked checks, and status lookups
 - Slack Incoming Webhook workflows for posting Slack messages and notifications
 - Telegram Bot API workflows for bot inspection, messaging, updates, webhooks, commands, and chat/message management
+- Frevana asynchronous TikTok public-data workflows for keyword/profile post discovery and exact post/profile URL collection
 - TikTok Business API v1.3 workflows for local OAuth authorization and advertiser, campaign, ad group, ad, creative, audience, measurement, reporting, Business Center, catalog, and automation management
 - WordPress content workflows through the built-in REST API for posts, pages, media, taxonomies, menus, scheduling, and bulk operations
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
@@ -252,6 +253,34 @@ skills/
     scripts/tiktok_ads.sh
     scripts/tiktok_ads.py
     tests/test_tiktok_ads.py
+  tiktok-posts-discover-by-keyword/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_task.sh
+    scripts/tiktok_task.py
+    tests/test_tiktok_task.py
+  tiktok-posts-discover-by-profile-url/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_task.sh
+    scripts/tiktok_task.py
+    tests/test_tiktok_task.py
+  tiktok-posts-collect-by-url/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_task.sh
+    scripts/tiktok_task.py
+    tests/test_tiktok_task.py
+  tiktok-profiles-collect-by-url/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_task.sh
+    scripts/tiktok_task.py
+    tests/test_tiktok_task.py
   unity-ads/
     SKILL.md
     agents/openai.yaml
@@ -1908,6 +1937,29 @@ Important behavior:
 - Do not print or log the bot token. If the user shares a token in chat, advise them to rotate it with BotFather.
 - Telegram bots cannot message users first; the user must start the bot or otherwise expose a chat to the bot.
 
+### Use the TikTok public-data skills
+
+Route to exactly one skill based on the requested creation operation:
+
+- `tiktok-posts-discover-by-keyword`: discover public posts from `search_keyword`.
+- `tiktok-posts-discover-by-profile-url`: discover public posts from a TikTok profile URL.
+- `tiktok-posts-collect-by-url`: collect exact TikTok post URLs.
+- `tiktok-profiles-collect-by-url`: collect exact TikTok profile URLs.
+
+Required input:
+
+- one through twenty operation-specific input objects
+- `FREVANA_TOKEN` or a one-time token override
+- for an existing task, its UUID `task_id`
+
+Important behavior:
+
+- Prefer the selected skill's `scripts/tiktok_task.sh`; each skill fixes its own create endpoint and independently supports `create`, `status`, `result`, `wait`, and full-flow `run`.
+- Treat task creation as billable. Preserve the generated or supplied `client_task_id`; after an uncertain create response, retry only with that same ID and never automatically submit a new task.
+- Poll every ten seconds. Stop on `FAILED`, `EXPIRED`, or `TRIGGER_UNKNOWN`.
+- Retrieve the raw result only after `status=READY` and `billing_status=BILLED`. Preserve the result bytes and do not infer input/result association from array order or counts.
+- Use `tiktok-ads` instead for advertiser accounts, campaigns, creatives, audiences, reporting, or other TikTok Business API operations.
+
 ### Use `tiktok-ads`
 
 Route here when the user wants:
@@ -2980,6 +3032,10 @@ bash skills/youtube-search/scripts/search_youtube.sh
 bash skills/sendgrid-send-email/scripts/send_email.sh
 bash skills/slack-webhook/scripts/send_slack_webhook.sh
 bash skills/telegram-bot/scripts/telegram_bot.sh
+bash skills/tiktok-posts-discover-by-keyword/scripts/tiktok_task.sh
+bash skills/tiktok-posts-discover-by-profile-url/scripts/tiktok_task.sh
+bash skills/tiktok-posts-collect-by-url/scripts/tiktok_task.sh
+bash skills/tiktok-profiles-collect-by-url/scripts/tiktok_task.sh
 bash skills/wordpress-content/scripts/wordpress_rest.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh

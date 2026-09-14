@@ -72,6 +72,10 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | YouTube | [`youtube-video`](skills/youtube-video/SKILL.md) | YouTube video details | video ID |
 | YouTube | [`youtube-video-transcript`](skills/youtube-video-transcript/SKILL.md) | YouTube video transcripts | video ID |
 | Instagram | [`instagram-profile`](skills/instagram-profile/SKILL.md) | Instagram profile lookup | profile ID |
+| TikTok | [`tiktok-posts-discover-by-keyword`](skills/tiktok-posts-discover-by-keyword/SKILL.md) | Discover public posts by keyword with async polling | keyword |
+| TikTok | [`tiktok-posts-discover-by-profile-url`](skills/tiktok-posts-discover-by-profile-url/SKILL.md) | Discover public posts from profile URLs with async polling | profile URL |
+| TikTok | [`tiktok-posts-collect-by-url`](skills/tiktok-posts-collect-by-url/SKILL.md) | Collect exact post URLs with async polling | post URL |
+| TikTok | [`tiktok-profiles-collect-by-url`](skills/tiktok-profiles-collect-by-url/SKILL.md) | Collect exact profile URLs with async polling | profile URL |
 | Google News | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
 | Google Maps | [`google-maps-search`](skills/google-maps-search/SKILL.md) | Google Maps place search and lookup | search query with type, or place ID / CID |
 | Google Trends | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
