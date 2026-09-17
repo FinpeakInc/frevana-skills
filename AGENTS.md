@@ -26,6 +26,7 @@ This repository contains reusable skills for four main workflow families:
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
+- OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, and GPT-6
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 - Snowflake CLI workflows for connection management, safe SQL execution, object inspection and mutation, and specialized Snowflake workload or application operations
@@ -426,6 +427,26 @@ skills/
     SKILL.md
     scripts/generate_image.sh
     tests/test_generate_image.py
+  gpt-5.6-sol/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-5.6-luna/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-5.6-terra/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-6/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
   seedance2/
     SKILL.md
     agents/openai.yaml
@@ -2588,6 +2609,114 @@ Fixed Frevana routing contract:
 - use the `gemini-3-pro-image` skill script
 - read `FREVANA_AGENT_APP_INSTANCE_ID` and attach as `x-frevana-agent-app-instance-id`
 
+### Use `gpt-5.6-sol`
+
+Route here when the user wants frontier reasoning, advanced coding, complex mathematical/scientific research, or autonomous agent workflows using OpenAI GPT-5.6 Sol (`gpt-5.6-sol`) through the Frevana Responses API (`POST /openai/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`, `ultrafast`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gpt-5.6-sol` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `gpt-5.6-luna`
+
+Route here when the user wants high-speed generation, low-latency conversational responses, cost-efficient high-volume processing, or lightweight reasoning using OpenAI GPT-5.6 Luna (`gpt-5.6-luna`) through the Frevana Responses API (`POST /openai/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`, `ultrafast`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gpt-5.6-luna` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `gpt-5.6-terra`
+
+Route here when the user wants balanced performance, cost efficiency, robust general-purpose language and coding capabilities, or structured content generation using OpenAI GPT-5.6 Terra (`gpt-5.6-terra`) through the Frevana Responses API (`POST /openai/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`, `ultrafast`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gpt-5.6-terra` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `gpt-6`
+
+Route here when the user wants next-generation frontier intelligence, state-of-the-art reasoning, groundbreaking multimodal synthesis, or advanced cognitive workflows using OpenAI GPT-6 (`gpt-6`) through the Frevana Responses API (`POST /openai/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`, `ultrafast`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gpt-6` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
 ### Use `seedance2`
 
 Route here when the user wants:
@@ -3448,6 +3577,34 @@ bash skills/nano-banana-pro/scripts/generate_image.sh \
 bash skills/frevana-gen-report/scripts/generate_report.sh \
   --content-file ./report-content.md \
   --output ./out/frevana-report.html
+```
+
+### OpenAI Responses (GPT-5.6 Sol, Luna, Terra, GPT-6)
+
+```bash
+# GPT-5.6 Sol with high reasoning effort
+bash skills/gpt-5.6-sol/scripts/create_response.sh \
+  --input "Design a high-throughput distributed rate-limiter in Go" \
+  --reasoning-effort high \
+  --output ./out/sol-response.json
+
+# GPT-5.6 Luna text-only response
+bash skills/gpt-5.6-luna/scripts/create_response.sh \
+  --input "Generate 5 marketing taglines for an eco-friendly sneaker brand" \
+  --text-only
+
+# GPT-5.6 Terra balanced response
+bash skills/gpt-5.6-terra/scripts/create_response.sh \
+  --input "Write a comprehensive REST API specification in OpenAPI 3.1 YAML format" \
+  --temperature 0.7 \
+  --output ./out/terra-response.json
+
+# GPT-6 frontier response
+bash skills/gpt-6/scripts/create_response.sh \
+  --input "Analyze this formal verification proof and suggest optimizations" \
+  --instructions "Provide rigorous mathematical step-by-step reasoning." \
+  --reasoning-effort high \
+  --text-only
 ```
 
 ## Final Behavior Checklist

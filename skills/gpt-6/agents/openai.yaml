@@ -1,0 +1,4 @@
+interface:
+  display_name: "GPT-6"
+  short_description: "Next-generation frontier intelligence and multimodal reasoning with GPT-6."
+  default_prompt: "Use $gpt-6 for state-of-the-art reasoning, deep research synthesis, and frontier cognitive tasks."
