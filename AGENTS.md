@@ -418,6 +418,14 @@ skills/
   nano-banana-pro/
     SKILL.md
     scripts/generate_image.sh
+  gemini-3.1-flash-image/
+    SKILL.md
+    scripts/generate_image.sh
+    tests/test_generate_image.py
+  gemini-3-pro-image/
+    SKILL.md
+    scripts/generate_image.sh
+    tests/test_generate_image.py
   seedance2/
     SKILL.md
     agents/openai.yaml
@@ -2526,6 +2534,60 @@ Fixed Frevana routing contract:
 
 - use the `nano-banana-pro` skill script
 
+### Use `gemini-3.1-flash-image`
+
+Route here when the user wants image generation or editing with `gemini-3.1-flash-image` through Frevana.
+
+Required input:
+
+- `prompt` or `contents`
+
+Optional input:
+
+- `aspect-ratio` (`1:1`, `1:4`, `1:8`, `2:3`, `3:2`, `3:4`, `4:1`, `4:3`, `4:5`, `5:4`, `8:1`, `9:16`, `16:9`, `21:9`)
+- `image-size` (`1K`, `2K`, `4K`; defaults to `1K`)
+- `candidate-count` / `n` (`1-8`; image editing supports `1` only)
+- `system-instruction`
+- `temperature` (`0.0 - 2.0`, text-to-image only)
+- `top-p` (`0.0 - 1.0`, text-to-image only)
+- `top-k` (integer `>= 1`, text-to-image only)
+- `seed`
+- `job-id` (async client UUID)
+- `image`, `image-url`, `image-dir` (up to 14 reference images, PNG/JPG/WebP, <50MB each)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gemini-3.1-flash-image` skill script
+- read `FREVANA_AGENT_APP_INSTANCE_ID` and attach as `x-frevana-agent-app-instance-id`
+
+### Use `gemini-3-pro-image`
+
+Route here when the user wants image generation or editing with `gemini-3-pro-image` through Frevana, prioritizing high-fidelity photorealism, complex multi-object composition, fine detail, and high-precision reference preservation.
+
+Required input:
+
+- `prompt` or `contents`
+
+Optional input:
+
+- `aspect-ratio` (`1:1`, `1:4`, `1:8`, `2:3`, `3:2`, `3:4`, `4:1`, `4:3`, `4:5`, `5:4`, `8:1`, `9:16`, `16:9`, `21:9`)
+- `image-size` (`1K`, `2K`, `4K`; defaults to `1K`)
+- `candidate-count` / `n` (`1-8`; image editing supports `1` only)
+- `system-instruction`
+- `temperature` (`0.0 - 2.0`, text-to-image only)
+- `top-p` (`0.0 - 1.0`, text-to-image only)
+- `top-k` (integer `>= 1`, text-to-image only)
+- `seed`
+- `job-id` (async client UUID)
+- `image`, `image-url`, `image-dir` (up to 14 reference images, PNG/JPG/WebP, <50MB each)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `gemini-3-pro-image` skill script
+- read `FREVANA_AGENT_APP_INSTANCE_ID` and attach as `x-frevana-agent-app-instance-id`
+
 ### Use `seedance2`
 
 Route here when the user wants:
@@ -2796,12 +2858,12 @@ For `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
 
 ### Frevana image skills
 
-For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, and `nano-banana-pro`:
+For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, `nano-banana-pro`, `gemini-3.1-flash-image`, and `gemini-3-pro-image`:
 
 1. Confirm the user supplied `prompt` or `contents`.
 2. Prefer the repo script over ad hoc `curl`.
-3. Let the script use `FREVANA_TOKEN` from the environment first.
-4. In non-interactive agent runs, fail fast if the token is missing.
+3. Let the script use `FREVANA_TOKEN` or `FREVANA_API_KEY` from the environment first, and attach `x-frevana-agent-app-instance-id` when `FREVANA_AGENT_APP_INSTANCE_ID` is present.
+4. In non-interactive agent runs, fail fast if credentials are missing.
 5. Return either the raw JSON payload or the primary hosted image URL, depending on what the user asked for.
 6. Save output with `--output` when a file is useful.
 
@@ -2992,6 +3054,8 @@ Never echo bearer tokens back to the user.
   - `gpt-image-2-5`: `data[0].image_url`
   - `nano-banana-2`: `generated_images[0].image_url`
   - `nano-banana-pro`: `generated_images[0].image_url`
+  - `gemini-3.1-flash-image`: `generated_images[0].image_url`
+  - `gemini-3-pro-image`: `generated_images[0].image_url`
 - Do not proxy, rewrite, or transform returned image URLs unless the user asks for it.
 
 ### Frevana report outputs
@@ -3045,6 +3109,8 @@ bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/gpt-image-2-5/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
+bash skills/gemini-3.1-flash-image/scripts/generate_image.sh
+bash skills/gemini-3-pro-image/scripts/generate_image.sh
 bash skills/frevana-gen-report/scripts/generate_report.sh
 ```
 
