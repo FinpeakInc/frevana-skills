@@ -1,0 +1,4 @@
+interface:
+  display_name: "DeepSeek V4.1 Flash"
+  short_description: "High-speed and cost-effective text generation with DeepSeek V4.1 Flash via OpenRouter."
+  default_prompt: "Use $deepseek-v4.1-flash for fast chat, rapid code drafting, and cost-efficient extraction."

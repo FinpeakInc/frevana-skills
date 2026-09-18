@@ -1,0 +1,4 @@
+interface:
+  display_name: "ByteDance Seedance 2.0 Video"
+  short_description: "Generate character-consistent video with synchronized audio using ByteDance Seedance 2.0."
+  default_prompt: "Use $seedance-2-0 to generate a high-quality video clip with synchronized audio from my prompt."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kling v3.0 Pro"
+  short_description: "Generate premium cinematic video with enhanced visual quality using Kling Video v3.0 Pro."
+  default_prompt: "Use $kling-v3.0-pro to generate a cinematic, high-quality video clip from my prompt."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Google Veo 3.1 Video"
+  short_description: "Generate cinematic, production-grade video with synchronized audio using Google Veo 3.1."
+  default_prompt: "Use $veo-3.1 to generate a high-fidelity video clip with synchronized audio from my prompt."

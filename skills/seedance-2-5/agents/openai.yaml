@@ -1,0 +1,4 @@
+interface:
+  display_name: "ByteDance Seedance 2.5 Video"
+  short_description: "Generate next-generation audio-visual video with extended durations using ByteDance Seedance 2.5."
+  default_prompt: "Use $seedance-2-5 to generate an expressive, extended video clip with audio from my prompt."

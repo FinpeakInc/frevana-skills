@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Sonnet 5"
+  short_description: "Balanced enterprise reasoning, advanced coding, and technical workflows with Claude Sonnet 5 via OpenRouter."
+  default_prompt: "Use $claude-sonnet-5 for production coding, complex technical workflows, and balanced reasoning."

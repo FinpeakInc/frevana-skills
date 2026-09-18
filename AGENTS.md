@@ -10,6 +10,7 @@ This repository contains reusable skills for four main workflow families:
 
 - Frevana CLI auth bootstrap and local API key setup
 - Frevana custom-domain publishing for local agent-generated files
+- Frevana universal S3 file uploads and updates for arbitrary files
 - Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
 - Amazon, Apple App Store, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - AppsFlyer Master API freshness and KPI reports plus Aggregate Pull API partner, daily, and geo reports
@@ -27,6 +28,8 @@ This repository contains reusable skills for four main workflow families:
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
 - OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, and GPT-6
+- OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
+- OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, and ByteDance Seedance 2.5
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 - Snowflake CLI workflows for connection management, safe SQL execution, object inspection and mutation, and specialized Snowflake workload or application operations
@@ -61,6 +64,11 @@ skills/
     agents/openai.yaml
     scripts/publish_file.sh
     tests/test_publish_file.py
+  frevana-s3/
+    SKILL.md
+    agents/openai.yaml
+    scripts/upload_file.sh
+    tests/test_upload_file.py
   lark-cli/
     SKILL.md
     scripts/setup_lark_cli.sh
@@ -447,6 +455,61 @@ skills/
     agents/openai.yaml
     scripts/create_response.sh
     tests/test_create_response.py
+  deepseek-v4.1-flash/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  claude-opus-5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  claude-sonnet-5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  minimax-h3/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  minimax-h3-max/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  veo-3.1/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  wan-3.0/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  kling-v3.0-std/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  kling-v3.0-pro/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  seedance-2-0/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  seedance-2-5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
   seedance2/
     SKILL.md
     agents/openai.yaml
@@ -534,6 +597,49 @@ Important behavior:
 - Do not claim success unless both upload and publish return 2xx and a public URL can be resolved.
 - Keep the skill stateless. Do not save publication history locally; let the caller associate and persist the returned result with its own Agent App ID.
 - When returning a successful result, explicitly state that a later update must reuse the returned `file_key` unchanged as the `file_key` request parameter, or pass it through the script's `--file-key` option.
+
+### Use `frevana-s3`
+
+Route here when the user wants:
+
+- to upload, host, share, or store any arbitrary file (images, videos, PDFs, documents, audio, data files) in Frevana S3 storage
+- to get a public URL for an uploaded local file
+- to update a previously uploaded file in S3 using its previous `file_key`
+- to upload files using Frevana's `POST /s3/custom-upload-url` universal API
+
+Required input:
+
+- one local file path
+
+Optional input:
+
+- previous `file_key` supplied by the caller when updating existing content
+- title (`--title`)
+- MIME content type (`--content-type`)
+- file extension (`--file-extension`)
+- Agent ID (`--agent-id`)
+- task ID (`--task-id`)
+- team ID (`--team-id`)
+- publish type (`--publish-type`)
+- tags (`--tags`)
+- category (`--category`)
+- preview image URL (`--preview-image-url`)
+- description (`--description`)
+- language code (`--language-code`)
+- one-time token override (`--token`) or API key (`--api-key`)
+- API base URL override (`--api-base-url`)
+
+Important behavior:
+
+- Prefer `scripts/upload_file.sh` over ad hoc API and S3 calls.
+- Keep `scene_type=universal` fixed.
+- Support any file type. Automatically detect file extension and MIME type, but allow explicit overrides.
+- All metadata fields (`agent_id`, `task_id`, `team_id`, `publish_type`, `tags`, `category`, `preview_image_url`, `description`, `language_code`) are optional and omitted by default.
+- For a new upload, omit `file_key`. When updating existing content, require the previous upload's `file_key` and pass it as `--file-key`; do not guess it.
+- Never forward the Frevana Bearer token to the pre-signed S3 upload URL.
+- Upload the file content to `presigned_url` using HTTP `PUT` with the resolved `Content-Type`.
+- Do not print or return the pre-signed upload URL. Return the JSON result containing `url`, `file_key`, and `content_id` (or only the URL if `--text-only` is specified).
+- When returning a successful result, inform the caller that future updates can reuse the returned `file_key` via `--file-key`.
 
 ### Use `lark-cli`
 
@@ -2717,6 +2823,289 @@ Fixed Frevana routing contract:
 - use the `gpt-6` skill script
 - forward `x-frevana-agent-app-instance-id` when instance ID is provided
 
+### Use `deepseek-v4.1-flash`
+
+Route here when the user wants high-speed, cost-effective inference, rapid code generation, data extraction, high-throughput summarization, or conversational tasks using DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`) through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session` or `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `deepseek-v4.1-flash` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `claude-opus-5`
+
+Route here when the user wants frontier intelligence, deep analytical reasoning, highly sophisticated writing, complex problem solving, or autonomous research using Anthropic Claude Opus 5 (`anthropic/claude-opus-5`) through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session` or `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `claude-opus-5` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `claude-sonnet-5`
+
+Route here when the user wants enterprise-grade reasoning, fast and reliable coding, technical analysis, and balanced production intelligence using Anthropic Claude Sonnet 5 (`anthropic/claude-sonnet-5`) through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`).
+
+Required input:
+
+- `input` or `prompt` via `--input` or `--input-file` (or raw JSON payload via `--raw-payload-file`)
+
+Optional input:
+
+- `instructions` or `instructions-file`
+- `reasoning-effort` (`low`, `medium`, `high`)
+- `temperature` (`0.0 - 2.0`), `top-p` (`0.0 - 1.0`), `max-output-tokens`
+- `session` or `session-file` (file path to persist/resume conversation state across calls)
+- `previous-response-id`
+- `chat` (interactive terminal chat session)
+- `tools` or `tools-file`, `tool-choice`
+- `service-tier` (`auto`, `default`, `flex`, `priority`)
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `text-only` (`-t`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `claude-sonnet-5` skill script
+- forward `x-frevana-agent-app-instance-id` when instance ID is provided
+
+### Use `minimax-h3`
+
+Route here when the user wants:
+
+- video generation using MiniMax H3 (`minimax/hailuo-3`) through Frevana's OpenRouter video endpoint
+- high-definition 2K video clips from text or image prompts
+- durations between 5 and 15 seconds with native audio
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- duration (5-15s, default: 6)
+- aspect ratio (`16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`)
+- resolution (`2K`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- watermark flag (`--watermark` / `--no-watermark`)
+- download directory (`--download-dir`) or output file (`--output`)
+- text-only flag (`-t`, `--text-only`)
+
+### Use `minimax-h3-max`
+
+Route here when the user wants:
+
+- fast-turnaround video generation using MiniMax H3 Max (`minimax/hailuo-3-max`) through Frevana's OpenRouter video endpoint
+- 768p or 480p video clips from text or image prompts
+- durations between 5 and 15 seconds
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- duration (5-15s, default: 6)
+- resolution (`768p` default, `480p`)
+- aspect ratio (`16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `veo-3.1`
+
+Route here when the user wants:
+
+- cinematic, production-grade video generation with synchronized audio using Google Veo 3.1 (`google/veo-3.1`)
+- 720p, 1080p, or 4K video clips
+- exact durations of 4, 6, or 8 seconds
+- deterministic seed control or first/last frame guidance
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- model variant (`google/veo-3.1`, `google/veo-3.1-fast`, `google/veo-3.1-lite`)
+- duration (`4`, `6`, `8`, default: 6)
+- resolution (`720p`, `1080p`, `4K`, default: `720p`)
+- aspect ratio (`16:9`, `9:16`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- seed integer (`--seed`)
+- negative prompt (`--negative-prompt`)
+- person generation policy (`--person-generation`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `wan-3.0`
+
+Route here when the user wants:
+
+- expressive video generation using Alibaba Wan 3.0 (`alibaba/wan-3.0`)
+- 480p, 720p, or 1080p video clips
+- flexible durations between 2 and 30 seconds
+- image-to-video with first frame guidance
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- model variant (`alibaba/wan-3.0`, `alibaba/wan-3.0-prime`)
+- duration (2-30s, default: 5)
+- resolution (`480p`, `720p`, `1080p`, default: `720p`)
+- aspect ratio (`16:9`, `4:3`, `1:1`, `3:4`, `9:16`)
+- first frame image (`--first-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- seed integer (`--seed`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `kling-v3.0-std`
+
+Route here when the user wants:
+
+- smooth video generation with synchronized audio using Kling Video v3.0 Standard (`kwaivgi/kling-v3.0-std`)
+- 720p video clips from text or image prompts
+- durations between 3 and 15 seconds
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- duration (3-15s, default: 5)
+- aspect ratio (`16:9`, `9:16`, `1:1`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- negative prompt (`--negative-prompt`)
+- cfg scale (`--cfg-scale`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `kling-v3.0-pro`
+
+Route here when the user wants:
+
+- premium cinematic video generation with enhanced fidelity using Kling Video v3.0 Pro (`kwaivgi/kling-v3.0-pro`)
+- 720p video clips from text or image prompts
+- durations between 3 and 15 seconds
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- duration (3-15s, default: 5)
+- aspect ratio (`16:9`, `9:16`, `1:1`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- negative prompt (`--negative-prompt`)
+- cfg scale (`--cfg-scale`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `seedance-2-0`
+
+Route here when the user wants:
+
+- character-consistent video generation with synchronized audio using ByteDance Seedance 2.0 (`bytedance/seedance-2.0`) through Frevana's OpenRouter video endpoint
+- 480p, 720p, 1080p, or 4K video clips
+- durations between 4 and 15 seconds
+- first and last frame control, seed control, and watermark settings
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- model variant (`bytedance/seedance-2.0`, `bytedance/seedance-2.0-fast`, `bytedance/seedance-2.0-mini`)
+- duration (4-15s, default: 5)
+- resolution (`480p`, `720p`, `1080p`, `4K`, default: `720p`)
+- aspect ratio (`1:1`, `3:4`, `9:16`, `4:3`, `16:9`, `21:9`, `9:21`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- seed integer (`--seed`)
+- watermark flag (`--watermark` / `--no-watermark`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
+### Use `seedance-2-5`
+
+Route here when the user wants:
+
+- next-generation audio-visual video generation with extended durations using ByteDance Seedance 2.5 (`bytedance/seedance-2.5`) through Frevana's OpenRouter video endpoint
+- 480p or 720p video clips
+- extended durations from 4 up to 30 seconds
+- first and last frame control, seed control, and watermark settings
+
+Required input:
+
+- for creation: a non-empty prompt (`--prompt` or `--prompt-file`)
+- for status or wait: a video job ID (`--job-id`)
+
+Optional input:
+
+- model variant (`bytedance/seedance-2.5`, `bytedance/seedance-1-5-pro`)
+- duration (4-30s, default: 5)
+- resolution (`480p`, `720p`, default: `720p`)
+- aspect ratio (`16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`)
+- first frame and/or last frame image (`--first-frame`, `--last-frame`)
+- audio flag (`--audio` / `--no-audio`)
+- seed integer (`--seed`)
+- watermark flag (`--watermark` / `--no-watermark`)
+- download directory or output file
+- text-only flag (`-t`, `--text-only`)
+
 ### Use `seedance2`
 
 Route here when the user wants:
@@ -2831,6 +3220,20 @@ For `frevana-space-cms`:
 9. Return the `url`, `file_key`, and `content_id` JSON only after publishing succeeds, and do not expose the bearer token or pre-signed URL.
 10. Tell the caller to save the returned `file_key` and reuse it unchanged as the `file_key` parameter for a future update (`--file-key` in the bundled script).
 11. Do not persist publication state inside the skill; the caller owns storage and Agent App identification.
+
+### Frevana universal S3 uploads
+
+For `frevana-s3`:
+
+1. Confirm the user provided one readable local file path.
+2. If updating existing content, require the previous `file_key` and pass it as `--file-key`; omit this option for new uploads.
+3. Prefer `scripts/upload_file.sh` over manual requests.
+4. Let the script use `FREVANA_TOKEN` or `FREVANA_API_KEY` from the environment first.
+5. Keep `scene_type=universal` fixed; let the script auto-detect extension and MIME content type.
+6. Optional metadata (`agent_id`, `task_id`, `team_id`, `publish_type`, `tags`, `category`, `preview_image_url`, `description`, `language_code`) can be omitted unless specified.
+7. Upload the file payload to `presigned_url` via HTTP `PUT` without sending Frevana authorization headers.
+8. Return the `url`, `file_key`, and `content_id` JSON only after the upload succeeds.
+9. Tell the caller to save the returned `file_key` and reuse it unchanged as the `file_key` parameter for a future update (`--file-key` in the bundled script).
 
 ### Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Ads Keywords Search Volume, Google Ads Keywords For Keywords, Google Ads Ad Traffic By Keywords, Google Search, Google Forums, Google Patents, Google News, Google Maps, Facebook Profile, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, and YouTube Search skills
 
@@ -3234,6 +3637,7 @@ bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh
 bash skills/frevana-space-cms/scripts/publish_file.sh
+bash skills/frevana-s3/scripts/upload_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/gpt-image-2-5/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
@@ -3261,6 +3665,18 @@ bash skills/frevana-auth/scripts/login.sh \
 ```bash
 bash skills/frevana-space-cms/scripts/publish_file.sh \
   --file ./out/result.html
+```
+
+### Frevana S3 upload
+
+```bash
+bash skills/frevana-s3/scripts/upload_file.sh \
+  --file ./out/chart.png
+
+# Update existing file
+bash skills/frevana-s3/scripts/upload_file.sh \
+  --file ./out/chart_v2.png \
+  --file-key "universal/chart.png"
 ```
 
 ### Amazon search
@@ -3604,6 +4020,26 @@ bash skills/gpt-6/scripts/create_response.sh \
   --input "Analyze this formal verification proof and suggest optimizations" \
   --instructions "Provide rigorous mathematical step-by-step reasoning." \
   --reasoning-effort high \
+  --text-only
+```
+
+### OpenRouter Responses (DeepSeek V4.1 Flash, Claude Opus 5, Claude Sonnet 5)
+
+```bash
+# DeepSeek V4.1 Flash high-speed response
+bash skills/deepseek-v4.1-flash/scripts/create_response.sh \
+  --input "Write a fast Python script to parse and aggregate access logs by status code" \
+  --text-only
+
+# Claude Opus 5 deep analytical response
+bash skills/claude-opus-5/scripts/create_response.sh \
+  --input "Evaluate theoretical scalability bounds of DAG-based vs BFT consensus protocols" \
+  --reasoning-effort high \
+  --output ./out/opus-response.json
+
+# Claude Sonnet 5 balanced coding response
+bash skills/claude-sonnet-5/scripts/create_response.sh \
+  --input "Implement a lock-free ring buffer queue in C++20 with atomic operations" \
   --text-only
 ```
 

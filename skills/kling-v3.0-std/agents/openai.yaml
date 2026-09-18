@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kling v3.0 Standard"
+  short_description: "Generate smooth video with synchronized audio using Kling Video v3.0 Standard."
+  default_prompt: "Use $kling-v3.0-std to generate a realistic video clip from my prompt."

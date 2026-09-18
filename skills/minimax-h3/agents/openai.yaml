@@ -1,0 +1,4 @@
+interface:
+  display_name: "MiniMax H3 Video"
+  short_description: "Generate high-definition 2K videos using MiniMax H3."
+  default_prompt: "Use $minimax-h3 to generate a cinematic video clip from my prompt."

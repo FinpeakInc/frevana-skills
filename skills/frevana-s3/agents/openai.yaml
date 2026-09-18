@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frevana S3"
+  short_description: "Upload any local file to S3 via Frevana's universal upload flow."
+  default_prompt: "Use $frevana-s3 to upload or update my local file in S3 and return its public URL, file key, and content ID."

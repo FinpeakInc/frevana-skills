@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alibaba Wan 3.0 Video"
+  short_description: "Generate flexible video from text or image prompts using Alibaba Wan 3.0."
+  default_prompt: "Use $wan-3.0 to generate an expressive video clip from my prompt."

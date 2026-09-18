@@ -1,0 +1,4 @@
+interface:
+  display_name: "MiniMax H3 Max Video"
+  short_description: "Generate video clips with fast turnaround using MiniMax H3 Max."
+  default_prompt: "Use $minimax-h3-max to generate a fast video clip from my prompt."

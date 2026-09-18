@@ -126,6 +126,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | --- | --- | --- | --- |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Publishing | [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md) | Publish or update a local HTML file with Frevana Space CMS on the user's custom domain | local `.html` path; previous `file_key` for updates |
+| Storage | [`frevana-s3`](skills/frevana-s3/SKILL.md) | Universal file upload to S3 via Frevana custom-upload-url API | local file path; previous `file_key` for updates |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
@@ -139,7 +140,22 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Image | [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
+| Video | [`minimax-h3`](skills/minimax-h3/SKILL.md) | High-definition 2K video generation with MiniMax H3 | prompt or job ID |
+| Video | [`minimax-h3-max`](skills/minimax-h3-max/SKILL.md) | Fast video generation with MiniMax H3 Max | prompt or job ID |
+| Video | [`veo-3.1`](skills/veo-3.1/SKILL.md) | Cinematic video with synchronized audio using Google Veo 3.1 | prompt or job ID |
+| Video | [`wan-3.0`](skills/wan-3.0/SKILL.md) | Flexible video generation using Alibaba Wan 3.0 | prompt or job ID |
+| Video | [`kling-v3.0-std`](skills/kling-v3.0-std/SKILL.md) | Smooth video with synchronized audio using Kling Video v3.0 Standard | prompt or job ID |
+| Video | [`kling-v3.0-pro`](skills/kling-v3.0-pro/SKILL.md) | Cinematic video with enhanced visual quality using Kling Video v3.0 Pro | prompt or job ID |
+| Video | [`seedance-2-0`](skills/seedance-2-0/SKILL.md) | Character-consistent video with synchronized audio using ByteDance Seedance 2.0 | prompt or job ID |
+| Video | [`seedance-2-5`](skills/seedance-2-5/SKILL.md) | Extended duration video with audio using ByteDance Seedance 2.5 | prompt or job ID |
 | Video | [`seedance2`](skills/seedance2/SKILL.md) | Seedance 2.0 video generation, polling, and downloads | prompt or task ID |
+| Text | [`deepseek-v4.1-flash`](skills/deepseek-v4.1-flash/SKILL.md) | High-speed, cost-effective inference with DeepSeek V4.1 Flash via OpenRouter | prompt or input file |
+| Text | [`claude-opus-5`](skills/claude-opus-5/SKILL.md) | Frontier reasoning, deep analysis, and writing with Claude Opus 5 via OpenRouter | prompt or input file |
+| Text | [`claude-sonnet-5`](skills/claude-sonnet-5/SKILL.md) | Balanced enterprise reasoning and coding with Claude Sonnet 5 via OpenRouter | prompt or input file |
+| Text | [`gpt-5.6-sol`](skills/gpt-5.6-sol/SKILL.md) | Frontier reasoning, coding, and scientific research with GPT-5.6 Sol | prompt or input file |
+| Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
+| Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
+| Text | [`gpt-6`](skills/gpt-6/SKILL.md) | Next-generation frontier intelligence and reasoning with GPT-6 | prompt or input file |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
 ### Chrome Extension Skills
@@ -225,6 +241,25 @@ Features:
 - uploads with PUT to the returned `presigned_url`
 - automatically publishes the returned `content_id` through `PUT /s3/content/{content_id}/publish?op_type=publish`
 - keeps no local publication state and never exposes the pre-signed upload URL
+
+### [`frevana-s3`](skills/frevana-s3/SKILL.md)
+
+Upload any local file (images, videos, PDFs, documents, audio, data files) to S3 via Frevana's universal upload flow.
+
+Use when:
+
+- you want to upload, host, share, or store arbitrary files in Frevana S3 storage
+- you need a public URL for an uploaded local file
+- you want to update a previously uploaded file using its previous `file_key`
+
+Features:
+
+- requests `POST /s3/custom-upload-url` with fixed `scene_type=universal`
+- automatically detects MIME content type and file extension from local files, with support for explicit overrides
+- supports updating existing content by passing previous `file_key`
+- optional metadata (`agent_id`, `task_id`, `team_id`, `publish_type`, `tags`, `category`, `preview_image_url`, `description`, `language_code`) can be omitted or passed as needed
+- uploads payload directly to the returned `presigned_url` via HTTP `PUT` without sending Frevana authentication tokens
+- returns public URL, `file_key`, and `content_id` as JSON (or `--text-only` for plain URL)
 
 ### [`lark-cli`](skills/lark-cli/SKILL.md)
 
@@ -971,6 +1006,86 @@ Features:
 - returns a hosted image link
 - supported options: `--seed`, `--max-output-tokens`, `--response-modality`, `--aspect-ratio`, `--image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
 
+### [`minimax-h3`](skills/minimax-h3/SKILL.md)
+
+Generate high-definition 2K videos using MiniMax H3 (`minimax/hailuo-3`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want high-definition 2K video clips from text or image prompts
+- you want durations between 5 and 15 seconds with synchronized audio
+- you want first-frame or last-frame image-to-video control
+
+### [`minimax-h3-max`](skills/minimax-h3-max/SKILL.md)
+
+Generate fast-turnaround video clips using MiniMax H3 Max (`minimax/hailuo-3-max`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want fast video generation at 768p or 480p resolution
+- you want durations between 5 and 15 seconds
+- you want first-frame or last-frame image-to-video control
+
+### [`veo-3.1`](skills/veo-3.1/SKILL.md)
+
+Generate cinematic, production-grade video with synchronized audio using Google Veo 3.1 (`google/veo-3.1`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want cinematic 720p, 1080p, or 4K video clips
+- you want durations of 4, 6, or 8 seconds
+- you want deterministic seed control, native synchronized audio, or first/last frame guidance
+
+### [`wan-3.0`](skills/wan-3.0/SKILL.md)
+
+Generate flexible video clips using Alibaba Wan 3.0 (`alibaba/wan-3.0`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want 480p, 720p, or 1080p video clips
+- you want durations between 2 and 30 seconds
+- you want text-to-video or image-to-video with first frame guidance
+
+### [`kling-v3.0-std`](skills/kling-v3.0-std/SKILL.md)
+
+Generate smooth video with synchronized audio using Kling Video v3.0 Standard (`kwaivgi/kling-v3.0-std`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want 720p video clips from text or image prompts
+- you want durations between 3 and 15 seconds with synchronized audio
+- you want first/last frame control or negative prompt guidance
+
+### [`kling-v3.0-pro`](skills/kling-v3.0-pro/SKILL.md)
+
+Generate premium cinematic video with enhanced visual quality using Kling Video v3.0 Pro (`kwaivgi/kling-v3.0-pro`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want high-end 720p cinematic video from text or image prompts
+- you want durations between 3 and 15 seconds with synchronized audio
+- you want first/last frame control or negative prompt guidance
+
+### [`seedance-2-0`](skills/seedance-2-0/SKILL.md)
+
+Generate character-consistent video with synchronized audio using ByteDance Seedance 2.0 (`bytedance/seedance-2.0`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want character-consistent video in 480p, 720p, 1080p, or 4K resolution
+- you want durations between 4 and 15 seconds with synchronized audio
+- you want first/last frame control, deterministic seed, or watermark settings
+
+### [`seedance-2-5`](skills/seedance-2-5/SKILL.md)
+
+Generate next-generation audio-visual video with extended durations using ByteDance Seedance 2.5 (`bytedance/seedance-2.5`) through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want next-generation audio-visual video in 480p or 720p resolution
+- you want extended durations from 4 up to 30 seconds with synchronized audio
+- you want first/last frame control, deterministic seed, or watermark settings
+
 ### [`seedance2`](skills/seedance2/SKILL.md)
 
 Generate and retrieve Seedance 2.0 videos through the asynchronous API.
@@ -988,6 +1103,51 @@ Features:
 - requires HTTPS for the API base URL
 - uses polling only, with one status check every 10 seconds and no callback URL support
 - supports saving raw response JSON and downloading completed results
+
+### [`deepseek-v4.1-flash`](skills/deepseek-v4.1-flash/SKILL.md)
+
+Generate text, code, or structured output with DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`) via Frevana's OpenRouter Responses API.
+
+Use when:
+
+- you want high-speed inference, rapid code generation, or data extraction
+- you want cost-effective, high-throughput conversational or classification tasks
+
+Features:
+
+- calls `POST /openrouter/v1/responses` on Frevana's AI Factory gateway
+- full session management with automatic multi-turn conversation context chaining
+- supports sampling controls, reasoning effort, tools/function calling, and `--text-only` output
+
+### [`claude-opus-5`](skills/claude-opus-5/SKILL.md)
+
+Generate responses with Anthropic Claude Opus 5 (`anthropic/claude-opus-5`) via Frevana's OpenRouter Responses API.
+
+Use when:
+
+- you want frontier intelligence, deep analytical reasoning, or advanced creative synthesis
+- you want complex architectural planning, codebase refactoring, or autonomous research
+
+Features:
+
+- calls `POST /openrouter/v1/responses` on Frevana's AI Factory gateway
+- full session management with automatic multi-turn conversation context chaining
+- supports sampling controls, reasoning effort, tools/function calling, and `--text-only` output
+
+### [`claude-sonnet-5`](skills/claude-sonnet-5/SKILL.md)
+
+Generate responses with Anthropic Claude Sonnet 5 (`anthropic/claude-sonnet-5`) via Frevana's OpenRouter Responses API.
+
+Use when:
+
+- you want production-grade coding, full-stack development, or technical workflows
+- you want balanced enterprise reasoning at fast execution speeds
+
+Features:
+
+- calls `POST /openrouter/v1/responses` on Frevana's AI Factory gateway
+- full session management with automatic multi-turn conversation context chaining
+- supports sampling controls, reasoning effort, tools/function calling, and `--text-only` output
 
 ### [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md)
 
