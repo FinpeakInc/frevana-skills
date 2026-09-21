@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
-while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ -n "$API_BASE_URL" ]] || { echo "API base URL is empty after normalisation" >&2; exit 1; }
 WALMART_PRODUCT_REVIEWS_PATH="/service/walmart-product-reviews"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
