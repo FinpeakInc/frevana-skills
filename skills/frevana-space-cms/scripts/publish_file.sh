@@ -4,6 +4,7 @@ set -euo pipefail
 
 DEFAULT_API_BASE_URL="https://api.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+(/[^?#]*)?$ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
 SUBSCRIPTION_PATH="/subscriptions/user"
 UPLOAD_URL_PATH="/s3/custom-upload-url"
 PUBLISH_PATH_PREFIX="/s3/content"
