@@ -4,6 +4,7 @@ set -euo pipefail
 
 DEFAULT_API_BASE_URL="https://api.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
+API_BASE_URL="${API_BASE_URL%/}"
 UPLOAD_URL_PATH="/s3/custom-upload-url"
 FIXED_SCENE_TYPE="universal"
 CONNECT_TIMEOUT="15"

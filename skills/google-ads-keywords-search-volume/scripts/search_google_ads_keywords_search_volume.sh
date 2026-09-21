@@ -3,6 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
+API_BASE_URL="${API_BASE_URL%/}"
 GOOGLE_ADS_KEYWORDS_SEARCH_VOLUME_PATH="/service/google-ads-search-volume"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
