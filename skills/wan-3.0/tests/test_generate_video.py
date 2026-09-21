@@ -31,7 +31,29 @@ class TestWan30Video(unittest.TestCase):
         self.assertEqual(payload["prompt"], "An ink landscape")
         self.assertEqual(payload["duration"], 5)
         self.assertEqual(payload["resolution"], "720p")
-        self.assertEqual(payload["aspect_ratio"], "16:9")
+        self.assertEqual(payload["aspectRatio"], "16:9")
+
+    def test_dry_run_uses_api_request_casing(self):
+        res = self.run_script([
+            "--prompt", "Test",
+            "--aspect-ratio", "9:16",
+            "--first-frame", "https://example.com/first.png",
+            "--no-audio",
+            "--dry-run",
+        ])
+        payload = json.loads(res.stdout)
+        self.assertEqual(payload["aspectRatio"], "9:16")
+        self.assertFalse(payload["generateAudio"])
+        self.assertEqual(payload["frameImages"], [
+            {
+                "type": "image_url",
+                "frameType": "first_frame",
+                "imageUrl": {"url": "https://example.com/first.png"},
+            },
+        ])
+        self.assertNotIn("aspect_ratio", payload)
+        self.assertNotIn("generate_audio", payload)
+        self.assertNotIn("frame_images", payload)
 
     def test_last_frame_unsupported(self):
         res = self.run_script(["--prompt", "Test", "--last-frame", "last.jpg", "--dry-run"], check=False)

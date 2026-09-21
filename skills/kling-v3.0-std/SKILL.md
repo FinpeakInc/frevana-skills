@@ -14,6 +14,7 @@ Generate smooth video with synchronized audio through Frevana's OpenRouter video
 - **Aspect Ratios**: `16:9` (default), `9:16`, `1:1`
 - **Durations**: `3` to `15` seconds (default: `5`)
 - **Frame Control**: Supports both `first_frame` and `last_frame` (image-to-video)
+- **Input References**: Reference images (`image_url`); audio and video references are unsupported
 - **Audio**: Synchronized audio generation supported (default: enabled)
 - **Seed**: Deterministic seed is not supported by this model
 - **Passthrough Controls**: `negative_prompt`, `cfg_scale`
@@ -55,6 +56,9 @@ bash skills/kling-v3.0-std/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--resolution RES`: `720p` (default: `720p`)
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
+- `--reference-image PATH/URL`: Add a reference image; repeat for multiple images
+- `--reference-audio URL`: Unsupported by this model
+- `--reference-video URL`: Unsupported by this model
 - `--audio`: Generate synchronized audio (default: true)
 - `--no-audio`: Disable audio generation
 - `--negative-prompt TEXT`: Negative prompt (e.g. "blurry, distorted, low quality")
@@ -77,3 +81,4 @@ bash skills/kling-v3.0-std/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate that `--resolution` is `720p`.
 - Validate that `--aspect-ratio` is one of `16:9`, `9:16`, or `1:1`.
 - Do not pass `--seed`; Kling Standard does not support deterministic seed.
+- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

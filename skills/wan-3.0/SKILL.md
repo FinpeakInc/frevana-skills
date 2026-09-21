@@ -14,6 +14,7 @@ Generate high-quality video from text or image prompts through Frevana's OpenRou
 - **Aspect Ratios**: `16:9` (default), `4:3`, `1:1`, `3:4`, `9:16`
 - **Durations**: `2` to `30` seconds (default: `5`)
 - **Frame Control**: Supports `first_frame` (image-to-video; does not support `last_frame`)
+- **Input References**: Wan 3.0 supports reference images; Wan 3.0 Prime does not currently list input-reference support
 - **Audio**: Synchronized audio generation supported (default: enabled)
 - **Seed**: Deterministic integer seed supported
 
@@ -54,6 +55,9 @@ bash skills/wan-3.0/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--aspect-ratio RATIO`: `16:9`, `4:3`, `1:1`, `3:4`, `9:16` (default: `16:9`)
 - `--resolution RES`: `480p`, `720p`, `1080p` (default: `720p`)
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
+- `--reference-image PATH/URL`: Add a reference image for Wan 3.0; repeatable and rejected for Wan 3.0 Prime
+- `--reference-audio URL`: Unsupported by these models
+- `--reference-video URL`: Unsupported by these models
 - `--audio`: Generate audio (default: true)
 - `--no-audio`: Disable audio generation
 - `--seed INT`: Deterministic integer seed for reproducible generation
@@ -74,3 +78,4 @@ bash skills/wan-3.0/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate that `--duration` is between 2 and 30 seconds.
 - Validate that `--resolution` is one of `480p`, `720p`, or `1080p`.
 - Do not pass `--last-frame`; Wan 3.0 only supports `first_frame`.
+- A first-frame image and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

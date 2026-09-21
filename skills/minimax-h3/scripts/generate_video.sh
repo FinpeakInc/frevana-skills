@@ -8,6 +8,7 @@ ALLOWED_RESOLUTIONS=("2K")
 ALLOWED_ASPECT_RATIOS=("21:9" "16:9" "4:3" "1:1" "3:4" "9:16")
 ALLOWED_DURATIONS=("5" "6" "7" "8" "9" "10" "11" "12" "13" "14" "15")
 SUPPORTED_FRAME_IMAGES=("first_frame" "last_frame")
+SUPPORTED_INPUT_REFERENCES=("image_url")
 SUPPORTS_AUDIO=true
 SUPPORTS_SEED=false
 
@@ -45,8 +46,14 @@ Options:
   --first-frame PATH/URL Image path or URL for the first frame
   --last-frame PATH/URL  Image path or URL for the last frame
   --image PATH/URL       Alias for --first-frame
+  --reference-image PATH/URL
+                         Add a reference image (repeatable)
+  --reference-audio URL  Add a reference audio URL (repeatable)
+  --reference-video URL  Add a reference video URL (repeatable)
   --audio                Generate audio alongside video (default)
   --no-audio             Disable audio generation
+  --watermark            Enable AIGC watermark
+  --no-watermark         Disable AIGC watermark
   --job-id ID            Job ID for status or wait commands
   --wait                 Wait for job completion (default in direct CLI usage)
   --no-wait              Submit job and return immediately without waiting
@@ -100,8 +107,12 @@ ASPECT_RATIO="$DEFAULT_ASPECT_RATIO"
 RESOLUTION="$DEFAULT_RESOLUTION"
 FIRST_FRAME=""
 LAST_FRAME=""
+REFERENCE_IMAGES=()
+REFERENCE_AUDIOS=()
+REFERENCE_VIDEOS=()
 GENERATE_AUDIO=""
 SEED=""
+WATERMARK=""
 JOB_ID=""
 DO_WAIT=1
 POLL_INTERVAL=10
@@ -124,9 +135,14 @@ while [[ $# -gt 0 ]]; do
     --resolution) RESOLUTION="${2:-}"; shift 2 ;;
     --first-frame|--image) FIRST_FRAME="${2:-}"; shift 2 ;;
     --last-frame) LAST_FRAME="${2:-}"; shift 2 ;;
+    --reference-image) REFERENCE_IMAGES+=("${2:-}"); shift 2 ;;
+    --reference-audio) REFERENCE_AUDIOS+=("${2:-}"); shift 2 ;;
+    --reference-video) REFERENCE_VIDEOS+=("${2:-}"); shift 2 ;;
     --audio) GENERATE_AUDIO="true"; shift ;;
     --no-audio) GENERATE_AUDIO="false"; shift ;;
     --seed) SEED="${2:-}"; shift 2 ;;
+    --watermark) WATERMARK="true"; shift ;;
+    --no-watermark) WATERMARK="false"; shift ;;
     --job-id) JOB_ID="${2:-}"; shift 2 ;;
     --wait) DO_WAIT=1; shift ;;
     --no-wait) DO_WAIT=0; shift ;;
@@ -192,6 +208,22 @@ if [[ -n "$FIRST_FRAME" ]] && ! is_allowed "first_frame" "${SUPPORTED_FRAME_IMAG
   echo "Error: Model $MODEL does not support image-to-video / --first-frame." >&2
   exit 1
 fi
+
+if [[ ${#REFERENCE_IMAGES[@]} -gt 0 ]] && ! is_allowed "image_url" ${SUPPORTED_INPUT_REFERENCES[@]+"${SUPPORTED_INPUT_REFERENCES[@]}"}; then
+  echo "Error: Model $MODEL does not support image input references." >&2
+  exit 1
+fi
+if [[ ${#REFERENCE_AUDIOS[@]} -gt 0 ]] && ! is_allowed "audio_url" ${SUPPORTED_INPUT_REFERENCES[@]+"${SUPPORTED_INPUT_REFERENCES[@]}"}; then
+  echo "Error: Model $MODEL does not support audio input references." >&2
+  exit 1
+fi
+if [[ ${#REFERENCE_VIDEOS[@]} -gt 0 ]] && ! is_allowed "video_url" ${SUPPORTED_INPUT_REFERENCES[@]+"${SUPPORTED_INPUT_REFERENCES[@]}"}; then
+  echo "Error: Model $MODEL does not support video input references." >&2
+  exit 1
+fi
+for reference_url in ${REFERENCE_AUDIOS[@]+"${REFERENCE_AUDIOS[@]}"} ${REFERENCE_VIDEOS[@]+"${REFERENCE_VIDEOS[@]}"}; do
+  [[ -z "$reference_url" || "$reference_url" == http://* || "$reference_url" == https://* ]] || { echo "Error: Audio and video references must be HTTP(S) URLs." >&2; exit 1; }
+done
 
 if [[ -n "$SEED" ]] && [[ "$SUPPORTS_SEED" != "true" ]]; then
   echo "Error: Model $MODEL does not support deterministic --seed." >&2
@@ -283,6 +315,12 @@ if [[ "$COMMAND" == "create" ]]; then
     FORMATTED_LAST_FRAME="$(format_image_source "$LAST_FRAME")"
   fi
 
+  FORMATTED_REFERENCE_IMAGES=()
+  for reference_image in ${REFERENCE_IMAGES[@]+"${REFERENCE_IMAGES[@]}"}; do FORMATTED_REFERENCE_IMAGES+=("$(format_image_source "$reference_image")"); done
+  REFERENCE_IMAGES_JSON="$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' ${FORMATTED_REFERENCE_IMAGES[@]+"${FORMATTED_REFERENCE_IMAGES[@]}"})"
+  REFERENCE_AUDIOS_JSON="$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' ${REFERENCE_AUDIOS[@]+"${REFERENCE_AUDIOS[@]}"})"
+  REFERENCE_VIDEOS_JSON="$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' ${REFERENCE_VIDEOS[@]+"${REFERENCE_VIDEOS[@]}"})"
+
   PAYLOAD_FILE="$TEMP_DIR/payload.json"
   ENV_PROMPT="$PROMPT" \
   ENV_MODEL="$MODEL" \
@@ -291,8 +329,12 @@ if [[ "$COMMAND" == "create" ]]; then
   ENV_RESOLUTION="$RESOLUTION" \
   ENV_SEED="$SEED" \
   ENV_GENERATE_AUDIO="$GENERATE_AUDIO" \
+  ENV_WATERMARK="$WATERMARK" \
   ENV_FIRST_FRAME="$FORMATTED_FIRST_FRAME" \
   ENV_LAST_FRAME="$FORMATTED_LAST_FRAME" \
+  ENV_REFERENCE_IMAGES="$REFERENCE_IMAGES_JSON" \
+  ENV_REFERENCE_AUDIOS="$REFERENCE_AUDIOS_JSON" \
+  ENV_REFERENCE_VIDEOS="$REFERENCE_VIDEOS_JSON" \
   python3 - "$PAYLOAD_FILE" <<'PY'
 import os, sys, json
 
@@ -308,7 +350,7 @@ if duration:
 
 aspect_ratio = os.environ.get("ENV_ASPECT_RATIO")
 if aspect_ratio:
-    payload["aspect_ratio"] = aspect_ratio
+    payload["aspectRatio"] = aspect_ratio
 
 resolution = os.environ.get("ENV_RESOLUTION")
 if resolution:
@@ -320,29 +362,42 @@ if seed:
 
 generate_audio = os.environ.get("ENV_GENERATE_AUDIO")
 if generate_audio == "true":
-    payload["generate_audio"] = True
+    payload["generateAudio"] = True
 elif generate_audio == "false":
-    payload["generate_audio"] = False
+    payload["generateAudio"] = False
+
+watermark = os.environ.get("ENV_WATERMARK")
+if watermark == "true":
+    payload.setdefault("provider", {}).setdefault("options", {}).setdefault("minimax", {})["aigc_watermark"] = True
+elif watermark == "false":
+    payload.setdefault("provider", {}).setdefault("options", {}).setdefault("minimax", {})["aigc_watermark"] = False
 
 frame_images = []
 first_frame = os.environ.get("ENV_FIRST_FRAME")
 if first_frame:
     frame_images.append({
         "type": "image_url",
-        "frame_type": "first_frame",
-        "image_url": {"url": first_frame}
+        "frameType": "first_frame",
+        "imageUrl": {"url": first_frame}
     })
 
 last_frame = os.environ.get("ENV_LAST_FRAME")
 if last_frame:
     frame_images.append({
         "type": "image_url",
-        "frame_type": "last_frame",
-        "image_url": {"url": last_frame}
+        "frameType": "last_frame",
+        "imageUrl": {"url": last_frame}
     })
 
 if frame_images:
-    payload["frame_images"] = frame_images
+    payload["frameImages"] = frame_images
+
+input_references = []
+input_references.extend({"type": "image_url", "imageUrl": {"url": url}} for url in json.loads(os.environ["ENV_REFERENCE_IMAGES"]))
+input_references.extend({"type": "audio_url", "audioUrl": {"url": url}} for url in json.loads(os.environ["ENV_REFERENCE_AUDIOS"]))
+input_references.extend({"type": "video_url", "videoUrl": {"url": url}} for url in json.loads(os.environ["ENV_REFERENCE_VIDEOS"]))
+if input_references:
+    payload["inputReferences"] = input_references
 
 with open(payload_file, "w", encoding="utf-8") as f:
     json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -456,7 +511,24 @@ except Exception:
 
       case "$ST" in
         completed)
-          break
+          read -r DELIVERY_STATUS HAS_VIDEO_URL < <(python3 -c '
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+    urls = data.get("unsigned_urls") or data.get("unsignedUrls") or data.get("playback_urls") or []
+    has_url = bool(urls) or bool(isinstance(data.get("content"), dict) and data["content"].get("video_url"))
+    print(data.get("delivery_status") or "unknown", "1" if has_url else "0")
+except Exception:
+    print("unknown", "0")
+' "$STATUS_RESPONSE")
+          if [[ "$DELIVERY_STATUS" == "failed" ]]; then
+            echo "Error: Video generation completed, but result delivery failed." >&2
+            cat "$STATUS_RESPONSE" >&2
+            exit 1
+          fi
+          if [[ "$DELIVERY_STATUS" == "stored" || "$DELIVERY_STATUS" == "skipped" || ( "$DELIVERY_STATUS" == "unknown" && "$HAS_VIDEO_URL" == "1" ) ]]; then
+            break
+          fi
           ;;
         failed|cancelled|expired)
           ERR_MSG="$(python3 -c '
@@ -501,6 +573,12 @@ try:
 except Exception:
     print("")
 ' "$STATUS_RESPONSE")"
+
+  if [[ -z "$VIDEO_URL" ]]; then
+    echo "Error: Video job completed without a result URL." >&2
+    cat "$STATUS_RESPONSE" >&2
+    exit 1
+  fi
 
   SAVED_FILE=""
   if [[ -n "$VIDEO_URL" && (-n "$DOWNLOAD_DIR" || ( -n "$OUTPUT_FILE" && "$OUTPUT_FILE" == *.mp4 )) ]]; then

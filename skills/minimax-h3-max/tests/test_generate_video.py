@@ -32,7 +32,33 @@ class TestMinimaxH3MaxVideo(unittest.TestCase):
         self.assertEqual(payload["prompt"], "A panda in snow")
         self.assertEqual(payload["duration"], 6)
         self.assertEqual(payload["resolution"], "768p")
-        self.assertEqual(payload["aspect_ratio"], "16:9")
+        self.assertEqual(payload["aspectRatio"], "16:9")
+
+    def test_dry_run_uses_api_request_casing(self):
+        res = self.run_script([
+            "--prompt", "Test",
+            "--aspect-ratio", "9:16",
+            "--first-frame", "https://example.com/first.png",
+            "--last-frame", "https://example.com/last.png",
+            "--dry-run",
+        ])
+        payload = json.loads(res.stdout)
+        self.assertEqual(payload["aspectRatio"], "9:16")
+        self.assertEqual(payload["frameImages"], [
+            {
+                "type": "image_url",
+                "frameType": "first_frame",
+                "imageUrl": {"url": "https://example.com/first.png"},
+            },
+            {
+                "type": "image_url",
+                "frameType": "last_frame",
+                "imageUrl": {"url": "https://example.com/last.png"},
+            },
+        ])
+        self.assertNotIn("aspect_ratio", payload)
+        self.assertNotIn("frame_images", payload)
+        self.assertNotIn("generateAudio", payload)
 
     def test_audio_unsupported(self):
         res = self.run_script(["--prompt", "Test", "--audio", "--dry-run"], check=False)

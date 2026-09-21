@@ -14,6 +14,7 @@ Generate video clips with fast turnaround through Frevana's OpenRouter video end
 - **Aspect Ratios**: `16:9` (default), `9:16`, `1:1`, `4:3`, `3:4`, `21:9`
 - **Durations**: `5` to `15` seconds (default: `6`)
 - **Frame Control**: Supports both `first_frame` and `last_frame` (image-to-video)
+- **Input References**: Not currently listed; use frame images instead
 - **Audio**: Audio generation is not supported by this model
 - **Seed**: Deterministic seed is not supported by this model
 
@@ -55,6 +56,9 @@ bash skills/minimax-h3-max/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--resolution RES`: `768p`, `480p` (default: `768p`)
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
+- `--reference-image PATH/URL`: Rejected because this model does not currently list input-reference support
+- `--reference-audio URL`: Unsupported by this model
+- `--reference-video URL`: Unsupported by this model
 - `--watermark`: Enable AIGC watermark
 - `--no-watermark`: Disable AIGC watermark
 - `--wait`: Wait for job completion and download/output (default in CLI)

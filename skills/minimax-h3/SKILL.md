@@ -14,6 +14,7 @@ Generate high-definition 2K videos through Frevana's OpenRouter video endpoint u
 - **Aspect Ratios**: `16:9` (default), `9:16`, `1:1`, `4:3`, `3:4`, `21:9`
 - **Durations**: `5` to `15` seconds (default: `6`)
 - **Frame Control**: Supports both `first_frame` and `last_frame` (image-to-video)
+- **Input References**: Reference images (`image_url`)
 - **Audio**: Native synchronized audio generation supported (enabled by default)
 - **Seed**: Deterministic seed is not supported by this model
 
@@ -57,6 +58,9 @@ bash skills/minimax-h3/scripts/generate_video.sh wait --job-id <JOB_ID> --downlo
 - `--resolution RES`: `2K` (default: `2K`)
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
+- `--reference-image PATH/URL`: Add a reference image; repeat for multiple images
+- `--reference-audio URL`: Unsupported by this model
+- `--reference-video URL`: Unsupported by this model
 - `--audio`: Generate audio (default: true)
 - `--no-audio`: Disable audio generation
 - `--watermark`: Enable AIGC watermark
@@ -79,3 +83,4 @@ bash skills/minimax-h3/scripts/generate_video.sh wait --job-id <JOB_ID> --downlo
 - Validate that `--resolution` is `2K`. Unsupported resolutions will be rejected client-side before calling the API.
 - Do not pass `--seed`; MiniMax H3 does not support seed parameters.
 - If `--first-frame` or `--last-frame` points to a local file, the script automatically encodes it as a base64 data URI.
+- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

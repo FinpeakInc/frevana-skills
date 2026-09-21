@@ -10,13 +10,14 @@ Generate next-generation audio-visual video with extended duration through Freva
 ## Model Characteristics
 
 - **Model ID**: `bytedance/seedance-2.5` (variant: `bytedance/seedance-1-5-pro`)
-- **Resolutions**: `480p`, `720p` (default)
-- **Aspect Ratios**: `16:9` (default), `4:3`, `1:1`, `3:4`, `9:16`, `21:9`
-- **Durations**: `4` to `30` seconds (default: `5`)
+- **Resolutions**: Seedance 2.5 supports `480p` and `720p` (default); Seedance 1.5 Pro also supports `1080p`
+- **Aspect Ratios**: `16:9` (default), `4:3`, `1:1`, `3:4`, `9:16`, `21:9`; Seedance 1.5 Pro also supports `9:21`
+- **Durations**: Seedance 2.5 supports `4` to `30` seconds; Seedance 1.5 Pro supports `4` to `12` seconds (default: `5`)
 - **Frame Control**: Supports both `first_frame` and `last_frame` (image-to-video)
+- **Input References**: Seedance 2.5 supports reference images, audio, and video; Seedance 1.5 Pro supports reference images only
 - **Audio**: Synchronized audio generation supported (default: enabled)
 - **Seed**: Deterministic integer seed supported
-- **Passthrough Controls**: `watermark`, `req_key`, `output_format`
+- **Passthrough Controls**: `watermark`
 
 ## Prerequisites & Authentication
 
@@ -51,11 +52,14 @@ bash skills/seedance-2-5/scripts/generate_video.sh status --job-id <JOB_ID>
 - `-p, --prompt TEXT`: Text description of the video (required for create)
 - `--prompt-file PATH`: Path to file containing prompt
 - `--model MODEL`: Model slug (default: `bytedance/seedance-2.5`, allowed: `bytedance/seedance-2.5`, `bytedance/seedance-1-5-pro`)
-- `--duration SEC`: Duration in seconds (`4`-`30`, default: `5`)
-- `--aspect-ratio RATIO`: `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9` (default: `16:9`)
-- `--resolution RES`: `480p`, `720p` (default: `720p`)
+- `--duration SEC`: Seedance 2.5: `4`-`30`; Seedance 1.5 Pro: `4`-`12` (default: `5`)
+- `--aspect-ratio RATIO`: `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`; Seedance 1.5 Pro also accepts `9:21` (default: `16:9`)
+- `--resolution RES`: Seedance 2.5: `480p`, `720p`; Seedance 1.5 Pro also accepts `1080p` (default: `720p`)
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
+- `--reference-image PATH/URL`: Add a reference image; repeatable for both models
+- `--reference-audio URL`: Add a reference audio URL for Seedance 2.5; rejected for Seedance 1.5 Pro
+- `--reference-video URL`: Add a reference video URL for Seedance 2.5; rejected for Seedance 1.5 Pro
 - `--audio`: Generate synchronized audio (default: true)
 - `--no-audio`: Disable audio generation
 - `--seed INT`: Deterministic integer seed for reproducible generation
@@ -75,6 +79,6 @@ bash skills/seedance-2-5/scripts/generate_video.sh status --job-id <JOB_ID>
 
 ## Guardrails
 
-- Validate that `--duration` is between 4 and 30 seconds.
-- Validate that `--resolution` is either `480p` or `720p`. Do not pass 1080p or 4K.
-- Validate that `--aspect-ratio` is one of the supported 6 aspect ratios.
+- Validate duration, resolution, and aspect ratio against the selected model.
+- Seedance 2.5 accepts 4-30 seconds at 480p/720p; Seedance 1.5 Pro accepts 4-12 seconds, adds 1080p and `9:21`.
+- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
