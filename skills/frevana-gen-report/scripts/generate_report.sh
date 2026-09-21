@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-API_URL="https://ai-factory.frevana.com/report/generate"
+API_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}/report/generate"
 TARGET_PLATFORM="generate_auto_formating_content"
 DEFAULT_TEMPLATE_ID="mckinsey-style-report-2"
 CONNECT_TIMEOUT="10"
