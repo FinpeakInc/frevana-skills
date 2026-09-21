@@ -11,7 +11,7 @@ export BACKLINKS_OUTPUT_PREFIX="backlinks-page-intersection"
 export BACKLINKS_TARGETS_SHAPE="object"
 
 API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
-API_BASE_URL="${API_BASE_URL%/}"
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
 

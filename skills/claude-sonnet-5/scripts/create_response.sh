@@ -6,7 +6,7 @@ FIXED_PROVIDER="openrouter"
 DEFAULT_MODEL="anthropic/claude-sonnet-5"
 DEFAULT_API_BASE_URL="https://ai-factory.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-API_BASE_URL="${API_BASE_URL%/}"
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done
 RESPONSES_PATH="/openrouter/v1/responses"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"

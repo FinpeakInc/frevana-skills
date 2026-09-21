@@ -7,7 +7,7 @@ DEFAULT_MODEL="gpt-5.6-luna"
 ALLOWED_MODEL="gpt-5.6-luna"
 DEFAULT_API_BASE_URL="https://ai-factory.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-API_BASE_URL="${API_BASE_URL%/}"
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done
 RESPONSES_PATH="/openai/v1/responses"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"

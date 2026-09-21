@@ -6,7 +6,7 @@ FIXED_PROVIDER="openai"
 FIXED_MODEL="gpt-image-2"
 DEFAULT_API_BASE_URL="https://ai-factory.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-API_BASE_URL="${API_BASE_URL%/}"
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done
 OPENAI_IMAGE_PATH="/openai/image/generate"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
