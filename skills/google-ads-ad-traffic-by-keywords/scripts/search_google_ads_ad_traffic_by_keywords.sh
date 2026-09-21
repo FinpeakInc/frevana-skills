@@ -3,7 +3,7 @@
 set -euo pipefail
 
 API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
-while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ -n "$API_BASE_URL" ]] || { echo "API base URL is empty after normalisation" >&2; exit 1; }
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
 API_PATH="/service/google-ads-ad-traffic-by-keywords"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"

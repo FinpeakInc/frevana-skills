@@ -4,7 +4,7 @@ set -euo pipefail
 
 DEFAULT_API_BASE_URL="https://api.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ -n "$API_BASE_URL" ]] || { echo "API base URL is empty after normalisation" >&2; exit 1; }
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
 UPLOAD_URL_PATH="/s3/custom-upload-url"
 FIXED_SCENE_TYPE="universal"
 CONNECT_TIMEOUT="15"
@@ -158,7 +158,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --api-base-url)
       API_BASE_URL="${2:-}"
-      while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ -n "$API_BASE_URL" ]] || { echo "API base URL is empty after normalisation" >&2; exit 1; }
+      while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
       shift 2
       ;;
     -h|--help)
