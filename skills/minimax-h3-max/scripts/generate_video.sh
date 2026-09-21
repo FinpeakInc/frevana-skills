@@ -17,7 +17,7 @@ DEFAULT_DURATION="6"
 
 DEFAULT_API_BASE_URL="https://ai-factory.frevana.com"
 API_BASE_URL="${FREVANA_API_BASE_URL:-$DEFAULT_API_BASE_URL}"
-while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+(/[^?#]*)?$ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
 VIDEOS_PATH="/openrouter/v1/videos"
 CONNECT_TIMEOUT="15"
 MAX_TIME="600"
@@ -142,7 +142,7 @@ while [[ $# -gt 0 ]]; do
     --token) TOKEN_OVERRIDE="${2:-}"; shift 2 ;;
     --api-key) API_KEY_OVERRIDE="${2:-}"; shift 2 ;;
     --agent-app-instance-id) AGENT_APP_INSTANCE_ID_OVERRIDE="${2:-}"; shift 2 ;;
-    --api-base-url) API_BASE_URL="${2:-}"; while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }; shift 2 ;;
+    --api-base-url) API_BASE_URL="${2:-}"; while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+(/[^?#]*)?$ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *)
       if [[ -z "$COMMAND" && -z "$JOB_ID" && "$1" =~ ^[A-Za-z0-9_-]{10,}$ ]]; then

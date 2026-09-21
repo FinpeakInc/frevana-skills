@@ -5,7 +5,7 @@ set -euo pipefail
 FIXED_PROVIDER="gemini"
 FIXED_MODEL="gemini-3-pro-image-preview"
 API_BASE_URL="${FREVANA_API_BASE_URL:-https://ai-factory.frevana.com}"
-while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
+while [[ "$API_BASE_URL" == */ ]]; do API_BASE_URL="${API_BASE_URL%/}"; done; [[ "$API_BASE_URL" =~ ^https?://[^/?#]+(/[^?#]*)?$ ]] || { echo "Invalid API base URL after normalisation: ${API_BASE_URL:-<empty>}" >&2; exit 1; }
 GEMINI_IMAGE_PATH="/gemini/image/generate"
 CONNECT_TIMEOUT="10"
 MAX_TIME="600"
