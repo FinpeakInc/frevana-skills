@@ -55,6 +55,7 @@ bash skills/kling-v3.0-pro/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--duration SEC`: Duration in seconds (`3`-`15`, default: `5`)
 - `--aspect-ratio RATIO`: `16:9`, `9:16`, `1:1` (default: `16:9`)
 - `--resolution RES`: `720p` (default: `720p`)
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
 - `--reference-image PATH/URL`: Add a reference image; repeat for multiple images
@@ -78,8 +79,11 @@ bash skills/kling-v3.0-pro/scripts/generate_video.sh status --job-id <JOB_ID>
 
 ## Guardrails
 
+- For semantic requests such as "720p landscape" or "square video", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate that `--duration` is between 3 and 15 seconds.
 - Validate that `--resolution` is `720p`.
 - Validate that `--aspect-ratio` is one of `16:9`, `9:16`, or `1:1`.
+- `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Do not pass `--seed`; Kling Pro does not support deterministic seed.
 - Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

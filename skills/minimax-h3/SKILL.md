@@ -56,6 +56,7 @@ bash skills/minimax-h3/scripts/generate_video.sh wait --job-id <JOB_ID> --downlo
 - `--duration SEC`: Duration in seconds (`5`-`15`, default: `6`)
 - `--aspect-ratio RATIO`: `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9` (default: `16:9`)
 - `--resolution RES`: `2K` (default: `2K`)
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
 - `--reference-image PATH/URL`: Add a reference image; repeat for multiple images
@@ -79,8 +80,11 @@ bash skills/minimax-h3/scripts/generate_video.sh wait --job-id <JOB_ID> --downlo
 
 ## Guardrails
 
+- For semantic requests such as "720p landscape" or "vertical 2K", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate that `--duration` is an integer between 5 and 15 seconds.
 - Validate that `--resolution` is `2K`. Unsupported resolutions will be rejected client-side before calling the API.
 - Do not pass `--seed`; MiniMax H3 does not support seed parameters.
 - If `--first-frame` or `--last-frame` points to a local file, the script automatically encodes it as a base64 data URI.
+- `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

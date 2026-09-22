@@ -56,6 +56,7 @@ bash skills/veo-3.1/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--duration SEC`: Duration in seconds (`4`, `6`, `8`, default: `6`)
 - `--aspect-ratio RATIO`: `16:9`, `9:16` (default: `16:9`)
 - `--resolution RES`: `720p`, `1080p`, `4K` (default: `720p`); `google/veo-3.1-lite` does not support `4K`
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
 - `--reference-image PATH/URL`: Add a reference image; repeat for multiple images
@@ -80,7 +81,10 @@ bash skills/veo-3.1/scripts/generate_video.sh status --job-id <JOB_ID>
 
 ## Guardrails
 
+- For semantic requests such as "1080p landscape" or "4K vertical", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate that `--duration` is strictly one of `4`, `6`, or `8` seconds. Values like 5 or 10 will be rejected client-side.
 - Validate that `--aspect-ratio` is either `16:9` or `9:16`.
 - Validate resolution against the selected model; `google/veo-3.1-lite` accepts only `720p` or `1080p`.
+- `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

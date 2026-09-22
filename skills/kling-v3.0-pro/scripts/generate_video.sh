@@ -43,6 +43,7 @@ Options:
   --duration SEC         Duration in seconds (allowed: 3-15, default: $DEFAULT_DURATION)
   --aspect-ratio RATIO   Aspect ratio (allowed: ${ALLOWED_ASPECT_RATIOS[*]}, default: $DEFAULT_ASPECT_RATIO)
   --resolution RES       Resolution (allowed: ${ALLOWED_RESOLUTIONS[*]}, default: $DEFAULT_RESOLUTION)
+  --size WIDTHxHEIGHT    Exact output dimensions; overrides resolution and aspect ratio
   --first-frame PATH/URL Image path or URL for the first frame
   --last-frame PATH/URL  Image path or URL for the last frame
   --image PATH/URL       Alias for --first-frame
@@ -104,6 +105,7 @@ MODEL="$DEFAULT_MODEL"
 DURATION="$DEFAULT_DURATION"
 ASPECT_RATIO="$DEFAULT_ASPECT_RATIO"
 RESOLUTION="$DEFAULT_RESOLUTION"
+SIZE=""
 FIRST_FRAME=""
 LAST_FRAME=""
 REFERENCE_IMAGES=()
@@ -133,6 +135,7 @@ while [[ $# -gt 0 ]]; do
     --duration) DURATION="${2:-}"; shift 2 ;;
     --aspect-ratio) ASPECT_RATIO="${2:-}"; shift 2 ;;
     --resolution) RESOLUTION="${2:-}"; shift 2 ;;
+    --size) SIZE="${2:-}"; shift 2 ;;
     --first-frame|--image) FIRST_FRAME="${2:-}"; shift 2 ;;
     --last-frame) LAST_FRAME="${2:-}"; shift 2 ;;
     --reference-image) REFERENCE_IMAGES+=("${2:-}"); shift 2 ;;
@@ -191,14 +194,18 @@ if [[ -n "$DURATION" ]] && ! is_allowed "$DURATION" "${ALLOWED_DURATIONS[@]}"; t
   exit 1
 fi
 
-if [[ -n "$RESOLUTION" ]] && ! is_allowed "$RESOLUTION" "${ALLOWED_RESOLUTIONS[@]}"; then
+if [[ -z "$SIZE" && -n "$RESOLUTION" ]] && ! is_allowed "$RESOLUTION" "${ALLOWED_RESOLUTIONS[@]}"; then
   echo "Error: Invalid resolution '$RESOLUTION' for model $MODEL. Allowed resolutions: ${ALLOWED_RESOLUTIONS[*]}" >&2
   exit 1
 fi
 
-if [[ -n "$ASPECT_RATIO" ]] && ! is_allowed "$ASPECT_RATIO" "${ALLOWED_ASPECT_RATIOS[@]}"; then
+if [[ -z "$SIZE" && -n "$ASPECT_RATIO" ]] && ! is_allowed "$ASPECT_RATIO" "${ALLOWED_ASPECT_RATIOS[@]}"; then
   echo "Error: Invalid aspect ratio '$ASPECT_RATIO' for model $MODEL. Allowed aspect ratios: ${ALLOWED_ASPECT_RATIOS[*]}" >&2
   exit 1
+fi
+
+if [[ -n "$SIZE" ]]; then
+  [[ "$SIZE" =~ ^[1-9][0-9]*x[1-9][0-9]*$ ]] || { echo "Error: Invalid size '$SIZE'. Expected WIDTHxHEIGHT with positive integers." >&2; exit 1; }
 fi
 
 if [[ ${#REFERENCE_IMAGES[@]} -gt 0 ]] && ! is_allowed "image_url" ${SUPPORTED_INPUT_REFERENCES[@]+"${SUPPORTED_INPUT_REFERENCES[@]}"}; then echo "Error: Model $MODEL does not support image input references." >&2; exit 1; fi
@@ -295,6 +302,7 @@ if [[ "$COMMAND" == "create" ]]; then
   ENV_DURATION="$DURATION" \
   ENV_ASPECT_RATIO="$ASPECT_RATIO" \
   ENV_RESOLUTION="$RESOLUTION" \
+  ENV_SIZE="$SIZE" \
   ENV_GENERATE_AUDIO="$GENERATE_AUDIO" \
   ENV_NEGATIVE_PROMPT="$NEGATIVE_PROMPT" \
   ENV_CFG_SCALE="$CFG_SCALE" \
@@ -316,13 +324,17 @@ duration = os.environ.get("ENV_DURATION")
 if duration:
     payload["duration"] = int(duration)
 
-aspect_ratio = os.environ.get("ENV_ASPECT_RATIO")
-if aspect_ratio:
-    payload["aspectRatio"] = aspect_ratio
+size = os.environ.get("ENV_SIZE")
+if size:
+    payload["size"] = size
+else:
+    aspect_ratio = os.environ.get("ENV_ASPECT_RATIO")
+    if aspect_ratio:
+        payload["aspectRatio"] = aspect_ratio
 
-resolution = os.environ.get("ENV_RESOLUTION")
-if resolution:
-    payload["resolution"] = resolution
+    resolution = os.environ.get("ENV_RESOLUTION")
+    if resolution:
+        payload["resolution"] = resolution
 
 generate_audio = os.environ.get("ENV_GENERATE_AUDIO")
 if generate_audio == "true":

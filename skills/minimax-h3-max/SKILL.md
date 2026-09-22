@@ -54,6 +54,7 @@ bash skills/minimax-h3-max/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--duration SEC`: Duration in seconds (`5`-`15`, default: `6`)
 - `--aspect-ratio RATIO`: `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9` (default: `16:9`)
 - `--resolution RES`: `768p`, `480p` (default: `768p`)
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
 - `--reference-image PATH/URL`: Rejected because this model does not currently list input-reference support
@@ -73,8 +74,12 @@ bash skills/minimax-h3-max/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--api-key KEY`: Frevana API key override
 - `--agent-app-instance-id ID`: Agent App instance ID override
 
+`--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
+
 ## Guardrails
 
+- For semantic requests such as "720p landscape" or "vertical 768p", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate that `--duration` is between 5 and 15 seconds.
 - Validate that `--resolution` is either `768p` or `480p`. Do not pass 2K or 1080p.
 - Do not pass `--audio`; MiniMax H3 Max does not generate audio.

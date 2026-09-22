@@ -54,6 +54,7 @@ bash skills/wan-3.0/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--duration SEC`: Duration in seconds (`2`-`30`, default: `5`)
 - `--aspect-ratio RATIO`: `16:9`, `4:3`, `1:1`, `3:4`, `9:16` (default: `16:9`)
 - `--resolution RES`: `480p`, `720p`, `1080p` (default: `720p`)
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--reference-image PATH/URL`: Add a reference image for Wan 3.0; repeatable and rejected for Wan 3.0 Prime
 - `--reference-audio URL`: Unsupported by these models
@@ -75,7 +76,10 @@ bash skills/wan-3.0/scripts/generate_video.sh status --job-id <JOB_ID>
 
 ## Guardrails
 
+- For semantic requests such as "720p landscape" or "1080p vertical", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate that `--duration` is between 2 and 30 seconds.
 - Validate that `--resolution` is one of `480p`, `720p`, or `1080p`.
 - Do not pass `--last-frame`; Wan 3.0 only supports `first_frame`.
+- `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - A first-frame image and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.

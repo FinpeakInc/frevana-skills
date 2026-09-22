@@ -55,6 +55,7 @@ bash skills/seedance-2-5/scripts/generate_video.sh status --job-id <JOB_ID>
 - `--duration SEC`: Seedance 2.5: `4`-`30`; Seedance 1.5 Pro: `4`-`12` (default: `5`)
 - `--aspect-ratio RATIO`: `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`; Seedance 1.5 Pro also accepts `9:21` (default: `16:9`)
 - `--resolution RES`: Seedance 2.5: `480p`, `720p`; Seedance 1.5 Pro also accepts `1080p` (default: `720p`)
+- `--size WIDTHxHEIGHT`: Exact output dimensions; overrides `--resolution` and `--aspect-ratio`
 - `--first-frame, --image PATH/URL`: Image path or URL for first frame
 - `--last-frame PATH/URL`: Image path or URL for last frame
 - `--reference-image PATH/URL`: Add a reference image; repeatable for both models
@@ -79,6 +80,9 @@ bash skills/seedance-2-5/scripts/generate_video.sh status --job-id <JOB_ID>
 
 ## Guardrails
 
+- For semantic requests such as "720p landscape" or "vertical video", use `--resolution` with `--aspect-ratio`.
+- Use `--size` only when the user explicitly requires exact `WIDTHxHEIGHT` pixels; it overrides and replaces both semantic dimension fields in the request payload.
 - Validate duration, resolution, and aspect ratio against the selected model.
+- `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Seedance 2.5 accepts 4-30 seconds at 480p/720p; Seedance 1.5 Pro accepts 4-12 seconds, adds 1080p and `9:21`.
 - Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
