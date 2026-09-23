@@ -29,6 +29,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana AI Factory API workflows for image generation and HTML generation
 - OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, and GPT-6
 - OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
+- OpenRouter Decisions API workflows for structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest
 - OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, and ByteDance Seedance 2.5
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
@@ -470,6 +471,12 @@ skills/
     agents/openai.yaml
     scripts/create_response.sh
     tests/test_create_response.py
+  jev-latest/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/create_decision.sh
+    tests/test_create_decision.py
   minimax-h3/
     SKILL.md
     agents/openai.yaml
@@ -2904,6 +2911,31 @@ Fixed Frevana routing contract:
 - use the `claude-sonnet-5` skill script
 - forward `x-frevana-agent-app-instance-id` when instance ID is provided
 
+### Use `jev-latest`
+
+Route here when the user wants structured classification, a boolean-like judgment, or ordered scoring with TypeSafe JEV Latest (`~typesafe/jev-latest`) through Frevana's OpenRouter Decisions API (`POST /openrouter/v1/decisions`).
+
+Required input:
+
+- text or JSON state via `--state` or `--state-file`, unless using `--raw-payload-file`
+- a JSON object of named questions via `--questions` or `--questions-file`, unless using `--raw-payload-file`
+
+Optional input:
+
+- provider preferences via `--provider` or `--provider-file`
+- trace metadata via `--trace` or `--trace-file`
+- `session-id` and `user`
+- `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `answers-only` (`-a`)
+- output file path
+
+Fixed Frevana routing contract:
+
+- use the `jev-latest` skill script and keep the request model fixed to `~typesafe/jev-latest`
+- support only the Decisions API question types `choice`, `noul`, and `score`
+- do not automatically retry an uncertain request that may have incurred provider cost
+- forward `x-frevana-agent-app-instance-id` when an instance ID is provided
+
 ### Use `minimax-h3`
 
 Route here when the user wants:
@@ -4041,6 +4073,15 @@ bash skills/claude-opus-5/scripts/create_response.sh \
 bash skills/claude-sonnet-5/scripts/create_response.sh \
   --input "Implement a lock-free ring buffer queue in C++20 with atomic operations" \
   --text-only
+```
+
+### OpenRouter Decisions (JEV Latest)
+
+```bash
+bash skills/jev-latest/scripts/create_decision.sh \
+  --state '{"ticket":"Please refund this duplicate charge"}' \
+  --questions '{"escalate":{"type":"noul","instructions":"Should this ticket be escalated?"}}' \
+  --output ./out/jev-decision.json
 ```
 
 ## Final Behavior Checklist

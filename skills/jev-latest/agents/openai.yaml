@@ -1,0 +1,4 @@
+interface:
+  display_name: "JEV Latest"
+  short_description: "Structured decisions with JEV Latest via OpenRouter."
+  default_prompt: "Use $jev-latest to evaluate this state with structured choice, boolean, or score questions."
