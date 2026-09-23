@@ -38,7 +38,6 @@ Decision request:
   --raw-payload-file        Complete Decisions request body; cannot be combined with fields above
 
 Auth & attribution:
-  --api-key                 Frevana API key (or FREVANA_API_KEY env)
   --token                   Frevana Bearer token (or FREVANA_TOKEN env)
   --agent-app-instance-id   Agent App instance ID (or FREVANA_AGENT_APP_INSTANCE_ID env)
 
@@ -67,7 +66,6 @@ TRACE_FILE=""
 SESSION_ID=""
 USER_ID=""
 RAW_PAYLOAD_FILE=""
-API_KEY_OVERRIDE=""
 TOKEN_OVERRIDE=""
 AGENT_APP_INSTANCE_ID_OVERRIDE=""
 OUTPUT_PATH=""
@@ -87,7 +85,6 @@ while [[ $# -gt 0 ]]; do
     --session-id) SESSION_ID="${2:-}"; shift 2 ;;
     --user) USER_ID="${2:-}"; shift 2 ;;
     --raw-payload-file) RAW_PAYLOAD_FILE="${2:-}"; shift 2 ;;
-    --api-key) API_KEY_OVERRIDE="${2:-}"; shift 2 ;;
     --token) TOKEN_OVERRIDE="${2:-}"; shift 2 ;;
     --agent-app-instance-id) AGENT_APP_INSTANCE_ID_OVERRIDE="${2:-}"; shift 2 ;;
     --answers-only|-a) ANSWERS_ONLY=1; shift ;;
@@ -335,18 +332,18 @@ Path(sys.argv[1]).write_text(
 )
 PY
 
-API_KEY="${API_KEY_OVERRIDE:-${FREVANA_API_KEY:-}}"
 TOKEN="${TOKEN_OVERRIDE:-${FREVANA_TOKEN:-}}"
 AGENT_APP_INSTANCE_ID="${AGENT_APP_INSTANCE_ID_OVERRIDE:-${FREVANA_AGENT_APP_INSTANCE_ID:-${X_FREVANA_AGENT_APP_INSTANCE_ID:-}}}"
 
-if [[ -z "$API_KEY" && -z "$TOKEN" ]]; then
+if [[ -z "$TOKEN" ]]; then
   if [[ -t 0 ]]; then
-    read -r -s -p "Authentication required. Enter Frevana Bearer token or API key: " TOKEN
+    read -r -s -p "Authentication required. Enter Frevana Bearer token: " TOKEN
     echo >&2
   else
-    fail "Authentication required: set FREVANA_API_KEY or FREVANA_TOKEN, or pass --api-key / --token explicitly."
+    fail "Authentication required: set FREVANA_TOKEN or pass --token explicitly."
   fi
 fi
+[[ -n "$TOKEN" ]] || fail "Bearer token is required."
 
 CURL_ARGS=(
   -sS
@@ -356,9 +353,8 @@ CURL_ARGS=(
   -w '%{http_code}'
   -X POST "$API_BASE_URL$API_PATH"
   -H "Content-Type: application/json"
+  -H "Authorization: Bearer $TOKEN"
 )
-[[ -z "$API_KEY" ]] || CURL_ARGS+=(-H "X-API-Key: $API_KEY")
-[[ -z "$TOKEN" ]] || CURL_ARGS+=(-H "Authorization: Bearer $TOKEN")
 [[ -z "$AGENT_APP_INSTANCE_ID" ]] || CURL_ARGS+=(-H "x-frevana-agent-app-instance-id: $AGENT_APP_INSTANCE_ID")
 CURL_ARGS+=(--data "@$PAYLOAD_FILE")
 

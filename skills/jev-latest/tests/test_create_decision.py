@@ -19,6 +19,7 @@ class JevLatestCreateDecisionTests(unittest.TestCase):
             ["bash", str(SCRIPT), *args],
             text=True,
             capture_output=True,
+            stdin=subprocess.DEVNULL,
             env=run_env,
             check=False,
         )
@@ -279,6 +280,52 @@ printf '200'
                     "additionalProperties": {"custom_key": "custom-value"},
                 },
             )
+
+    def test_requires_token_when_unset(self):
+        env = os.environ.copy()
+        env.pop("FREVANA_TOKEN", None)
+        result = self.run_script(
+            "--state",
+            "ticket",
+            "--questions",
+            '{"escalate":{"type":"noul","instructions":"Escalate?"}}',
+            env=env,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Authentication required: set FREVANA_TOKEN or pass --token explicitly.", result.stderr)
+
+    def test_token_override_flag(self):
+        with tempfile.TemporaryDirectory() as temp:
+            env, capture, args_path = self.fake_curl_env(temp)
+            env["FREVANA_TOKEN"] = "env-token"
+            result = self.run_script(
+                "--state",
+                "ticket",
+                "--questions",
+                '{"escalate":{"type":"noul","instructions":"Escalate?"}}',
+                "--token",
+                "override-token",
+                env=env,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            curl_args = args_path.read_text(encoding="utf-8")
+            self.assertIn("Authorization: Bearer override-token", curl_args)
+            self.assertNotIn("Authorization: Bearer env-token", curl_args)
+
+    def test_rejects_api_key_flag(self):
+        with tempfile.TemporaryDirectory() as temp:
+            env, _, _ = self.fake_curl_env(temp)
+            result = self.run_script(
+                "--state",
+                "ticket",
+                "--questions",
+                '{"escalate":{"type":"noul","instructions":"Escalate?"}}',
+                "--api-key",
+                "some-key",
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Unknown argument: --api-key", result.stderr)
 
 
 if __name__ == "__main__":

@@ -156,6 +156,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
 | Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
 | Text | [`gpt-6`](skills/gpt-6/SKILL.md) | Next-generation frontier intelligence and reasoning with GPT-6 | prompt or input file |
+| Decision | [`jev-latest`](skills/jev-latest/SKILL.md) | Structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest via OpenRouter | state and questions |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 
 ### Chrome Extension Skills
@@ -1148,6 +1149,22 @@ Features:
 - calls `POST /openrouter/v1/responses` on Frevana's AI Factory gateway
 - full session management with automatic multi-turn conversation context chaining
 - supports sampling controls, reasoning effort, tools/function calling, and `--text-only` output
+
+### [`jev-latest`](skills/jev-latest/SKILL.md)
+
+Evaluate a state with structured choice, boolean-like, or ordered scoring questions using TypeSafe JEV Latest (`~typesafe/jev-latest`) via Frevana's OpenRouter Decisions API.
+
+Use when:
+
+- you want structured classification, categorical choice evaluation, continuous boolean-like scoring (noul), or ordered multi-criteria scoring
+- you need deterministic, typed answers evaluated from text or structured JSON state
+
+Features:
+
+- calls `POST /openrouter/v1/decisions` on Frevana's AI Factory gateway
+- requires Frevana Bearer token authentication via `FREVANA_TOKEN` or `--token`
+- supports choice, noul, and score question types with strict validation
+- supports provider preferences, trace metadata, session grouping, and `--answers-only` output
 
 ### [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md)
 

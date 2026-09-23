@@ -13,7 +13,7 @@ Use `scripts/create_decision.sh`. Return the validated API response JSON unchang
 
 - State: `--state` for text or an inline JSON object/array, or `--state-file` for text or JSON content.
 - Questions: `--questions` with a JSON object, or `--questions-file` with a JSON object.
-- Authentication: `FREVANA_TOKEN` / `--token`, or `FREVANA_API_KEY` / `--api-key`.
+- Authentication: `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override.
 
 For a complete request body, use `--raw-payload-file`. It cannot be combined with state, questions, provider, trace, session, or user flags. The script still fixes and validates the model.
 
@@ -31,6 +31,7 @@ Instructions, criteria entries, and state may be structured JSON where the API c
 
 ## Optional inputs
 
+- `--token`: Frevana Bearer token override for this run.
 - `--session-id`: observability grouping identifier, at most 256 characters.
 - `--user`: end-user identifier, at most 256 characters.
 - `--provider` or `--provider-file`: OpenRouter provider preferences JSON object.

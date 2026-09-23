@@ -2926,12 +2926,14 @@ Optional input:
 - trace metadata via `--trace` or `--trace-file`
 - `session-id` and `user`
 - `agent-app-instance-id` (also read from `FREVANA_AGENT_APP_INSTANCE_ID` or `X_FREVANA_AGENT_APP_INSTANCE_ID`)
+- `token` override via `--token` (also read from `FREVANA_TOKEN`)
 - `answers-only` (`-a`)
 - output file path
 
 Fixed Frevana routing contract:
 
 - use the `jev-latest` skill script and keep the request model fixed to `~typesafe/jev-latest`
+- authenticate using Frevana Bearer token (`FREVANA_TOKEN` or `--token`)
 - support only the Decisions API question types `choice`, `noul`, and `score`
 - do not automatically retry an uncertain request that may have incurred provider cost
 - forward `x-frevana-agent-app-instance-id` when an instance ID is provided
