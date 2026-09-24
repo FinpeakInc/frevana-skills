@@ -1,0 +1,4 @@
+interface:
+  display_name: "Douyin Search"
+  short_description: "Search Douyin videos by keyword via Frevana"
+  default_prompt: "Use $douyin-search to search Douyin videos by keyword and wait for the JSON result."

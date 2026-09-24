@@ -1,0 +1,4 @@
+interface:
+  display_name: "Douyin Hot Search"
+  short_description: "Fetch Douyin trending search boards via Frevana"
+  default_prompt: "Use $douyin-hot-search to fetch Douyin hot search boards and wait for the JSON result."

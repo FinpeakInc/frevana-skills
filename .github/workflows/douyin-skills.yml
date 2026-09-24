@@ -1,0 +1,35 @@
+name: Douyin skills
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/douyin-skills.yml
+      - skills/douyin-hot-search/**
+      - skills/douyin-search/**
+  workflow_dispatch:
+
+jobs:
+  windows-git-bash:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Keep shell scripts with LF line endings
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Check tools and line endings
+        run: |
+          command -v bash
+          command -v curl
+          command -v jq
+          command -v cygpath
+          command -v uuidgen || command -v openssl
+          ! grep -q $'\r' skills/douyin-hot-search/scripts/douyin_task.sh
+          ! grep -q $'\r' skills/douyin-search/scripts/douyin_task.sh
+          bash -n skills/douyin-hot-search/scripts/douyin_task.sh
+          bash -n skills/douyin-search/scripts/douyin_task.sh
+      - name: Test hot search
+        run: python -B -m unittest discover -s skills/douyin-hot-search/tests -p 'test_*.py'
+      - name: Test keyword search
+        run: python -B -m unittest discover -s skills/douyin-search/tests -p 'test_*.py'

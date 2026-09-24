@@ -291,6 +291,18 @@ skills/
     scripts/tiktok_task.sh
     scripts/tiktok_task.py
     tests/test_tiktok_task.py
+  douyin-hot-search/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/douyin_task.sh
+    tests/test_douyin_task.py
+  douyin-search/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/douyin_task.sh
+    tests/test_douyin_task.py
   unity-ads/
     SKILL.md
     agents/openai.yaml
@@ -2102,6 +2114,12 @@ Important behavior:
 - Retrieve the raw result only after `status=READY` and `billing_status=BILLED`. Preserve the result bytes and do not infer input/result association from array order or counts.
 - Use `tiktok-ads` instead for advertiser accounts, campaigns, creatives, audiences, reporting, or other TikTok Business API operations.
 
+### Use the Douyin asynchronous data skills
+
+Route hot search or trending boards to `douyin-hot-search`; route video discovery by one or more keywords to `douyin-search`. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
+
+Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and keep the `client_task_id` stable when retrying an uncertain outcome. Poll the shared `/service/douyin/tasks/{task_id}` endpoint. Retrieve the raw JSON array only after `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`; never automatically create a replacement task.
+
 ### Use `tiktok-ads`
 
 Route here when the user wants:
@@ -3666,6 +3684,8 @@ bash skills/tiktok-posts-discover-by-keyword/scripts/tiktok_task.sh
 bash skills/tiktok-posts-discover-by-profile-url/scripts/tiktok_task.sh
 bash skills/tiktok-posts-collect-by-url/scripts/tiktok_task.sh
 bash skills/tiktok-profiles-collect-by-url/scripts/tiktok_task.sh
+bash skills/douyin-hot-search/scripts/douyin_task.sh
+bash skills/douyin-search/scripts/douyin_task.sh
 bash skills/wordpress-content/scripts/wordpress_rest.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh

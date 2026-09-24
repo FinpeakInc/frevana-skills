@@ -76,6 +76,8 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | TikTok | [`tiktok-posts-discover-by-profile-url`](skills/tiktok-posts-discover-by-profile-url/SKILL.md) | Discover public posts from profile URLs with async polling | profile URL |
 | TikTok | [`tiktok-posts-collect-by-url`](skills/tiktok-posts-collect-by-url/SKILL.md) | Collect exact post URLs with async polling | post URL |
 | TikTok | [`tiktok-profiles-collect-by-url`](skills/tiktok-profiles-collect-by-url/SKILL.md) | Collect exact profile URLs with async polling | profile URL |
+| Douyin | [`douyin-hot-search`](skills/douyin-hot-search/SKILL.md) | Fetch hot search boards with async polling | optional board |
+| Douyin | [`douyin-search`](skills/douyin-search/SKILL.md) | Search videos by keyword with async polling | one or more keywords |
 | Google News | [`google-news-search`](skills/google-news-search/SKILL.md) | Google News search | query |
 | Google Maps | [`google-maps-search`](skills/google-maps-search/SKILL.md) | Google Maps place search and lookup | search query with type, or place ID / CID |
 | Google Trends | [`google-trends`](skills/google-trends/SKILL.md) | Google Trends interest and comparison data | query |
@@ -1440,6 +1442,7 @@ Features:
 - Frevana auth skill: `bash`, `frevana` or `npm`, browser/manual access to the authorization URL, and the correct npm/private package source if the CLI is unavailable when login starts.
 - Frevana publish skill: `bash`, `curl`, `python3`, `FREVANA_TOKEN`, a configured custom domain, and network access to the Frevana API and returned pre-signed upload host.
 - Amazon, eBay, Home Depot, Walmart, Google Ads Transparency Center, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Trends, Google Shopping, Google Shopping Light, Google Immersive Product, YouTube Search, and Reddit URL Mentions skills: `bash`, `curl`, `python3`, `FREVANA_TOKEN`.
+- Douyin hot search and keyword search skills: `bash`, `curl`, `jq`, `FREVANA_TOKEN`, and `uuidgen` or `openssl` when generating a client task ID. On Windows, use Git Bash or WSL.
 - Chrome Extension skills: `bash`, `curl`, `python3`, bundled `scripts/setup.sh`, network access to the official Frevana setup URL, local `frevana` binary or network access to GitHub Releases when setup needs to install it, Frevana daemon, Chrome Extension connection, and login to the target site/platform in Chrome when required.
 - SendGrid email and stats skills: `bash`, `curl`, `python3`, `SENDGRID_API_KEY`.
 - Instantly email skill: `bash`, `curl`, `python3`, `INSTANTLY_API_KEY`.
