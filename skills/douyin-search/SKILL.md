@@ -1,6 +1,6 @@
 ---
 name: douyin-search
-description: Search public Douyin (抖音) posts by keywords, phrases, hashtags, brands, or people through Frevana. Find videos and image-text posts with available creator, engagement, music, and media metadata; filter by sort, publication time, or video duration. Use for matching content, including posts behind a trending topic; use douyin-hot-search for ranked 热搜/热榜 topics.
+description: Search public Douyin (抖音) posts by keywords, phrases, hashtags, brands, or people through Frevana. Find videos and image-text posts with creator and media metadata; use videoMeta.playUrl to play a video, videoMeta.downloadUrl to download it, and url for its original Douyin page. Use douyin-hot-search for ranked 热搜/热榜 topics.
 ---
 
 # Douyin Search
@@ -15,6 +15,18 @@ Use the bundled Bash script for task creation, status polling, and JSON result r
 2. Treat creation as billable. Record the printed `client_task_id`. If the create request times out or its outcome is unclear, retry with the same ID and identical options; never generate a new task automatically.
 3. Poll until `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`.
 4. Return the result JSON unchanged. The server archives recognized media to Frevana S3; do not rewrite or reorder result items.
+
+## Result links
+
+For a video result, use the fields in the returned JSON according to the user's intent:
+
+| Intent | Field | Meaning |
+| --- | --- | --- |
+| Play the video | `videoMeta.playUrl` | Play from this video media URL. Do not confuse it with `musicMeta.playUrl`, which is audio. |
+| Download the video | `videoMeta.downloadUrl` | Retrieve the video bytes from this URL when asked to download; the bundled task script only fetches JSON. |
+| Open or cite the original post | `url` | Original Douyin post page, such as `https://www.douyin.com/video/<id>`. |
+
+Use these fields only when present. Image-text posts may have no video playback or download URL. Upstream Douyin CDN links can expire within hours; `videoMeta.cdnUrlExpiresAt` records their expiry when available. Frevana may replace recognized temporary media URLs with archived URLs, so use the returned values rather than constructing links from an ID.
 
 ## Commands
 

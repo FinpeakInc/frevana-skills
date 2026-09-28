@@ -24,3 +24,5 @@ The task response has `task_id`, `client_task_id`, `operation=SEARCH`, `status`,
 Statuses are `PENDING`, `RUNNING`, `READY`, `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, and `TRIGGER_UNKNOWN`. Billing statuses are `PENDING`, `PROCESSING`, `RETRY`, `BILLED`, and `NOT_CHARGED`. Read the result only at `READY + BILLED`; otherwise the server returns HTTP 409. Terminal failure statuses must not be retriggered automatically.
 
 The result endpoint streams a JSON array from Frevana's persisted result. The server replaces recognized temporary media URLs with archived Frevana S3 URLs. Preserve all result bytes and item fields as returned.
+
+For video results, `videoMeta.playUrl` is the playback URL, `videoMeta.downloadUrl` is the download URL, and top-level `url` is the original Douyin post page. `musicMeta.playUrl` points to audio, not the video. These fields may be absent for image-text posts. The upstream Actor documents short-lived Douyin CDN media URLs and `videoMeta.cdnUrlExpiresAt`; use the URLs returned by Frevana because recognized media URLs may have been archived and replaced.
