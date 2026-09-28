@@ -2116,7 +2116,7 @@ Important behavior:
 
 ### Use the Douyin asynchronous data skills
 
-Route hot search or trending boards to `douyin-hot-search`; route video discovery by one or more keywords to `douyin-search`. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
+Route Douyin 热搜/热榜 board rankings, including 热点榜、种草榜、娱乐榜、社会榜、挑战榜, to `douyin-hot-search`. Route discovery of matching videos or image-text posts by keywords, phrases, or hashtags to `douyin-search`; a hot-board topic's `word` can be used as its keyword. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
 
 Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and keep the `client_task_id` stable when retrying an uncertain outcome. Poll the shared `/service/douyin/tasks/{task_id}` endpoint. Retrieve the raw JSON array only after `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`; never automatically create a replacement task.
 

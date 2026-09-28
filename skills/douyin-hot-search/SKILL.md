@@ -1,9 +1,11 @@
 ---
 name: douyin-hot-search
-description: Fetch Douyin (抖音) hot search, trending topics, or 热榜 from hotspot, seeding, entertainment, social, or challenge boards through Frevana; create an asynchronous task or resume its status and JSON result. Use for Douyin trends, not keyword video search or TikTok.
+description: Fetch Douyin (抖音) hot search and trending boards (热搜/热榜), including 热点榜, 种草榜, 娱乐榜, 社会榜, and 挑战榜, through Frevana. Get ranked topics with available heat, view/video counts, and timing in JSON. Use for current board rankings; use douyin-search to find posts matching a keyword or hashtag.
 ---
 
 # Douyin Hot Search
+
+This skill retrieves ranked topics from Douyin's five public boards, not the videos or image-text posts behind a topic. To find posts for a returned topic, pass its `word` to `douyin-search`. The upstream [Douyin Hot Search Scraper](https://apify.com/zen-studio/douyin-hot-search-scraper) documents the board names and topic fields; Frevana may reuse a recent snapshot for the same parameters.
 
 Use the bundled Bash script for task creation, status polling, and JSON result retrieval. It requires `bash`, `curl`, `jq`, and either `uuidgen` or `openssl` when generating a client task ID. Read [references/api.md](references/api.md) for request fields and states.
 

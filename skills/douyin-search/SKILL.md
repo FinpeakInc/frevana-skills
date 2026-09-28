@@ -1,9 +1,11 @@
 ---
 name: douyin-search
-description: Search public Douyin (抖音) videos or posts by keyword, phrase, or topic through Frevana, with asynchronous task status and JSON result retrieval. Use for Douyin keyword content discovery, not hot search boards or TikTok.
+description: Search public Douyin (抖音) posts by keywords, phrases, hashtags, brands, or people through Frevana. Find videos and image-text posts with available creator, engagement, music, and media metadata; filter by sort, publication time, or video duration. Use for matching content, including posts behind a trending topic; use douyin-hot-search for ranked 热搜/热榜 topics.
 ---
 
 # Douyin Search
+
+This skill searches Douyin posts, including videos and image-text results, rather than returning ranked hot-search boards. A hot-board topic's `word` can be used as a keyword here. The upstream [Douyin Search Scraper](https://apify.com/zen-studio/douyin-search-scraper) documents the result fields and search filters. This Frevana skill exposes keyword and filter options; its default is 10 results per keyword, and its JSON result may contain Frevana URLs in place of recognized temporary media URLs. The upstream Actor's optional MP4, cover, and slideshow download switches are not exposed by this Frevana script.
 
 Use the bundled Bash script for task creation, status polling, and JSON result retrieval. It requires `bash`, `curl`, `jq`, and either `uuidgen` or `openssl` when generating a client task ID. Read [references/api.md](references/api.md) for all filters and task states.
 
