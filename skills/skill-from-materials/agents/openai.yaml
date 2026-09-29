@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill from Materials"
+  short_description: "Turn notes, docs, or workflows into a usable agent skill."
+  default_prompt: "Use $skill-from-materials to create a reusable skill from my materials and verify what can be tested locally."

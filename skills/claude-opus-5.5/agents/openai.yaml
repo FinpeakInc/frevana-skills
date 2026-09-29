@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Opus 5.5"
+  short_description: "Tackle demanding reasoning and large codebase work with Claude Opus 5.5."
+  default_prompt: "Use $claude-opus-5.5 to analyze a complex problem and explain the evidence."

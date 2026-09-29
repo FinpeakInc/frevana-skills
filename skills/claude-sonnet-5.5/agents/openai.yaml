@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Sonnet 5.5"
+  short_description: "Build features, fix bugs, and create documents with Claude Sonnet 5.5."
+  default_prompt: "Use $claude-sonnet-5.5 to implement a focused feature and explain the result."

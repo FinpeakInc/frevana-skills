@@ -483,6 +483,16 @@ skills/
     agents/openai.yaml
     scripts/create_response.sh
     tests/test_create_response.py
+  claude-opus-5.5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  claude-sonnet-5.5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
   jev-latest/
     SKILL.md
     agents/openai.yaml
@@ -2929,6 +2939,10 @@ Fixed Frevana routing contract:
 - use the `claude-sonnet-5` skill script
 - forward `x-frevana-agent-app-instance-id` when instance ID is provided
 
+### Use `claude-opus-5.5` and `claude-sonnet-5.5`
+
+Route requests for Claude Opus 5.5 (`anthropic/claude-opus-5.5`) to `claude-opus-5.5`, and requests for Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) to `claude-sonnet-5.5`. Both use Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`). Read the selected skill's `SKILL.md` for inputs and run its own `scripts/create_response.sh`. Both models require reasoning, reject forced tool choice, and do not list `top_p` on OpenRouter endpoints. The scripts expose the default service tier; Frevana rejects fast/priority tiers. Forward `x-frevana-agent-app-instance-id` when an instance ID is provided.
+
 ### Use `jev-latest`
 
 Route here when the user wants structured classification, a boolean-like judgment, or ordered scoring with TypeSafe JEV Latest (`~typesafe/jev-latest`) through Frevana's OpenRouter Decisions API (`POST /openrouter/v1/decisions`).
@@ -4077,7 +4091,7 @@ bash skills/gpt-6/scripts/create_response.sh \
   --text-only
 ```
 
-### OpenRouter Responses (DeepSeek V4.1 Flash, Claude Opus 5, Claude Sonnet 5)
+### OpenRouter Responses (DeepSeek V4.1 Flash, Claude Opus 5/5.5, Claude Sonnet 5/5.5)
 
 ```bash
 # DeepSeek V4.1 Flash high-speed response
@@ -4094,6 +4108,17 @@ bash skills/claude-opus-5/scripts/create_response.sh \
 # Claude Sonnet 5 balanced coding response
 bash skills/claude-sonnet-5/scripts/create_response.sh \
   --input "Implement a lock-free ring buffer queue in C++20 with atomic operations" \
+  --text-only
+
+# Claude Opus 5.5 demanding reasoning response
+bash skills/claude-opus-5.5/scripts/create_response.sh \
+  --input "Review this large codebase change for correctness and regressions" \
+  --reasoning-effort high \
+  --text-only
+
+# Claude Sonnet 5.5 feature development response
+bash skills/claude-sonnet-5.5/scripts/create_response.sh \
+  --input "Plan and implement a focused feature with tests" \
   --text-only
 ```
 

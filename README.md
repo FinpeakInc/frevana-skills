@@ -126,6 +126,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
+| Skill authoring | [`skill-from-materials`](skills/skill-from-materials/SKILL.md) | Turn supplied notes, docs, or workflows into a usable skill | goal and source material |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Publishing | [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md) | Publish or update a local HTML file with Frevana Space CMS on the user's custom domain | local `.html` path; previous `file_key` for updates |
 | Storage | [`frevana-s3`](skills/frevana-s3/SKILL.md) | Universal file upload to S3 via Frevana custom-upload-url API | local file path; previous `file_key` for updates |
@@ -154,6 +155,8 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Text | [`deepseek-v4.1-flash`](skills/deepseek-v4.1-flash/SKILL.md) | High-speed, cost-effective inference with DeepSeek V4.1 Flash via OpenRouter | prompt or input file |
 | Text | [`claude-opus-5`](skills/claude-opus-5/SKILL.md) | Frontier reasoning, deep analysis, and writing with Claude Opus 5 via OpenRouter | prompt or input file |
 | Text | [`claude-sonnet-5`](skills/claude-sonnet-5/SKILL.md) | Balanced enterprise reasoning and coding with Claude Sonnet 5 via OpenRouter | prompt or input file |
+| Text | [`claude-opus-5.5`](skills/claude-opus-5.5/SKILL.md) | Demanding reasoning and long-horizon coding with Claude Opus 5.5 via OpenRouter | prompt or input file |
+| Text | [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md) | Feature development and everyday agentic work with Claude Sonnet 5.5 via OpenRouter | prompt or input file |
 | Text | [`gpt-5.6-sol`](skills/gpt-5.6-sol/SKILL.md) | Frontier reasoning, coding, and scientific research with GPT-5.6 Sol | prompt or input file |
 | Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
 | Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
@@ -1151,6 +1154,14 @@ Features:
 - calls `POST /openrouter/v1/responses` on Frevana's AI Factory gateway
 - full session management with automatic multi-turn conversation context chaining
 - supports sampling controls, reasoning effort, tools/function calling, and `--text-only` output
+
+### [`claude-opus-5.5`](skills/claude-opus-5.5/SKILL.md)
+
+Generate responses with Anthropic Claude Opus 5.5 (`anthropic/claude-opus-5.5`) via Frevana's OpenRouter Responses API. Use it for demanding reasoning, large codebase work, code review, and scientific analysis. It supports response-ID sessions, tools, `low` through `max` reasoning effort, and text-only output. Forced tool choice and `top_p` are unavailable; this skill exposes the default service tier.
+
+### [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md)
+
+Generate responses with Anthropic Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) via Frevana's OpenRouter Responses API. Use it for feature development, bug fixes, documents, and everyday agentic work. It supports response-ID sessions, tools, `low` through `max` reasoning effort, and text-only output. Forced tool choice and `top_p` are unavailable; this skill exposes the default service tier.
 
 ### [`jev-latest`](skills/jev-latest/SKILL.md)
 
