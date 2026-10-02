@@ -10,12 +10,13 @@ SCRIPT = Path(__file__).parents[1] / "scripts" / "create_response.sh"
 
 
 class ClaudeOpus5CreateResponseTests(unittest.TestCase):
-    def run_script(self, *args: str, env=None):
+    def run_script(self, *args: str, env=None, input=None):
         run_env = os.environ.copy() if env is None else env.copy()
         python_bin_dir = str(Path(sys.executable).parent)
         run_env["PATH"] = f"{python_bin_dir}{os.pathsep}{run_env.get('PATH', '')}"
         return subprocess.run(
             ["bash", str(SCRIPT), *args],
+            input=input,
             text=True,
             capture_output=True,
             env=run_env,
@@ -419,6 +420,244 @@ printf '200'
             self.assertEqual(data2["id"], "resp_auto_2")
             # Automatically chained previous response ID!
             self.assertEqual(data2["captured_payload"]["previous_response_id"], "resp_auto_1")
+
+
+    def run_sequence(self, responses, *args, http_codes=None, raw_fields=None):
+        # Mock complete request/response rounds, including the continuation payload.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "responses.json").write_text(json.dumps(responses))
+            (root / "codes.json").write_text(json.dumps(http_codes or [200] * len(responses)))
+            (root / "calls.json").write_text("[]")
+            session = root / "session.json"
+            session.write_text(json.dumps({"model": f"anthropic/{SCRIPT.parents[1].name}", "last_response_id": "old"}))
+            original_session = session.read_text()
+            fake = root / "curl"
+            fake.write_text("#!/usr/bin/env python3\n" + '''import json, os, sys
+from pathlib import Path
+root = Path(os.environ["MOCK_ROOT"])
+args = sys.argv[1:]
+request_path = args[args.index("--data") + 1][1:]
+calls = json.loads((root / "calls.json").read_text())
+index = len(calls)
+calls.append({"payload": json.loads(Path(request_path).read_text()), "args": args})
+(root / "calls.json").write_text(json.dumps(calls))
+responses = json.loads((root / "responses.json").read_text())
+Path(args[args.index("-o") + 1]).write_text(json.dumps(responses[index]))
+print(json.loads((root / "codes.json").read_text())[index], end="")
+''')
+            fake.chmod(0o755)
+            env = os.environ.copy()
+            env.update({"PATH": f"{temp}{os.pathsep}{env['PATH']}", "MOCK_ROOT": temp,
+                        "FREVANA_TOKEN": "test-token", "FREVANA_AGENT_APP_INSTANCE_ID": "test-app"})
+            raw = root / "raw.json"
+            raw.write_text(json.dumps({"input": [{"role": "user", "content": "original"}],
+                                       "temperature": 0.4, "metadata": {"test": "raw"},
+                                       **({"previous_response_id": "raw_old", "store": True} if "STATEFUL_RAW_FILE" in args else {}),
+                                       **(raw_fields or {})}))
+            replaced_args = [str(raw) if a in ("RAW_FILE", "STATEFUL_RAW_FILE") else a for a in args]
+            result = self.run_script("--input", "original", "--session-file", str(session),
+                                     "--output", str(root / "result.json"), *replaced_args, env=env,
+                                     input="original\nexit\n" if "--chat" in args else None)
+            saved = root / "result.json"
+            return (result, json.loads((root / "calls.json").read_text()),
+                    json.loads(saved.read_text()) if saved.exists() else None,
+                    session.read_text(), original_session)
+
+    def truncated(self, text="abc", **updates):
+        response = {"id": "first", "status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"},
+                    "output": [{"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": text}]}],
+                    "usage": {"input_tokens": 10, "output_tokens": 3, "total_tokens": 13,
+                              "output_tokens_details": {"reasoning_tokens": 1}}}
+        response.update(updates)
+        return response
+
+    def test_continuation_stitches_text_json_and_usage(self):
+        first = self.truncated("{\"name\":\"hel")
+        second = self.truncated("lo", id="second", output_text="lo")
+        last = {"id": "last", "status": "completed", "output_text": '\"}',
+                "usage": {"input_tokens": 20, "output_tokens": 2, "total_tokens": 22}}
+        result, calls, saved, session, _ = self.run_sequence(
+            [first, second, last], "--new-session", "--max-output-tokens", "10",
+            "--instructions", "strict JSON", "--reasoning-effort", "high", "--text-only")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, '{"name":"hello"}\n')
+        self.assertEqual(saved["output_text"], '{"name":"hello"}')
+        self.assertEqual(saved["output"][0]["content"][0]["text"], saved["output_text"])
+        self.assertEqual(saved["continuation"]["responses"], [first, second, last])
+        self.assertEqual(saved["usage"]["input_tokens"], 40)
+        self.assertEqual(saved["usage"]["output_tokens_details"]["reasoning_tokens"], 2)
+        self.assertEqual(json.loads(session)["last_response_id"], "last")
+        self.assertEqual(len(calls), 3)
+        for call in calls[1:]:
+            request = call["payload"]
+            self.assertNotIn("previous_response_id", request)
+            self.assertEqual(request["max_output_tokens"], 10)
+            self.assertEqual(request["instructions"], "strict JSON")
+            self.assertEqual(request["reasoning"], {"effort": "high"})
+            self.assertIn("Authorization: Bearer test-token", call["args"])
+            self.assertIn("x-frevana-agent-app-instance-id: test-app", call["args"])
+        self.assertEqual(calls[1]["payload"]["input"][0]["content"], "original")
+        self.assertEqual(calls[2]["payload"]["input"][-4]["content"], '{"name":"hel')
+        self.assertEqual(calls[2]["payload"]["input"][-2]["content"], "lo")
+
+    def test_continuation_works_without_session_and_with_raw_payload(self):
+        result, calls, saved, session, original = self.run_sequence(
+            [self.truncated(), {"id": "last", "status": "completed", "output_text": "def"}],
+            "--no-session", "--raw-payload-file", "RAW_FILE")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["output_text"], "abcdef")
+        self.assertEqual(calls[1]["payload"]["metadata"], {"test": "raw"})
+        self.assertEqual(calls[1]["payload"]["temperature"], 0.4)
+        self.assertEqual(session, original)
+
+    def test_continuation_limit_preserves_partial_output_and_session(self):
+        result, calls, saved, session, original = self.run_sequence(
+            [self.truncated(), self.truncated("def", id="second")],
+            "--new-session", "--max-continuations", "1", "--text-only")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(result.stdout, "abcdef\n")
+        self.assertEqual(saved["status"], "incomplete")
+        self.assertEqual(session, original)
+
+    def test_continuation_error_preserves_partial_output(self):
+        for response, code in [({"error": {"message": "quota"}}, 429),
+                               ({"status": "failed", "error": {"message": "failed"}}, 200)]:
+            with self.subTest(code=code):
+                result, calls, saved, session, original = self.run_sequence(
+                    [self.truncated(), response], "--new-session", "--text-only", http_codes=[200, code])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "abc\n")
+                self.assertEqual(saved["output_text"], "abc")
+                self.assertEqual(session, original)
+
+    def test_does_not_retry_other_incomplete_reasons_empty_text_or_tools(self):
+        cases = [self.truncated(incomplete_details={"reason": "content_filter"}),
+                 self.truncated(""),
+                 self.truncated(output=[{"type": "function_call", "arguments": "{", "call_id": "c1"}])]
+        for response in cases:
+            with self.subTest(response=response):
+                result, calls, saved, session, original = self.run_sequence([response], "--new-session")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(len(calls), 1)
+                self.assertEqual(saved["continuation"]["responses"], [response])
+                self.assertEqual(session, original)
+
+    def test_zero_continuations_and_invalid_limit(self):
+        result, calls, saved, _, _ = self.run_sequence([self.truncated()], "--no-session", "--max-continuations", "0")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(saved["output_text"], "abc")
+        for value in ("-1", "33", "abc", ""):
+            invalid = self.run_script("--input", "hi", "--max-continuations", value)
+            self.assertNotEqual(invalid.returncode, 0)
+
+    def test_chat_continuation_preserves_options(self):
+        result, calls, _, session, _ = self.run_sequence(
+            [self.truncated(), {"id": "last", "status": "completed", "output_text": "def"}],
+            "--chat", "--new-session", "--max-continuations", "1", "--max-output-tokens", "10",
+            "--instructions", "keep format")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("abcdef", result.stdout)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1]["payload"]["instructions"], "keep format")
+        self.assertEqual(calls[1]["payload"]["max_output_tokens"], 10)
+        self.assertEqual(json.loads(session)["last_response_id"], "last")
+
+    def test_final_tool_call_is_preserved_after_continuation(self):
+        tool = {"type": "function_call", "name": "lookup", "call_id": "call_1", "arguments": "{}"}
+        last = {"id": "last", "status": "completed", "output": [tool]}
+        result, calls, saved, _, _ = self.run_sequence([self.truncated(), last], "--new-session")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(tool, saved["output"])
+        self.assertEqual(saved["output_text"], "abc")
+
+    def test_continuation_preserves_prior_conversation_anchor(self):
+        responses = [self.truncated(), self.truncated("def", id="second"),
+                     {"id": "last", "status": "completed", "output_text": "ghi"}]
+        for args, expected in [((), "old"),
+                               (("--no-session", "--previous-response-id", "explicit_old"), "explicit_old"),
+                               (("--no-session", "--raw-payload-file", "STATEFUL_RAW_FILE"), "raw_old")]:
+            with self.subTest(args=args):
+                result, calls, saved, session, original = self.run_sequence(responses, *args)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(saved["output_text"], "abcdefghi")
+                self.assertEqual(len(calls), 3)
+                for call in calls:
+                    self.assertEqual(call["payload"]["previous_response_id"], expected)
+                    if expected == "raw_old":
+                        self.assertTrue(call["payload"]["store"])
+                self.assertEqual(calls[1]["payload"]["input"][0]["content"], "original")
+                self.assertEqual(calls[2]["payload"]["input"][-2]["content"], "def")
+                if "--no-session" not in args:
+                    self.assertEqual(json.loads(session)["last_response_id"], "last")
+                else:
+                    self.assertEqual(session, original)
+
+    def test_completed_hosted_tools_are_replayed_and_pending_tools_stop(self):
+        tool = {"type": "web_search_call", "id": "search_1", "status": "completed",
+                "action": {"type": "search", "query": "example"}}
+        first = self.truncated()
+        first["output"].insert(0, tool)
+        result, calls, saved, _, _ = self.run_sequence(
+            [first, {"id": "last", "status": "completed", "output_text": "def"}], "--new-session")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(saved["output_text"], "abcdef")
+        self.assertIn(tool, calls[1]["payload"]["input"])
+        self.assertIn(tool, saved["output"])
+        for pending in [{**tool, "status": "in_progress"},
+                        {"type": "function_call", "status": "completed", "name": "write",
+                         "call_id": "c1", "arguments": "{}"}]:
+            first = self.truncated()
+            first["output"].insert(0, pending)
+            result, calls, saved, session, original = self.run_sequence([first], "--new-session")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(saved["output_text"], "abc")
+            self.assertEqual(session, original)
+
+    def test_structured_json_continuation_uses_unconstrained_suffix(self):
+        schema = {"type": "json_schema", "name": "answer", "strict": True,
+                  "schema": {"type": "object", "properties": {"name": {"type": "string"}},
+                             "required": ["name"], "additionalProperties": False}}
+        for fields in [{"text": {"format": schema, "verbosity": "low"}},
+                       {"response_format": {"type": "json_object"}}]:
+            with self.subTest(fields=fields):
+                result, calls, saved, _, _ = self.run_sequence(
+                    [self.truncated('{"name":"hel'),
+                     {"id": "last", "status": "completed", "output_text": 'lo"}'}],
+                    "--new-session", "--raw-payload-file", "RAW_FILE", raw_fields=fields)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(saved["output_text"]), {"name": "hello"})
+                for key, value in fields.items():
+                    self.assertEqual(calls[0]["payload"][key], value)
+                continued = calls[1]["payload"]
+                if "text" in fields:
+                    self.assertEqual(continued["text"], {"format": {"type": "text"}, "verbosity": "low"})
+                    self.assertIn('"required": ["name"]', continued["input"][-1]["content"])
+                else:
+                    self.assertNotIn("response_format", continued)
+
+    def test_invalid_stitched_structured_json_preserves_partial_and_session(self):
+        result, calls, saved, session, original = self.run_sequence(
+            [self.truncated('{"name":"hel'),
+             {"id": "last", "status": "completed", "output_text": '{"name":"hello"}'}],
+            "--new-session", "--raw-payload-file", "RAW_FILE",
+            raw_fields={"text": {"format": {"type": "json_object"}}})
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not valid JSON", result.stderr)
+        self.assertEqual(saved["status"], "incomplete")
+        self.assertEqual(session, original)
+        self.assertEqual(len(calls), 2)
+
+    def test_single_response_is_unchanged(self):
+        response = {"id": "last", "status": "completed", "output_text": "done", "usage": {"output_tokens": 1}}
+        result, calls, saved, _, _ = self.run_sequence([response], "--new-session")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), response)
+        self.assertEqual(saved, response)
+        self.assertEqual(len(calls), 1)
 
 
 if __name__ == "__main__":

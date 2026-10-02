@@ -29,6 +29,7 @@ Responses options:
   --reasoning-effort     Reasoning effort: low, medium, high
   --temperature          Sampling temperature (0.0 - 2.0)
   --top-p                Top-p nucleus sampling (0.0 - 1.0)
+  --max-continuations    Maximum automatic continuation requests (0 - 32; default 8)
   --max-output-tokens    Maximum tokens to generate
   --session              Session name (e.g. default, chat1) saved under ~/.frevana/sessions
   --session-file         File path to persist/resume conversation state across calls
@@ -91,6 +92,7 @@ TOKEN_OVERRIDE=""
 AGENT_APP_INSTANCE_ID_OVERRIDE=""
 OUTPUT_PATH=""
 TEXT_ONLY=0
+MAX_CONTINUATIONS=8
 CHAT_MODE=0
 
 while [[ $# -gt 0 ]]; do
@@ -104,6 +106,7 @@ while [[ $# -gt 0 ]]; do
     --temperature) TEMPERATURE="${2:-}"; shift 2 ;;
     --top-p) TOP_P="${2:-}"; shift 2 ;;
     --max-output-tokens) MAX_OUTPUT_TOKENS="${2:-}"; shift 2 ;;
+    --max-continuations) MAX_CONTINUATIONS="${2:-}"; shift 2 ;;
     --session) SESSION_NAME="${2:-}"; shift 2 ;;
     --session-file) SESSION_FILE="${2:-}"; shift 2 ;;
     --new-session|--new) NEW_SESSION=1; shift ;;
@@ -124,6 +127,11 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 1 ;;
   esac
 done
+
+if ! [[ "$MAX_CONTINUATIONS" =~ ^([0-9]|[12][0-9]|3[0-2])$ ]]; then
+  echo "Invalid --max-continuations: $MAX_CONTINUATIONS (allowed: 0 - 32)" >&2
+  exit 1
+fi
 
 case "$MODEL" in
   anthropic/claude-sonnet-5|claude-sonnet-5)
@@ -149,8 +157,8 @@ if (( ! NO_SESSION )); then
   fi
 fi
 
-if (( NEW_SESSION )) && [[ -n "$SESSION_FILE" && -f "$SESSION_FILE" ]]; then
-  rm -f "$SESSION_FILE"
+if (( NO_SESSION )); then
+  SESSION_FILE=""
 fi
 
 if (( CHAT_MODE )); then
@@ -167,12 +175,23 @@ if (( CHAT_MODE )); then
     [[ -z "$user_prompt" ]] && continue
     echo ""
     printf "$MODEL: "
-    "$0" --model "$MODEL" --session-file "$CURRENT_SESSION_FILE" --input "$user_prompt" --text-only \
-      ${INSTRUCTIONS:+--instructions "$INSTRUCTIONS"} \
-      ${REASONING_EFFORT:+--reasoning-effort "$REASONING_EFFORT"} \
-      ${API_KEY_OVERRIDE:+--api-key "$API_KEY_OVERRIDE"} \
-      ${TOKEN_OVERRIDE:+--token "$TOKEN_OVERRIDE"} \
-      ${AGENT_APP_INSTANCE_ID_OVERRIDE:+--agent-app-instance-id "$AGENT_APP_INSTANCE_ID_OVERRIDE"}
+    CHAT_ARGS=(--model "$MODEL" --session-file "$CURRENT_SESSION_FILE" --input "$user_prompt" --text-only --max-continuations "$MAX_CONTINUATIONS")
+    [[ -n "$INSTRUCTIONS" ]] && CHAT_ARGS+=(--instructions "$INSTRUCTIONS")
+    [[ -n "$INSTRUCTIONS_FILE" ]] && CHAT_ARGS+=(--instructions-file "$INSTRUCTIONS_FILE")
+    [[ -n "$REASONING_EFFORT" ]] && CHAT_ARGS+=(--reasoning-effort "$REASONING_EFFORT")
+    [[ -n "$TEMPERATURE" ]] && CHAT_ARGS+=(--temperature "$TEMPERATURE")
+    [[ -n "$TOP_P" ]] && CHAT_ARGS+=(--top-p "$TOP_P")
+    [[ -n "$MAX_OUTPUT_TOKENS" ]] && CHAT_ARGS+=(--max-output-tokens "$MAX_OUTPUT_TOKENS")
+    [[ -n "$SERVICE_TIER" ]] && CHAT_ARGS+=(--service-tier "$SERVICE_TIER")
+    [[ -n "$TOOLS" ]] && CHAT_ARGS+=(--tools "$TOOLS")
+    [[ -n "$TOOLS_FILE" ]] && CHAT_ARGS+=(--tools-file "$TOOLS_FILE")
+    [[ -n "$TOOL_CHOICE" ]] && CHAT_ARGS+=(--tool-choice "$TOOL_CHOICE")
+    [[ -n "$API_KEY_OVERRIDE" ]] && CHAT_ARGS+=(--api-key "$API_KEY_OVERRIDE")
+    [[ -n "$TOKEN_OVERRIDE" ]] && CHAT_ARGS+=(--token "$TOKEN_OVERRIDE")
+    [[ -n "$AGENT_APP_INSTANCE_ID_OVERRIDE" ]] && CHAT_ARGS+=(--agent-app-instance-id "$AGENT_APP_INSTANCE_ID_OVERRIDE")
+    (( NEW_SESSION )) && CHAT_ARGS+=(--new-session)
+    "$0" "${CHAT_ARGS[@]}"
+    NEW_SESSION=0
     echo ""
     echo ""
   done
@@ -254,7 +273,7 @@ PAYLOAD_FILE="$TEMP_DIR/payload.json"
 RESPONSE_FILE="$TEMP_DIR/response.json"
 RESULT_FILE="$TEMP_DIR/result.json"
 
-if [[ -n "$SESSION_FILE" && -f "$SESSION_FILE" && -z "$PREVIOUS_RESPONSE_ID" ]]; then
+if [[ -n "$SESSION_FILE" && -f "$SESSION_FILE" && -z "$PREVIOUS_RESPONSE_ID" ]] && (( ! NEW_SESSION )); then
   PREVIOUS_RESPONSE_ID="$(python3 -c "import json, sys
 try:
     with open(sys.argv[1], encoding='utf-8') as f:
@@ -264,7 +283,7 @@ except Exception:
     pass" "$SESSION_FILE" 2>/dev/null || true)"
 fi
 
-export MODEL INPUT INPUT_FILE INSTRUCTIONS INSTRUCTIONS_FILE REASONING_EFFORT TEMPERATURE TOP_P MAX_OUTPUT_TOKENS PREVIOUS_RESPONSE_ID SERVICE_TIER TOOLS TOOLS_FILE TOOL_CHOICE RAW_PAYLOAD_FILE
+export MODEL INPUT INPUT_FILE INSTRUCTIONS INSTRUCTIONS_FILE REASONING_EFFORT TEMPERATURE TOP_P MAX_OUTPUT_TOKENS PREVIOUS_RESPONSE_ID NEW_SESSION SERVICE_TIER TOOLS TOOLS_FILE TOOL_CHOICE RAW_PAYLOAD_FILE
 
 python3 - "$PAYLOAD_FILE" <<'PY'
 import json, os, sys
@@ -313,6 +332,8 @@ if os.environ.get("TOP_P"):
 if os.environ.get("MAX_OUTPUT_TOKENS"):
     payload["max_output_tokens"] = int(os.environ["MAX_OUTPUT_TOKENS"])
 
+if os.environ.get("NEW_SESSION") == "1":
+    payload.pop("previous_response_id", None)
 if os.environ.get("PREVIOUS_RESPONSE_ID"):
     payload["previous_response_id"] = os.environ["PREVIOUS_RESPONSE_ID"]
 
@@ -360,66 +381,194 @@ fi
 
 CURL_ARGS+=(--data "@$PAYLOAD_FILE")
 
-HTTP_CODE="$(curl "${CURL_ARGS[@]}")"
-if [[ "$HTTP_CODE" -lt 200 || "$HTTP_CODE" -ge 300 ]]; then
-  echo "Frevana API request failed with HTTP $HTTP_CODE" >&2
-  cat "$RESPONSE_FILE" >&2
-  exit 1
-fi
-[[ -s "$RESPONSE_FILE" ]] || { echo "Frevana API returned an empty response body." >&2; exit 1; }
+python3 - "$PAYLOAD_FILE" "$RESPONSE_FILE" "$RESULT_FILE" "$TEXT_ONLY" "$OUTPUT_PATH" "$MAX_CONTINUATIONS" "${CURL_ARGS[@]}" <<'PYCONTINUE'
+import copy, json, os, subprocess, sys
 
-python3 - "$RESPONSE_FILE" "$RESULT_FILE" "$TEXT_ONLY" <<'PY'
-import json, sys
+request_path, response_path, result_path, text_only, output_path, limit = sys.argv[1:7]
+curl_args = sys.argv[7:]
+with open(request_path, encoding="utf-8") as f:
+    request = json.load(f)
+if request.get("stream") is True:
+    raise SystemExit("Streaming raw payloads are unsupported; use stream=false for automatic continuation")
+responses = []
+original_formats = {}
+text_config = request.get("text")
+if isinstance(text_config, dict) and isinstance(text_config.get("format"), dict):
+    if text_config["format"].get("type") in ("json_object", "json_schema"):
+        original_formats["text.format"] = copy.deepcopy(text_config["format"])
+response_format = request.get("response_format")
+if isinstance(response_format, dict) and response_format.get("type") in ("json_object", "json_schema"):
+    original_formats["response_format"] = copy.deepcopy(response_format)
+continuation_prompt = (
+    "Your previous answer was cut off by the output token limit. Continue exactly "
+    "where it stopped, including mid-word or mid-code if needed. Output only the "
+    "remaining content; do not repeat, summarize, or add a preamble or extra fences."
+)
 
-raw = open(sys.argv[1], encoding="utf-8").read()
-def fail(message):
-    print(message, file=sys.stderr); print(raw, file=sys.stderr); raise SystemExit(1)
+if original_formats:
+    continuation_prompt += (
+        " The concatenation of all answer chunks must be one JSON document matching "
+        "this original format; emit only its missing suffix: "
+        + json.dumps(original_formats, ensure_ascii=False)
+    )
 
-try:
-    payload = json.loads(raw)
-except json.JSONDecodeError as exc:
-    fail(f"Frevana API returned non-JSON: {exc}")
 
-if not isinstance(payload, dict):
-    fail("Frevana API returned JSON, but not an object.")
+def extract_text(response):
+    if isinstance(response.get("output_text"), str):
+        return response["output_text"]
+    parts = []
+    for item in (response.get("output") or []):
+        if isinstance(item, dict) and item.get("type") == "message":
+            for part in item.get("content", []):
+                if isinstance(part, dict) and isinstance(part.get("text"), str):
+                    parts.append(part["text"])
+                elif isinstance(part, str):
+                    parts.append(part)
+    if parts:
+        return "\n".join(parts)
+    choices = response.get("choices") or []
+    if choices:
+        return choices[0].get("message", {}).get("content") or ""
+    return ""
 
-with open(sys.argv[2], "w", encoding="utf-8") as f:
-    json.dump(payload, f, ensure_ascii=False, indent=2)
-    f.write("\n")
+def reject_json_constant(value):
+    raise ValueError(f"Invalid JSON constant: {value}")
 
-text_only = sys.argv[3] == "1"
-if text_only:
-    # Attempt to extract text from Responses API output shape
-    if "output_text" in payload and isinstance(payload["output_text"], str):
-        print(payload["output_text"])
-    elif "output" in payload and isinstance(payload["output"], list):
-        extracted = []
-        for item in payload["output"]:
+def sum_usage(values):
+    result = {}
+    for value in values:
+        if not isinstance(value, dict):
+            continue
+        for key, item in value.items():
             if isinstance(item, dict):
-                if item.get("type") == "message" and "content" in item:
-                    for part in item.get("content", []):
-                        if isinstance(part, dict):
-                            if part.get("type") in ("text", "output_text") and "text" in part:
-                                extracted.append(part["text"])
-                            elif "text" in part:
-                                extracted.append(part["text"])
-                        elif isinstance(part, str):
-                            extracted.append(part)
-        if extracted:
-            print("\n".join(extracted))
-        else:
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
-    elif "choices" in payload and isinstance(payload["choices"], list) and payload["choices"]:
-        msg = payload["choices"][0].get("message", {})
-        print(msg.get("content", ""))
-    else:
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-PY
+                result[key] = sum_usage([result.get(key, {}), item])
+            elif isinstance(item, (int, float)) and not isinstance(item, bool):
+                result[key] = result.get(key, 0) + item
+    return result
 
-if [[ -n "$OUTPUT_PATH" ]]; then
-  mkdir -p "$(dirname "$OUTPUT_PATH")"
-  cp "$RESULT_FILE" "$OUTPUT_PATH"
-fi
+def emit(error=None):
+    if not responses:
+        return
+    result = copy.deepcopy(responses[-1])
+    if len(responses) > 1 or error:
+        joined = "".join(extract_text(r) for r in responses)
+        result["output_text"] = joined
+        # One stitched message keeps output consumers consistent with text-only output.
+        result["output"] = [copy.deepcopy(item) for r in responses for item in (r.get("output") or [])
+                            if isinstance(item, dict) and item.get("type") != "message"]
+        result["output"].append({"type": "message", "role": "assistant",
+            "status": "incomplete" if error else result.get("status", "completed"),
+            "content": [{"type": "output_text", "text": joined, "annotations": []}]})
+        if result.get("choices"):
+            result["choices"][0].setdefault("message", {})["content"] = joined
+        result["continuation"] = {"responses": responses, "count": len(responses) - 1}
+        result["usage"] = sum_usage(r.get("usage") for r in responses)
+    if error:
+        result["status"] = "incomplete"
+        result["continuation"]["error"] = error
+    formatted = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    with open(result_path, "w", encoding="utf-8") as f:
+        f.write(formatted)
+    if output_path:
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(formatted)
+    if text_only == "1":
+        text = extract_text(result)
+        print(text if text or "output_text" in result else formatted, end="\n" if text else "")
+    elif error:
+        # Successful JSON is printed by the shell after session persistence.
+        print(formatted, end="")
+
+def fail(message, raw=None):
+    print(message, file=sys.stderr)
+    if raw:
+        print(raw, file=sys.stderr)
+    emit(message)
+    raise SystemExit(1)
+
+for attempt in range(int(limit) + 1):
+    with open(request_path, "w", encoding="utf-8") as f:
+        json.dump(request, f, ensure_ascii=False)
+    completed = subprocess.run(["curl", *curl_args], text=True, capture_output=True)
+    if completed.returncode:
+        fail(f"Frevana API request failed: curl exited {completed.returncode}", completed.stderr)
+    try:
+        code = int(completed.stdout.strip())
+    except ValueError:
+        fail("Frevana API returned an invalid HTTP status")
+    raw = open(response_path, encoding="utf-8").read() if os.path.exists(response_path) else ""
+    if not 200 <= code < 300:
+        fail(f"Frevana API request failed with HTTP {code}", raw)
+    if not raw:
+        fail("Frevana API returned an empty response body.")
+    try:
+        response = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        fail(f"Frevana API returned non-JSON: {exc}", raw)
+    if not isinstance(response, dict):
+        fail("Frevana API returned JSON, but not an object.", raw)
+    if response.get("status") == "failed" or response.get("error"):
+        fail("Frevana API returned a failed response.", raw)
+    responses.append(response)
+    reason = (response.get("incomplete_details") or {}).get("reason")
+    if response.get("status") != "incomplete" or reason != "max_output_tokens":
+        if response.get("status") == "incomplete":
+            fail(f"Frevana API response incomplete: {reason or 'unknown reason'}")
+        if original_formats and len(responses) > 1:
+            try:
+                document = json.loads("".join(extract_text(r) for r in responses), parse_constant=reject_json_constant)
+            except ValueError:
+                fail("Continued structured output is not valid JSON; partial output preserved")
+            if any(fmt.get("type") == "json_object" for fmt in original_formats.values()) and not isinstance(document, dict):
+                fail("Continued structured output must be a JSON object; partial output preserved")
+        emit()
+        break
+    # Hosted tools may already be finished. Client tools still need caller-supplied
+    # results, even when the model has finished generating their arguments.
+    tool_items = [item for item in (response.get("output") or [])
+                  if isinstance(item, dict) and item.get("type") not in ("message", "reasoning")]
+    supplied_results = {item.get("call_id") for item in tool_items
+                        if item.get("type", "").endswith("_call_output") and "output" in item
+                        and isinstance(item.get("call_id"), str) and item["call_id"]}
+    client_calls = {"function_call", "custom_tool_call", "computer_call", "local_shell_call", "shell_call", "apply_patch_call"}
+    for item in tool_items:
+        kind = item.get("type", "")
+        if kind in client_calls:
+            ready = item.get("status") == "completed" and item.get("call_id") in supplied_results
+        elif kind.endswith("_call_output"):
+            ready = "output" in item and item.get("status") in (None, "completed")
+        else:
+            ready = item.get("status") == "completed" and kind != "mcp_approval_request"
+        if not ready:
+            fail("Token limit interrupted a tool call or left a pending result; partial output preserved for caller handling")
+    text = extract_text(response)
+    if not text:
+        fail("Token limit reached without text to continue; increase --max-output-tokens")
+    if attempt == int(limit):
+        fail(f"Reached --max-continuations={limit}; partial output preserved")
+    history = request["input"]
+    if isinstance(history, str):
+        history = [{"role": "user", "content": history}]
+    elif isinstance(history, dict):
+        history = [history]
+    if not isinstance(history, list):
+        fail("Cannot continue this input shape; partial output preserved")
+    request["input"] = history + copy.deepcopy(tool_items) + [
+        {"role": "assistant", "content": text},
+        {"role": "user", "content": continuation_prompt},
+    ]
+    # A JSON suffix cannot satisfy a full-document format by itself. Keep the
+    # original schema in the continuation prompt, but generate the suffix as text.
+    if "text.format" in original_formats:
+        request["text"] = {**request["text"], "format": {"type": "text"}}
+    if "response_format" in original_formats:
+        request.pop("response_format", None)
+    # Keep the original conversation anchor when the configured API supports
+    # response-ID state. History already includes this turn and its partial text;
+    # switching to the latest response ID would replay this turn twice.
+    print(f"Output token limit reached; continuing ({attempt + 1}/{limit})...", file=sys.stderr)
+PYCONTINUE
 
 if [[ -n "$SESSION_FILE" ]]; then
   python3 - "$RESULT_FILE" "$SESSION_FILE" "$MODEL" <<'PY'
@@ -431,7 +580,7 @@ try:
     resp_id = res.get("id")
     if resp_id:
         session_data = {}
-        if os.path.isfile(session_file):
+        if os.path.isfile(session_file) and os.environ.get("NEW_SESSION") != "1":
             try:
                 with open(session_file, encoding="utf-8") as f:
                     session_data = json.load(f)
