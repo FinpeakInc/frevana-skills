@@ -142,6 +142,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
 | Image | [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
+| Image | [`nano-banana-2-1`](skills/nano-banana-2-1/SKILL.md) | Nano Banana 2.1 generation and editing with thinking-level control | prompt or contents; optional references |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
 | Video | [`minimax-h3`](skills/minimax-h3/SKILL.md) | High-definition 2K video generation with MiniMax H3 | prompt or job ID |
 | Video | [`minimax-h3-max`](skills/minimax-h3-max/SKILL.md) | Fast video generation with MiniMax H3 Max | prompt or job ID |
@@ -995,6 +996,15 @@ Features:
 - accepts image input via `--prompt` or `--contents`
 - returns a hosted image link
 - supported options: `--seed`, `--max-output-tokens`, `--response-modality`, `--aspect-ratio`, `--image-size` (`1K`, `2K`, `4K`; numeric values like `1800` and `WxH` values like `1024x1024` are normalized to the nearest tier, using the larger edge for `WxH`; defaults to `1K`)
+
+### [`nano-banana-2-1`](skills/nano-banana-2-1/SKILL.md)
+
+Generate or edit Frevana-hosted images using the fixed model `gemini-nano-banana-2.1`.
+
+- supports local files, remote URLs, and directories with up to 14 reference images
+- supports `--thinking-level minimal|medium|high`, aspect ratios, `1K|2K|4K`, seed, and system instructions
+- supports one candidate only and rejects sampling parameters
+- accepts Frevana Bearer token auth, Agent App attribution, and asynchronous job IDs
 
 ### [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md)
 

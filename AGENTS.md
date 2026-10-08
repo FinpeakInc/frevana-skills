@@ -437,6 +437,11 @@ skills/
   nano-banana-2/
     SKILL.md
     scripts/generate_image.sh
+  nano-banana-2-1/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_image.sh
+    tests/test_generate_image.py
   nano-banana-pro/
     SKILL.md
     scripts/generate_image.sh
@@ -2671,6 +2676,18 @@ Fixed Frevana routing contract:
 
 - use the `nano-banana-2` skill script
 
+### Use `nano-banana-2-1`
+
+Route here when the user asks for Nano Banana 2.1 or `gemini-nano-banana-2.1` image generation or editing through Frevana.
+
+- Require `prompt` or `contents`.
+- Use `skills/nano-banana-2-1/scripts/generate_image.sh`; provider `gemini` and model `gemini-nano-banana-2.1` are fixed.
+- Optional settings: `thinking-level` (`minimal|medium|high`), `aspect-ratio`, `image-size` (`1K|2K|4K`), `system-instruction`, `seed`, `job-id`, output path.
+- Reference inputs: repeatable `image`, `image-url`, `image-dir`; up to 14 PNG/JPEG/WebP files under 50MB each.
+- `candidate-count` / `n` supports `1` only. Reject sampling options and legacy config options.
+- Read `FREVANA_TOKEN` / `--token` for Bearer auth and conditional Agent App attribution as documented in the skill. Ignore `FREVANA_API_KEY` for this skill.
+- Async acknowledgment is not generation success; poll the job to terminal status and read its `data`.
+
 ### Use `nano-banana-pro`
 
 Route here when the user wants:
@@ -3456,7 +3473,7 @@ For `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
 
 ### Frevana image skills
 
-For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, `nano-banana-pro`, `gemini-3.1-flash-image`, and `gemini-3-pro-image`:
+For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, `nano-banana-2-1`, `nano-banana-pro`, `gemini-3.1-flash-image`, and `gemini-3-pro-image`:
 
 1. Confirm the user supplied `prompt` or `contents`.
 2. Prefer the repo script over ad hoc `curl`.
@@ -3651,6 +3668,7 @@ Never echo bearer tokens back to the user.
   - `gpt-image-2`: `data[0].image_url`
   - `gpt-image-2-5`: `data[0].image_url`
   - `nano-banana-2`: `generated_images[0].image_url`
+  - `nano-banana-2-1`: `data[0].image_url` (sync and completed async jobs)
   - `nano-banana-pro`: `generated_images[0].image_url`
   - `gemini-3.1-flash-image`: `generated_images[0].image_url`
   - `gemini-3-pro-image`: `generated_images[0].image_url`
@@ -3709,6 +3727,7 @@ bash skills/frevana-s3/scripts/upload_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
 bash skills/gpt-image-2-5/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
+bash skills/nano-banana-2-1/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh
 bash skills/gemini-3.1-flash-image/scripts/generate_image.sh
 bash skills/gemini-3-pro-image/scripts/generate_image.sh
