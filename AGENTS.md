@@ -566,6 +566,16 @@ skills/
 
 ## Skill Routing
 
+### Use `frevana-pins`
+
+Use for the current user's My Pins image/video library: listing, uploading, saving existing media links, downloading owned S3 assets, and managing collections.
+
+Read `skills/frevana-pins/SKILL.md`; prefer `bash skills/frevana-pins/scripts/pins.sh` (or the Python entry point). Requires `FREVANA_TOKEN` (JWT only); base URL defaults to `https://api.frevana.com` with `FREVANA_API_BASE_URL` override. Common options: `--token`, `--api-base-url`, `--timeout`, and `--output-json`.
+
+Writes fetch the latest snapshot, preserve unrelated records, check for concurrent changes, then save and verify. There is no atomic server version check; serialize writes for one user. Pin removal does not delete S3 bytes; collection deletion keeps its Pins. Do not retry failed writes automatically.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/frevana-pins/tests -p 'test_*.py' -v`.
+
 ### Use `frevana-auth`
 
 Route here when the user wants:

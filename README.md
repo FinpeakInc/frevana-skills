@@ -130,6 +130,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Publishing | [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md) | Publish or update a local HTML file with Frevana Space CMS on the user's custom domain | local `.html` path; previous `file_key` for updates |
 | Storage | [`frevana-s3`](skills/frevana-s3/SKILL.md) | Universal file upload to S3 via Frevana custom-upload-url API | local file path; previous `file_key` for updates |
+| Storage | [`frevana-pins`](skills/frevana-pins/SKILL.md) | Manage private My Pins image/video assets and collections | Frevana JWT and command-specific inputs |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |

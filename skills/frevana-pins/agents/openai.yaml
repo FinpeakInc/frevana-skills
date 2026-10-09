@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frevana Pins"
+  short_description: "Manage private image/video Pins and collections."
+  default_prompt: "Use $frevana-pins to manage my saved images, videos, and collections in Frevana My Pins."
