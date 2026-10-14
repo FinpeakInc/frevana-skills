@@ -5,7 +5,7 @@ description: Search the public TikTok Ads Library by keyword, advertiser, countr
 
 # TikTok Ads Search
 
-Use the bundled script to search public TikTok advertisements or retrieve specific ad details. It calls only the three Frevana `/apify/tiktok-ads/tasks` create, status, and result APIs. Requires Bash and Python 3.9+ with the standard library; no TikTok access token or SDK is needed.
+Use the bundled script to search public TikTok advertisements or retrieve specific ad details. It calls only the three Frevana `/service/tiktok-ads/tasks` create, status, and result APIs. Requires Bash and Python 3.9+ with the standard library; no TikTok access token or SDK is needed.
 
 ## Workflow
 
@@ -33,7 +33,7 @@ bash {baseDir}/scripts/tiktok_ads_search.sh result --task-id TASK_UUID --output 
 
 ## Authentication and output
 
-Use `FREVANA_TOKEN` (JWT) or `FREVANA_API_KEY`. One-time `--token` or `--api-key` overrides environment credentials; when both environment variables exist, JWT takes priority. Credentials go only to Frevana. The default base URL is `https://ai-factory.frevana.com`; override with `FREVANA_API_BASE_URL` or `--api-base-url`, e.g. `http://127.0.0.1:3001`. Redirects are not followed.
+Use `FREVANA_TOKEN` or a one-time `--token` override. Never print the token; credentials go only to Frevana. The default base URL is `https://ai-factory.frevana.com`; override with `FREVANA_API_BASE_URL` or `--api-base-url`. Redirects are not followed.
 
 `create` and `status` print unchanged task JSON. `result` prints the unchanged JSON array. `run`, `create --wait`, and `wait` save the final array under `./out/` by default and print the same bytes. `--output` chooses the destination for any action. Progress and IDs go to stderr. HTTP errors, malformed responses, and terminal failures exit nonzero without fetching a new task.
 

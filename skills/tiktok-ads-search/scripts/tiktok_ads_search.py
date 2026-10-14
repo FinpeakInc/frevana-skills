@@ -18,7 +18,7 @@ import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-API_ROOT = "/apify/tiktok-ads/tasks"
+API_ROOT = "/service/tiktok-ads/tasks"
 DEFAULT_TIMEOUT = 21600
 MAX_RESPONSE_BYTES = 52 * 1024 * 1024
 COUNTRIES = "all FR AT BE BG HR CY CZ DK EE FI DE GR HU IS IE IT LV LI LT LU MT NL NO PL PT RO SK SI ES SE CH GB".split()
@@ -59,9 +59,7 @@ def parser():
     p.add_argument("--timeout", type=int, default=None,
                    help="Wait budget in seconds; default 21600, 0 disables it.")
     p.add_argument("--output", help="Save unchanged JSON; run/wait save under ./out/ by default.")
-    auth = p.add_mutually_exclusive_group()
-    auth.add_argument("--token", help="One-time Frevana JWT override.")
-    auth.add_argument("--api-key", help="One-time Frevana API key override.")
+    p.add_argument("--token", help="One-time Frevana bearer token override.")
     p.add_argument("--api-base-url", default=os.environ.get(
         "FREVANA_API_BASE_URL", "https://ai-factory.frevana.com"))
     return p
@@ -310,20 +308,14 @@ def wait_for_result(client, task_id, timeout, output, initial=None):
 
 
 def auth_headers(args):
-    token = args.token
-    api_key = args.api_key
-    if token is None and api_key is None:
-        token = os.environ.get("FREVANA_TOKEN")
-        if not token:
-            api_key = os.environ.get("FREVANA_API_KEY")
-    if not token and not api_key and sys.stdin.isatty():
+    token = args.token or os.environ.get("FREVANA_TOKEN")
+    if not token and sys.stdin.isatty():
         token = getpass.getpass("Enter Frevana bearer token: ")
-    secret = token or api_key
-    if not secret:
-        raise CliError("set FREVANA_TOKEN or FREVANA_API_KEY, or pass --token/--api-key")
-    if any(ord(c) < 32 or ord(c) == 127 for c in secret):
+    if not token:
+        raise CliError("FREVANA_TOKEN is not set; set it or pass --token")
+    if any(ord(c) < 32 or ord(c) == 127 for c in token):
         raise CliError("credential must not contain control characters")
-    return {"Authorization": f"Bearer {token}"} if token else {"X-API-Key": api_key}
+    return {"Authorization": f"Bearer {token}"}
 
 
 def main():

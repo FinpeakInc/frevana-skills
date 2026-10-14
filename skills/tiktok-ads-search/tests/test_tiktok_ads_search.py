@@ -14,7 +14,7 @@ from unittest.mock import patch
 SKILL = Path(__file__).resolve().parents[1]
 SCRIPT = SKILL / 'scripts/tiktok_ads_search.py'
 TASK_ID = '7af283fe-13aa-431d-a7cf-b58675701884'
-ROOT = '/apify/tiktok-ads/tasks'
+ROOT = '/service/tiktok-ads/tasks'
 RESULT = b'[ {"adId":"1878055429367345", "adTitle":"test", "unknown": [1,2]} ]\n'
 spec = importlib.util.spec_from_file_location('tiktok_ads_search', SCRIPT)
 module = importlib.util.module_from_spec(spec)
@@ -236,21 +236,27 @@ class TikTokAdsSearchTest(unittest.TestCase):
             self.assertIn(b'--client-task-id stable-retry', res.stderr)
             self.assertEqual(len(Handler.requests), 1)
 
-    def test_api_key_override_and_environment_precedence(self):
-        for auth, env, expected in ((('--api-key', 'explicit-key'), {'FREVANA_TOKEN': 'env-token'}, 'explicit-key'),
-                                    ((), {'FREVANA_API_KEY': 'env-key'}, 'env-key'),
-                                    ((), {'FREVANA_TOKEN': 'env-token', 'FREVANA_API_KEY': 'env-key'}, None)):
+    def test_token_override_and_environment_auth(self):
+        for auth, env, expected in ((('--token', 'explicit-token'), {'FREVANA_TOKEN': 'env-token'}, 'explicit-token'),
+                                    ((), {'FREVANA_TOKEN': 'env-token'}, 'env-token'),
+                                    ((), {'FREVANA_TOKEN': 'env-token', 'FREVANA_API_KEY': 'env-key'}, 'env-token')):
             res = self.run_script('create', '--query', 'q', auth=auth, env=env)
             self.assertEqual(res.returncode, 0, res.stderr)
             headers = {k.lower(): v for k, v in Handler.requests[-1][2].items()}
-            if expected:
-                self.assertEqual(headers['x-api-key'], expected)
-                self.assertNotIn('authorization', headers)
-            else:
-                self.assertEqual(headers['authorization'], 'Bearer env-token')
-                self.assertNotIn('x-api-key', headers)
-            for secret in ('explicit-key', 'env-key', 'env-token'):
+            self.assertEqual(headers.get('authorization'), f'Bearer {expected}')
+            self.assertNotIn('x-api-key', headers)
+            for secret in ('explicit-token', 'env-token', 'env-key'):
                 self.assertNotIn(secret.encode(), res.stdout + res.stderr)
+
+        # FREVANA_API_KEY alone is not sufficient; FREVANA_TOKEN is required
+        res = self.run_script('create', '--query', 'q', auth=(), env={'FREVANA_API_KEY': 'env-key'})
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn(b'FREVANA_TOKEN is not set', res.stderr)
+
+        # --api-key is no longer supported
+        res = self.run_script('create', '--query', 'q', auth=('--api-key', 'key'), env={'FREVANA_TOKEN': 'env-token'})
+        self.assertNotEqual(res.returncode, 0)
+        self.assertIn(b'unrecognized arguments: --api-key', res.stderr)
 
     def test_invalid_action_flags_and_credentials_no_requests(self):
         for args, auth in ((['status', '--task-id', '../escape'], ('--token', 'ok')),
