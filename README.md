@@ -72,6 +72,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | YouTube | [`youtube-video`](skills/youtube-video/SKILL.md) | YouTube video details | video ID |
 | YouTube | [`youtube-video-transcript`](skills/youtube-video-transcript/SKILL.md) | YouTube video transcripts | video ID |
 | Instagram | [`instagram-profile`](skills/instagram-profile/SKILL.md) | Instagram profile lookup | profile ID |
+| TikTok Ads | [`tiktok-ads-search`](skills/tiktok-ads-search/SKILL.md) | Search public ads and retrieve details with async polling | query, advertiser, country, or ad IDs |
 | TikTok | [`tiktok-posts-discover-by-keyword`](skills/tiktok-posts-discover-by-keyword/SKILL.md) | Discover public posts by keyword with async polling | keyword |
 | TikTok | [`tiktok-posts-discover-by-profile-url`](skills/tiktok-posts-discover-by-profile-url/SKILL.md) | Discover public posts from profile URLs with async polling | profile URL |
 | TikTok | [`tiktok-posts-collect-by-url`](skills/tiktok-posts-collect-by-url/SKILL.md) | Collect exact post URLs with async polling | post URL |

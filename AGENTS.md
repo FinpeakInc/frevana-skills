@@ -22,6 +22,7 @@ This repository contains reusable skills for four main workflow families:
 - Slack Incoming Webhook workflows for posting Slack messages and notifications
 - Telegram Bot API workflows for bot inspection, messaging, updates, webhooks, commands, and chat/message management
 - Frevana asynchronous TikTok public-data workflows for keyword/profile post discovery and exact post/profile URL collection
+- Frevana asynchronous TikTok Ads Library search and ad detail lookups
 - TikTok Business API v1.3 workflows for local OAuth authorization and advertiser, campaign, ad group, ad, creative, audience, measurement, reporting, Business Center, catalog, and automation management
 - WordPress content workflows through the built-in REST API for posts, pages, media, taxonomies, menus, scheduling, and bulk operations
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
@@ -256,6 +257,14 @@ skills/
   telegram-bot/
     SKILL.md
     scripts/telegram_bot.sh
+  tiktok-ads-search/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    references/timezones.json
+    scripts/tiktok_ads_search.sh
+    scripts/tiktok_ads_search.py
+    tests/test_tiktok_ads_search.py
   tiktok-ads/
     SKILL.md
     agents/openai.yaml
@@ -2144,6 +2153,16 @@ Important behavior:
 Route Douyin 热搜/热榜 board rankings, including 热点榜、种草榜、娱乐榜、社会榜、挑战榜, to `douyin-hot-search`. Route discovery of matching videos or image-text posts by keywords, phrases, or hashtags to `douyin-search`; a hot-board topic's `word` can be used as its keyword. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
 
 Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and keep the `client_task_id` stable when retrying an uncertain outcome. Poll the shared `/service/douyin/tasks/{task_id}` endpoint. Retrieve the raw JSON array only after `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`; never automatically create a replacement task.
+
+### Use `tiktok-ads-search`
+
+Use for public TikTok Ads Library searches by keyword, advertiser, country, or specific ad IDs, including competitor ad research and creative discovery. Use `tiktok-ads` for TikTok Business account/campaign management.
+
+Read `skills/tiktok-ads-search/SKILL.md` and prefer `scripts/tiktok_ads_search.sh`. Supports `create`, `status`, `result`, `wait`, and full-flow `run` through `/apify/tiktok-ads/tasks`. Requires Bash, Python 3.9+, and `FREVANA_TOKEN` or `FREVANA_API_KEY` (or a one-time override).
+
+Require query, advertiser, a supported specific country, or 1–100 unique numeric ad IDs. Ad IDs cannot combine with search filters. Treat creation as billable; reuse the same `client_task_id` and identical options after an uncertain create outcome. Follow `next_poll_after_ms`, fetch only after `READY` with `result_available=true`, and stop on `FAILED`, `REVIEW_REQUIRED`, `RESULT_EXPIRED`, or a zero polling interval without an available result. This API does not expose `billing_status`. Preserve raw result bytes; media URLs are not archived.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/tiktok-ads-search/tests -p 'test_*.py' -v`.
 
 ### Use `tiktok-ads`
 

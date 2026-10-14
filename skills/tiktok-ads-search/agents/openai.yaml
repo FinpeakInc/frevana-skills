@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Ads Search"
+  short_description: "Search public TikTok ads and retrieve creative details"
+  default_prompt: "Use $tiktok-ads-search to search the TikTok Ads Library and wait for the JSON results."
