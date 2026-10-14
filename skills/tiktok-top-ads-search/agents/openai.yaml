@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Top Ads Search"
+  short_description: "Search Creative Center Top Ads with performance filters"
+  default_prompt: "Use $tiktok-top-ads-search to search TikTok Creative Center Top Ads and wait for the JSON results."
