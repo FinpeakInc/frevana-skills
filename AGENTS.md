@@ -257,6 +257,13 @@ skills/
   telegram-bot/
     SKILL.md
     scripts/telegram_bot.sh
+  tiktok-top-ads-search/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_top_ads_search.sh
+    scripts/tiktok_top_ads_search.py
+    tests/test_tiktok_top_ads_search.py
   tiktok-ads-search/
     SKILL.md
     agents/openai.yaml
@@ -2153,6 +2160,16 @@ Important behavior:
 Route Douyin 热搜/热榜 board rankings, including 热点榜、种草榜、娱乐榜、社会榜、挑战榜, to `douyin-hot-search`. Route discovery of matching videos or image-text posts by keywords, phrases, or hashtags to `douyin-search`; a hot-board topic's `word` can be used as its keyword. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
 
 Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and keep the `client_task_id` stable when retrying an uncertain outcome. Poll the shared `/service/douyin/tasks/{task_id}` endpoint. Retrieve the raw JSON array only after `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`; never automatically create a replacement task.
+
+### Use `tiktok-top-ads-search`
+
+Use for TikTok Creative Center Top Ads keyword searches or collection from Top Ads list/detail URLs, with performance sorting and country/industry/objective/language filters. Use `tiktok-ads-search` for the public Ads Library and `tiktok-ads` for Business account management.
+
+Read `skills/tiktok-top-ads-search/SKILL.md` and prefer `scripts/tiktok_top_ads_search.sh`. Requires Bash, Python 3.9+, and `FREVANA_TOKEN` or `--token`. Supports `create`, `status`, `result`, `wait`, and `run` through `/service/tiktok-top-ads/tasks`.
+
+Require keyword or 1–5 Creative Center Top Ads URLs (or both). Repeat country, industry, objective, and ad-language flags for arrays. Default country selection: `AR AU BR CA CO FR DE ID IT JP MY MX NL PK PH RO SA SG ZA KR ES SE TH TR AE GB US VN` (28 countries); explicit country flags replace it. Other defaults: `order_by=for_you`, `period="30"`, `max_items=5` per source. Creation is billable; preserve client IDs for uncertain retries. Follow polling hints, retrieve only at `READY` with `result_available=true`, and stop on terminal failures or zero poll delay. Preserve raw JSON; media URLs are not archived.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/tiktok-top-ads-search/tests -p 'test_*.py' -v`.
 
 ### Use `tiktok-ads-search`
 
