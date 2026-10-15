@@ -52,6 +52,10 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
+| Firecrawl | [`firecrawl-scrape`](skills/firecrawl-scrape/SKILL.md) | Single-page or batch URL scraping, JSON extraction and screenshots | URL(s) |
+| Firecrawl | [`firecrawl-crawl`](skills/firecrawl-crawl/SKILL.md) | Recursive website content collection with async task management | website URL |
+| Firecrawl | [`firecrawl-map`](skills/firecrawl-map/SKILL.md) | Website URL discovery with keyword and Sitemap filters | website URL |
+| Firecrawl | [`firecrawl-search`](skills/firecrawl-search/SKILL.md) | Web, news, image and tool search with optional page content | query |
 | Google Search | [`google-search`](skills/google-search/SKILL.md) | Regular Google web search / SERP results | query |
 | Google Search | [`google-forums-search`](skills/google-forums-search/SKILL.md) | Forum-style Google results | query |
 | Google Search | [`google-related-questions`](skills/google-related-questions/SKILL.md) | Expand People Also Ask / related questions | `next_page_token` |

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firecrawl Scrape Pages"
+  short_description: "Scrape single pages or URL batches through Frevana"
+  default_prompt: "Use $firecrawl-scrape to scrape the supplied URLs and return their content."

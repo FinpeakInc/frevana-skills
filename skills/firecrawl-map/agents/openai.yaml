@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firecrawl Map Website URLs"
+  short_description: "Discover website URLs with keyword and Sitemap filters"
+  default_prompt: "Use $firecrawl-map to discover the URLs of the supplied website."

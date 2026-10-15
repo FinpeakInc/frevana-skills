@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firecrawl Crawl Websites"
+  short_description: "Collect website content with filters and async jobs"
+  default_prompt: "Use $firecrawl-crawl to crawl the supplied website within the requested scope."

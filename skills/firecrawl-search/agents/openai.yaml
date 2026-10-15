@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firecrawl Search the Web"
+  short_description: "Search web, news and images with optional page content"
+  default_prompt: "Use $firecrawl-search to search for the requested topic and return relevant results."

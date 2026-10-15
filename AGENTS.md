@@ -582,6 +582,19 @@ skills/
 
 ## Skill Routing
 
+### Use `firecrawl-scrape`, `firecrawl-crawl`, `firecrawl-map`, and `firecrawl-search`
+
+These skills use Frevana JWT authentication from `FREVANA_TOKEN` only; no API-key fallback. Read the selected skill's `SKILL.md` and prefer its standalone `scripts/firecrawl.sh` wrapper. Requires Bash and Python 3.9+, no extension, daemon, or provider SDK. Public endpoints are `POST /service/web/...`; the helper accepts an origin base or a base already ending in `/service/web`.
+
+- Known URL(s), page content, JSON extraction or screenshots: `firecrawl-scrape`. One ordinary URL defaults to sync; multiple URLs or heavy page processing select async. Explicit `--mode sync|async` overrides selection; sync only accepts one URL. Async uses `urls`, shares options across the batch, and excludes provider `timeout`.
+- Recursive website/directory content or Sitemap-only collection: `firecrawl-crawl`, async by default. Sync waiting is available via `--mode sync`. Sitemap is an option, not a separate skill.
+- Website URL inventory without content: `firecrawl-map`.
+- Keyword discovery across web/news/images/tools, optionally with page scraping: `firecrawl-search`.
+
+`run` waits for async results; `start` returns a job immediately. Scrape/Crawl also provide `status`, `wait`, and `cancel`. Preserve provider job `data.id` separately from audit `request_id`. Stop on billing REVIEW; never automatically recreate a task after timeout or switch routes to recover. Reuse the same route, body and Idempotency-Key. A completed provider task may still await settlement. Nonempty `next` means incomplete pagination. Preserve the native response and summarize by default.
+
+Each package contains an independent helper so it can be installed alone. Helpers validate required inputs and execution constraints; detailed option validation belongs to the Server. Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/firecrawl-<kind>/tests -v` (uses a localhost mock server, never a paid provider).
+
 ### Use `frevana-pins`
 
 Use for the current user's My Pins image/video library: listing, uploading, saving existing media links, downloading owned S3 assets, and managing collections.
