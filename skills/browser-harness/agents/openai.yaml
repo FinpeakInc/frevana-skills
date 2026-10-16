@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Harness"
+  short_description: "Set up local Chrome and automate browser tasks via CLI."
+  default_prompt: "Use $browser-harness to install or upgrade the CLI, register its skill, connect my local Chrome, and preserve my recording preference."

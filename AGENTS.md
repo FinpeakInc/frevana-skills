@@ -714,6 +714,36 @@ Important behavior:
 - Do not print or return the pre-signed upload URL. Return the JSON result containing `url`, `file_key`, and `content_id` (or only the URL if `--text-only` is specified).
 - When returning a successful result, inform the caller that future updates can reuse the returned `file_key` via `--file-key`.
 
+### Use `browser-harness`
+
+Use for installing/upgrading browser-harness, connecting local Chrome, and general
+multi-step browser interactions using the user's existing login session. This is
+a CLI skill; it does not use MCP or the Frevana Chrome Extension daemon.
+
+Read `skills/browser-harness/SKILL.md`. Setup uses
+`bash skills/browser-harness/scripts/setup_browser_harness.sh --skill-dir /actual/agent/skills/browser-harness`.
+Resolve the actual active Agent folder; do not assume Codex paths for Frevana.
+The helper upgrades to the latest stable release with uv and Python 3.12,
+registers the complete official `browser-harness skill` with a Frevana integration
+directive, retains its verbatim output as a reference, and checks the Chrome
+connection. Existing recording config/env
+preferences survive upgrades. Exit 3 means the first-install recording question
+is pending: ask with default no, wait for the answer, then use the wrapper's
+`recordings --choice yes|no` without reinstalling. Keep a pending connection
+process alive while handling Chrome's Allow prompt. Follow upstream `install.md`
+on setup/connection errors.
+
+Ordinary browser calls use `scripts/browser_harness.sh run` with Python on stdin
+or `--file PATH`; they do not upgrade. Use `cli -- <args>` for all official CLI
+commands, including video production, auth and diagnostics. The wrapper disables
+upstream telemetry
+and automatic cloud spawning. Serialize complete browser task sequences across
+agents because the local daemon shares one mutable current tab. Prefer existing
+specialist skills when they already match the requested workflow.
+
+Offline validation:
+`PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/browser-harness/tests -v`.
+
 ### Use `lark-cli`
 
 Route here when the user wants:

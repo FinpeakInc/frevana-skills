@@ -138,6 +138,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Storage | [`frevana-s3`](skills/frevana-s3/SKILL.md) | Universal file upload to S3 via Frevana custom-upload-url API | local file path; previous `file_key` for updates |
 | Storage | [`frevana-pins`](skills/frevana-pins/SKILL.md) | Manage private My Pins image/video assets and collections | Frevana JWT and command-specific inputs |
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
+| Browser | [`browser-harness`](skills/browser-harness/SKILL.md) | Install/upgrade with uv and Python 3.12, register upstream instructions, connect local Chrome, and automate browser tasks via CLI | active Agent skill folder for setup; task for browser work |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
 | Email | [`sendgrid-email-log`](skills/sendgrid-email-log/SKILL.md) | Query SendGrid Email Logs and per-message detail | full `sg_message_id`, or recipient/time/message ID |
