@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Video Search"
+  short_description: "Find TikTok videos by keyword, hashtag, or username"
+  default_prompt: "Use $tiktok-video-search to find public TikTok videos by keyword, hashtag, or username and summarize their links and metrics."

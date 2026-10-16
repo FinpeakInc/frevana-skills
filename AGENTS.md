@@ -257,6 +257,13 @@ skills/
   telegram-bot/
     SKILL.md
     scripts/telegram_bot.sh
+  tiktok-video-search/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/tiktok_video_search.sh
+    scripts/tiktok_video_search.py
+    tests/test_tiktok_video_search.py
   tiktok-top-ads-search/
     SKILL.md
     agents/openai.yaml
@@ -2203,6 +2210,16 @@ Important behavior:
 Route Douyin 热搜/热榜 board rankings, including 热点榜、种草榜、娱乐榜、社会榜、挑战榜, to `douyin-hot-search`. Route discovery of matching videos or image-text posts by keywords, phrases, or hashtags to `douyin-search`; a hot-board topic's `word` can be used as its keyword. Each standalone skill supports `create`, `status`, `result`, `wait`, and `run` through its Bash `scripts/douyin_task.sh` and requires `curl` and `jq`.
 
 Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and keep the `client_task_id` stable when retrying an uncertain outcome. Poll the shared `/service/douyin/tasks/{task_id}` endpoint. Retrieve the raw JSON array only after `status=READY` and `billing_status=BILLED`. Stop on `FAILED`, `TIMED_OUT`, `ABORTED`, `RESULT_EXPIRED`, or `TRIGGER_UNKNOWN`; never automatically create a replacement task.
+
+### Use `tiktok-video-search`
+
+Use for organic TikTok video discovery by keyword, hashtag, or username, with downloaded video URLs and optional subtitles or enrichment. Keyword searches support date/sort filters; like filters apply across these modes. This is separate from public Ads Library, Creative Center Top Ads, Business management, and the older Bright Data post skills.
+
+Read `skills/tiktok-video-search/SKILL.md`; prefer `scripts/tiktok_video_search.sh`. Requires Bash, Python 3.9+, and `FREVANA_TOKEN` or `FREVANA_API_KEY` (or a one-time override). Uses `/service/tiktok-videos/tasks` with `create`, `status`, `items`, `result`, `wait`, and `run`; accepts exactly one source type: 1–5 `--query`, `--hashtag` (without #), or `--username` (without @) values. Only keyword mode sends `search_section=/video`.
+
+The skill explicitly defaults to 20 results per keyword, hashtag, or username. Server defaults retained: MOST_RELEVANT sorting, ALL_TIME, and video downloads enabled (extra cost). Preserve idempotency IDs, follow `next_poll_after_ms`, and stop on REVIEW_REQUIRED or zero polling interval. Date filters cannot be combined with like-count filters. Proxy country is not author country. Preserve raw JSON; summarize by default.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/tiktok-video-search/tests -v`.
 
 ### Use `tiktok-top-ads-search`
 
