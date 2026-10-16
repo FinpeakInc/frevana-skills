@@ -23,18 +23,13 @@ DEFAULT_TIMEOUT = 21600
 MAX_RESPONSE_BYTES = 52 * 1024 * 1024
 SORTS = ['MOST_RELEVANT', 'MOST_LIKED', 'LATEST']
 DATES = ['ALL_TIME', 'PAST_24_HOURS', 'PAST_WEEK', 'PAST_MONTH', 'LAST_3_MONTHS', 'LAST_6_MONTHS']
-SUBTITLES = ['NEVER_DOWNLOAD_SUBTITLES', 'DOWNLOAD_SUBTITLES', 'DOWNLOAD_AND_TRANSCRIBE_VIDEOS_WITHOUT_SUBTITLES', 'TRANSCRIBE_ALL_VIDEOS']
 PROXY_COUNTRIES = ['None', 'AF', 'AL', 'DZ', 'AS', 'AD', 'AO', 'AI', 'AG', 'AR', 'AM', 'AU', 'AT', 'AZ', 'BS', 'BH', 'BB', 'BY', 'BE', 'BZ', 'BJ', 'BM', 'BT', 'BO', 'BA', 'BW', 'BR', 'VG', 'BN', 'BG', 'BF', 'BI', 'KH', 'CM', 'CA', 'CV', 'KY', 'TD', 'CL', 'CO', 'CK', 'CR', 'HR', 'CY', 'CZ', 'CD', 'DK', 'DJ', 'DO', 'EC', 'EG', 'SV', 'EE', 'ET', 'FK', 'FJ', 'FI', 'FR', 'PF', 'GA', 'GE', 'DE', 'GH', 'GI', 'GR', 'GL', 'GD', 'GP', 'GT', 'GN', 'GW', 'GY', 'HN', 'HU', 'IS', 'ID', 'IQ', 'IE', 'IM', 'IL', 'IT', 'CI', 'JM', 'JP', 'JE', 'KZ', 'KE', 'XK', 'KW', 'LA', 'LV', 'LB', 'LS', 'LR', 'LY', 'LT', 'LU', 'MO', 'MG', 'MW', 'MY', 'MV', 'ML', 'MT', 'MH', 'MQ', 'MR', 'MU', 'MX', 'MD', 'MC', 'MN', 'ME', 'MA', 'MZ', 'MM', 'NA', 'NR', 'NP', 'NL', 'NZ', 'NI', 'NG', 'MK', 'NO', 'OM', 'PS', 'PA', 'PG', 'PY', 'PE', 'PH', 'PL', 'PT', 'PR', 'QA', 'CG', 'RO', 'RU', 'RW', 'RE', 'KN', 'LC', 'MF', 'PM', 'VC', 'SM', 'SA', 'SN', 'RS', 'SL', 'SG', 'SX', 'SK', 'SB', 'SO', 'ZA', 'KR', 'ES', 'LK', 'SR', 'SZ', 'SE', 'CH', 'TW', 'TJ', 'TZ', 'TH', 'TG', 'TO', 'TT', 'TN', 'TR', 'TC', 'TV', 'VI', 'UG', 'UA', 'AE', 'GB', 'US', 'UY', 'VE', 'VN', 'WF', 'YE', 'ZM', 'ZW', 'AX']
-BOOL_FIELDS = ("should_download_covers",
-               "should_download_slideshow_images", "should_download_avatars",
-               "should_download_music_covers", "scrape_related_search_words",
-               "scrape_additional_author_meta")
+BOOL_FIELDS = ("scrape_related_search_words", "scrape_additional_author_meta")
 INT_BOUNDS = {"results_per_page": (1, 100), "least_diggs": (1, 9007199254740991),
               "most_diggs": (1, 9007199254740991), "comments_per_post": (0, 1000),
               "top_level_comments_per_post": (0, 1000), "max_replies_per_comment": (0, 100)}
 SEARCH_FIELDS = ("search_queries", "hashtags", "profiles", "video_search_sorting", "video_search_date_filter",
-                 "download_subtitles_options", "proxy_country_code",
-                 "video_kv_store_id_or_name", "max_total_charge_usd", *BOOL_FIELDS, *INT_BOUNDS)
+                 "proxy_country_code", "max_total_charge_usd", *BOOL_FIELDS, *INT_BOUNDS)
 TERMINAL_FAILURES = {"FAILED", "REVIEW_REQUIRED", "RESULT_EXPIRED"}
 
 
@@ -67,9 +62,7 @@ def parser():
     for field in BOOL_FIELDS:
         p.add_argument("--" + field.replace("_", "-"), type=boolean, metavar="true|false",
                        help="Default false; enable only when requested.")
-    p.add_argument("--download-subtitles-options", choices=SUBTITLES)
     p.add_argument("--proxy-country-code", choices=PROXY_COUNTRIES, help="Proxy exit location, not author country; default None.")
-    p.add_argument("--video-kv-store-id-or-name", help="User-scoped storage alias: 1-63 letters, digits or hyphens.")
     p.add_argument("--max-total-charge-usd", type=str, help="Upstream Run budget: 0.50-1000 USD, at most 2 decimal places.")
     p.add_argument("--offset", type=int, help="items only; default 0.")
     p.add_argument("--limit", type=int, help="items only; 1-1000, default 100.")
@@ -164,8 +157,6 @@ def create_payload(args):
         raise CliError("comment limits require comments_per_post > 0")
     if supplied.get("top_level_comments_per_post", 0) > comments:
         raise CliError("top_level_comments_per_post cannot exceed comments_per_post")
-    if "video_kv_store_id_or_name" in supplied and not re.fullmatch(r"[A-Za-z0-9-]{1,63}", supplied["video_kv_store_id_or_name"]):
-        raise CliError("invalid storage alias")
     if "max_total_charge_usd" in supplied:
         from decimal import Decimal, InvalidOperation
         try:

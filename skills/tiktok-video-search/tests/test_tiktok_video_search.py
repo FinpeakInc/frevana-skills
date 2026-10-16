@@ -278,8 +278,6 @@ class TikTokVideoSearchTest(unittest.TestCase):
             res = self.run_script('run', '--query', ' skincare ', '--query', 'beauty',
                                   '--query', 'beauty', '--video-search-sorting', 'LATEST',
                                   '--video-search-date-filter', 'PAST_WEEK', '--results-per-page', '100',
-                                  '--should-download-covers', 'true',
-                                  '--download-subtitles-options', 'DOWNLOAD_SUBTITLES',
                                   '--scrape-related-search-words', 'true', '--max-total-charge-usd', '2.50',
                                   '--client-task-id', 'stable-id', '--output', str(output))
             self.assertEqual(res.returncode, 0, res.stderr)
@@ -289,8 +287,6 @@ class TikTokVideoSearchTest(unittest.TestCase):
             'client_task_id': 'stable-id', 'search_queries': ['beauty', 'skincare'],
             'search_section': '/video', 'video_search_sorting': 'LATEST',
             'video_search_date_filter': 'PAST_WEEK', 'results_per_page': 100,
-            'should_download_covers': True,
-            'download_subtitles_options': 'DOWNLOAD_SUBTITLES',
             'scrape_related_search_words': True, 'max_total_charge_usd': 2.5})
         self.assertEqual([(r[0], r[1]) for r in Handler.requests],
                          [('POST', ROOT)] + [('GET', f'{ROOT}/{TASK_ID}')] * 3 +
@@ -320,7 +316,6 @@ class TikTokVideoSearchTest(unittest.TestCase):
                  ['--query', 'x', '--comments-per-post', '1001'],
                  ['--query', 'x', '--comments-per-post', '1', '--top-level-comments-per-post', '2'],
                  ['--query', 'x', '--max-replies-per-comment', '1'],
-                 ['--query', 'x', '--video-kv-store-id-or-name', 'bad/name'],
                  ['--query', 'x', '--client-task-id', '']]
         cases += [['--query', 'x', '--max-total-charge-usd', v]
                   for v in ('nan', 'inf', '0.49', '1000.01', '1.001', 'abc')]
@@ -335,7 +330,7 @@ class TikTokVideoSearchTest(unittest.TestCase):
                               '--least-diggs', '1', '--most-diggs', '9007199254740991',
                               '--comments-per-post', '1000', '--top-level-comments-per-post', '1000',
                               '--max-replies-per-comment', '100', '--proxy-country-code', 'US',
-                              '--video-kv-store-id-or-name', 'my-store', '--max-total-charge-usd', '0.50')
+                              '--max-total-charge-usd', '0.50')
         self.assertEqual(res.returncode, 0, res.stderr)
         payload = json.loads(Handler.requests[0][3])
         self.assertEqual(payload['max_total_charge_usd'], 0.5)
@@ -473,6 +468,36 @@ class TikTokVideoSearchTest(unittest.TestCase):
         for flag, value in (('--query', 'coffee'), ('--hashtag', 'coffee'), ('--username', 'tiktok')):
             payload = module.create_payload(module.parser().parse_args(['create', flag, value]))
             self.assertNotIn('should_download_videos', payload)
+
+
+    def test_cover_download_toggle_is_not_exposed_or_sent(self):
+        for value in ('true', 'false'):
+            res = self.run_script('create', '--query', 'coffee', '--should-download-covers', value)
+            self.assertNotEqual(res.returncode, 0)
+            self.assertIn(b'unrecognized arguments', res.stderr)
+        self.assertEqual(Handler.requests, [])
+        for flag, value in (('--query', 'coffee'), ('--hashtag', 'coffee'), ('--username', 'tiktok')):
+            payload = module.create_payload(module.parser().parse_args(['create', flag, value]))
+            self.assertNotIn('should_download_covers', payload)
+            self.assertNotIn('should_download_videos', payload)
+
+
+    def test_media_options_are_not_exposed_or_sent(self):
+        removed = {
+            '--should-download-slideshow-images': 'true',
+            '--should-download-avatars': 'true',
+            '--should-download-music-covers': 'true',
+            '--download-subtitles-options': 'DOWNLOAD_SUBTITLES',
+            '--video-kv-store-id-or-name': 'my-store',
+        }
+        for flag, value in removed.items():
+            res = self.run_script('create', '--query', 'coffee', flag, value)
+            self.assertNotEqual(res.returncode, 0)
+            self.assertIn(b'unrecognized arguments', res.stderr)
+        self.assertEqual(Handler.requests, [])
+        for flag, value in (('--query', 'coffee'), ('--hashtag', 'coffee'), ('--username', 'tiktok')):
+            payload = module.create_payload(module.parser().parse_args(['create', flag, value]))
+            self.assertFalse(any('download' in field or 'kv_store' in field for field in payload))
 
 
 if __name__ == '__main__':

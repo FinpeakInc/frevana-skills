@@ -2213,11 +2213,11 @@ Use `FREVANA_TOKEN` for Bearer authentication. Treat creation as billable and ke
 
 ### Use `tiktok-video-search`
 
-Use for organic TikTok video discovery by keyword, hashtag, or username, with downloaded video URLs and optional subtitles or enrichment. Keyword searches support date/sort filters; like filters apply across these modes. This is separate from public Ads Library, Creative Center Top Ads, Business management, and the older Bright Data post skills.
+Use for organic TikTok video discovery by keyword, hashtag, or username, with video URLs and optional author or comment data. Keyword searches support date/sort filters; like filters apply across these modes. This is separate from public Ads Library, Creative Center Top Ads, Business management, and the older Bright Data post skills.
 
 Read `skills/tiktok-video-search/SKILL.md`; prefer `scripts/tiktok_video_search.sh`. Requires Bash, Python 3.9+, and `FREVANA_TOKEN` or `FREVANA_API_KEY` (or a one-time override). Uses `/service/tiktok-videos/tasks` with `create`, `status`, `items`, `result`, `wait`, and `run`; accepts exactly one source type: 1–5 `--query`, `--hashtag` (without #), or `--username` (without @) values. Only keyword mode sends `search_section=/video`.
 
-The skill explicitly defaults to 20 results per keyword, hashtag, or username. Server defaults retained: MOST_RELEVANT sorting, ALL_TIME, and video downloads enabled (extra cost). Preserve idempotency IDs, follow `next_poll_after_ms`, and stop on REVIEW_REQUIRED or zero polling interval. Date filters cannot be combined with like-count filters. Proxy country is not author country. Preserve raw JSON; summarize by default.
+The skill explicitly defaults to 20 results per keyword, hashtag, or username. Default keyword filters: MOST_RELEVANT sorting and ALL_TIME. Preserve idempotency IDs, follow `next_poll_after_ms`, and stop on REVIEW_REQUIRED or zero polling interval. Date filters cannot be combined with like-count filters. Proxy country is not author country. Preserve raw JSON; summarize by default.
 
 Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/tiktok-video-search/tests -v`.
 

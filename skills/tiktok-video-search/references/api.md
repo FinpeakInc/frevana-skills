@@ -47,37 +47,29 @@ CLI flags use hyphens; JSON uses snake_case. `--query`/`--keyword` map to `searc
 | `most_diggs` | Exclusive upper like-count bound, 1–9007199254740991; must exceed `least_diggs` |
 | `proxy_country_code` | Server allowlist (available in CLI help); default literal `None`. Proxy exit country, not author location |
 | `max_total_charge_usd` | Upstream Run budget, 0.50–1000 USD, at most two decimal places |
-| `video_kv_store_id_or_name` | Optional alias, 1–63 ASCII letters/digits/hyphens; Server scopes actual storage to the authenticated owner |
 
 Video search sorting/date filters and related search words apply only to keyword mode, including explicit default or false values. Non-ALL_TIME date filters cannot be combined with `least_diggs` or `most_diggs`. Nondefault sorting can be combined with a search date filter. Do not infer author-country filtering from proxy selection. Do not substitute older Bright Data `/service/tiktok/posts/...` routes.
 
-## Enrichment and download options
-
-The helper does not expose a video download toggle and never sends `should_download_videos`. The Server default enables video downloads.
+## Optional data
 
 AI video descriptions and summaries are not exposed by the current Server. Do not send `ai_video_description` or `ai_video_summary`; unknown fields are rejected even when false.
 
 | Field | Contract / default |
 | --- | --- |
-| `should_download_covers` | Boolean, false |
-| `should_download_slideshow_images` | Boolean, false |
-| `should_download_avatars` | Boolean, false |
-| `should_download_music_covers` | Boolean, false |
 | `scrape_related_search_words` | Boolean, false; related search terms |
 | `scrape_additional_author_meta` | Boolean, false |
-| `download_subtitles_options` | `NEVER_DOWNLOAD_SUBTITLES` (default), `DOWNLOAD_SUBTITLES`, `DOWNLOAD_AND_TRANSCRIBE_VIDEOS_WITHOUT_SUBTITLES`, `TRANSCRIBE_ALL_VIDEOS` |
 | `comments_per_post` | Integer 0–1000, default 0 (off) |
 | `top_level_comments_per_post` | Integer 0–1000, default 0 (provider behavior); cannot exceed `comments_per_post` |
 | `max_replies_per_comment` | Integer 0–100, default 0 (provider behavior); provider may omit replies |
 
 Nonzero top-level/reply limits require `comments_per_post > 0`. Comments and follow data use separate dataset links, not inline merged records. The helper does not request follower/following extraction or expose profile-specific sorting/date/section controls, direct-post collection, or user-search modes.
 
-Video downloads, nondefault date/sort filters, like-count filtering, proxy selection, comment extraction, and transcription can add cost. Transcription charges by each video's rounded-up minutes. Default budget is the Server estimate plus 10%, at least $0.50. Unknown duration for transcription is estimated at one minute per video, so a budget can stop processing early. A USD budget is neither a credit amount nor a minimum spend; settlement uses actual provider `usageTotalUsd`. Do not quote estimated cost as final billing.
+Nondefault date/sort filters, like-count filtering, proxy selection, and comment extraction can add cost. `max_total_charge_usd` is an optional task budget; reaching it may reduce results or stop a task early. Do not quote an estimate as final billing.
 
 ## Result semantics
 
 Preserve all returned fields. Typical fields: string `id`, `text`, `textLanguage`, `createTime` (Unix seconds), `createTimeISO`, `webVideoUrl`, `authorMeta`, `videoMeta`, `musicMeta`, `hashtags`, `playCount`, `diggCount`, `shareCount`, `collectCount`, `commentCount`, `mediaUrls`. Field presence varies.
 
-The Server adds nullable `video_url` and `video_url_expires_at` (currently null), and updates download/media fields with task-scoped signed Apify links. A null `video_url` means no usable downloaded video is available; inspect item errors instead of claiming a successful download. Signed file links remain usable while the underlying file is available; auxiliary dataset links have their own expiry; do not impose or promise a fixed expiry. Auxiliary comments dataset links are signed only when ownership can be verified; unavailable links may be null.
+Use `video_url` when it contains a usable link. If it is missing or null, report that no video link is available and preserve any item error fields. Preserve `video_url_expires_at` as returned; a missing or null value does not promise permanent access. Use returned media and auxiliary dataset links as provided. Do not promise a fixed link lifetime.
 
 The helper saves the full response bytes unchanged, accepts an empty result array, and refuses to save malformed JSON/non-array full results. A local 52 MiB response cap bounds memory use. Never send Frevana authorization headers to returned media or dataset hosts.
