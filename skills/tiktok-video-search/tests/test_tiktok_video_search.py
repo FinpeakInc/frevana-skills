@@ -278,7 +278,7 @@ class TikTokVideoSearchTest(unittest.TestCase):
             res = self.run_script('run', '--query', ' skincare ', '--query', 'beauty',
                                   '--query', 'beauty', '--video-search-sorting', 'LATEST',
                                   '--video-search-date-filter', 'PAST_WEEK', '--results-per-page', '100',
-                                  '--should-download-videos', 'false', '--should-download-covers', 'true',
+                                  '--should-download-covers', 'true',
                                   '--download-subtitles-options', 'DOWNLOAD_SUBTITLES',
                                   '--scrape-related-search-words', 'true', '--max-total-charge-usd', '2.50',
                                   '--client-task-id', 'stable-id', '--output', str(output))
@@ -289,7 +289,7 @@ class TikTokVideoSearchTest(unittest.TestCase):
             'client_task_id': 'stable-id', 'search_queries': ['beauty', 'skincare'],
             'search_section': '/video', 'video_search_sorting': 'LATEST',
             'video_search_date_filter': 'PAST_WEEK', 'results_per_page': 100,
-            'should_download_videos': False, 'should_download_covers': True,
+            'should_download_covers': True,
             'download_subtitles_options': 'DOWNLOAD_SUBTITLES',
             'scrape_related_search_words': True, 'max_total_charge_usd': 2.5})
         self.assertEqual([(r[0], r[1]) for r in Handler.requests],
@@ -454,7 +454,6 @@ class TikTokVideoSearchTest(unittest.TestCase):
             Handler.requests = []
             with tempfile.TemporaryDirectory() as directory:
                 res = self.run_script('run', *flags, '--results-per-page', '5',
-                                      '--should-download-videos', 'false',
                                       '--output', str(Path(directory) / 'result.json'))
                 self.assertEqual(res.returncode, 0, res.stderr)
                 self.assertEqual(res.stdout, RESULT)
@@ -463,6 +462,17 @@ class TikTokVideoSearchTest(unittest.TestCase):
             self.assertEqual(payload['results_per_page'], 5)
             self.assertNotIn('search_queries', payload)
             self.assertNotIn('search_section', payload)
+
+
+    def test_video_download_toggle_is_not_exposed_or_sent(self):
+        for value in ('true', 'false'):
+            res = self.run_script('create', '--query', 'coffee', '--should-download-videos', value)
+            self.assertNotEqual(res.returncode, 0)
+            self.assertIn(b'unrecognized arguments', res.stderr)
+        self.assertEqual(Handler.requests, [])
+        for flag, value in (('--query', 'coffee'), ('--hashtag', 'coffee'), ('--username', 'tiktok')):
+            payload = module.create_payload(module.parser().parse_args(['create', flag, value]))
+            self.assertNotIn('should_download_videos', payload)
 
 
 if __name__ == '__main__':

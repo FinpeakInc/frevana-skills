@@ -53,11 +53,12 @@ Video search sorting/date filters and related search words apply only to keyword
 
 ## Enrichment and download options
 
+The helper does not expose a video download toggle and never sends `should_download_videos`. The Server default enables video downloads.
+
 AI video descriptions and summaries are not exposed by the current Server. Do not send `ai_video_description` or `ai_video_summary`; unknown fields are rejected even when false.
 
 | Field | Contract / default |
 | --- | --- |
-| `should_download_videos` | Boolean, **true** |
 | `should_download_covers` | Boolean, false |
 | `should_download_slideshow_images` | Boolean, false |
 | `should_download_avatars` | Boolean, false |
@@ -77,6 +78,6 @@ Video downloads, nondefault date/sort filters, like-count filtering, proxy selec
 
 Preserve all returned fields. Typical fields: string `id`, `text`, `textLanguage`, `createTime` (Unix seconds), `createTimeISO`, `webVideoUrl`, `authorMeta`, `videoMeta`, `musicMeta`, `hashtags`, `playCount`, `diggCount`, `shareCount`, `collectCount`, `commentCount`, `mediaUrls`. Field presence varies.
 
-The Server adds nullable `video_url` and `video_url_expires_at` (currently null), and updates download/media fields with task-scoped signed Apify links. A null `video_url` can mean downloads were disabled or no usable downloaded file exists; inspect item errors instead of claiming a successful download. Signed file links remain usable while the underlying file is available; auxiliary dataset links have their own expiry; do not impose or promise a fixed expiry. Auxiliary comments dataset links are signed only when ownership can be verified; unavailable links may be null.
+The Server adds nullable `video_url` and `video_url_expires_at` (currently null), and updates download/media fields with task-scoped signed Apify links. A null `video_url` means no usable downloaded video is available; inspect item errors instead of claiming a successful download. Signed file links remain usable while the underlying file is available; auxiliary dataset links have their own expiry; do not impose or promise a fixed expiry. Auxiliary comments dataset links are signed only when ownership can be verified; unavailable links may be null.
 
 The helper saves the full response bytes unchanged, accepts an empty result array, and refuses to save malformed JSON/non-array full results. A local 52 MiB response cap bounds memory use. Never send Frevana authorization headers to returned media or dataset hosts.
