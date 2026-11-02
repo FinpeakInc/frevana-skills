@@ -1,0 +1,4 @@
+interface:
+  display_name: "YouTube Channel Videos"
+  short_description: "Fetch regular channel uploads with task recovery"
+  default_prompt: "Use $youtube-channel-videos to fetch one page of regular uploads by YouTube handle or channel ID and return resumable task metadata."

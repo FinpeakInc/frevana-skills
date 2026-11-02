@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cross-platform Search"
+  short_description: "Search across sources with resumable tasks"
+  default_prompt: "Use $cross-platform-search to search across selected sources through Frevana and return ranked results with resumable task metadata."

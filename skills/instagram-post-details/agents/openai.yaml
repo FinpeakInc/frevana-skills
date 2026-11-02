@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Post Details"
+  short_description: "Fetch an Instagram post with persistent task recovery"
+  default_prompt: "Use $instagram-post-details to fetch an Instagram post by URL and return its data with resumable task metadata."

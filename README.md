@@ -76,6 +76,27 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | YouTube | [`youtube-video`](skills/youtube-video/SKILL.md) | YouTube video details | video ID |
 | YouTube | [`youtube-video-transcript`](skills/youtube-video-transcript/SKILL.md) | YouTube video transcripts | video ID |
 | Instagram | [`instagram-profile`](skills/instagram-profile/SKILL.md) | Instagram profile lookup | profile ID |
+| Instagram | [`instagram-profile-details`](skills/instagram-profile-details/SKILL.md) | Profile details with persisted retries and task resume | handle and operation state file |
+| Instagram | [`instagram-profile-posts`](skills/instagram-profile-posts/SKILL.md) | Profile posts with date filters, explicit cursor pages and task resume | handle and operation state file |
+| Instagram | [`instagram-profile-reels`](skills/instagram-profile-reels/SKILL.md) | Creator reels with explicit cursor pages, popular ordering, stats/audio and task resume | handle or user ID, and operation state file |
+| Instagram | [`instagram-post-details`](skills/instagram-post-details/SKILL.md) | Single post or share-link retrieval with cache freshness, optional hosted media and task resume | post URL and operation state file |
+| Instagram | [`instagram-post-comments`](skills/instagram-post-comments/SKILL.md) | Post comments with date filters, explicit bounded scans, comment labels and task resume | post URL and operation state file |
+| Instagram | [`instagram-reels-search`](skills/instagram-reels-search/SKILL.md) | Keyword reel search with date/view filters, market options and task resume | query and operation state file |
+| Instagram | [`instagram-hashtag-search`](skills/instagram-hashtag-search/SKILL.md) | Hashtag posts in top/recent/clips ranking with explicit cursor pages and task resume | hashtag and operation state file |
+| TikTok | [`tiktok-search`](skills/tiktok-search/SKILL.md) | Keyword video search with integer cursors, optional bulk/expanded scope, filters and task resume | query and operation state file |
+| TikTok | [`tiktok-profile-details`](skills/tiktok-profile-details/SKILL.md) | Profile details with optional app/web counters and task resume | handle or numeric user ID, and operation state file |
+| TikTok | [`tiktok-profile-videos`](skills/tiktok-profile-videos/SKILL.md) | Creator videos with string cursor pages, date boundaries, optional stationery grouping and task resume | handle or user ID, and operation state file |
+| X / Twitter | [`twitter-tweets-search`](skills/twitter-tweets-search/SKILL.md) | Tweet search with query operators, ranking, date/view filters, switch receipts and task resume | query and operation state file |
+| X / Twitter | [`twitter-user-tweets`](skills/twitter-user-tweets/SKILL.md) | User tweets with string cursor pages, date/known-tweet boundaries, pin-aware stops and task resume | handle and operation state file |
+| Reddit | [`reddit-posts-search`](skills/reddit-posts-search/SKILL.md) | HTTP post search with ranking/timeframe filters, explicit bulk results, optional body reads and task resume | query and operation state file |
+| Reddit | [`reddit-post-comments`](skills/reddit-post-comments/SKILL.md) | Post comments/replies with explicit cursor pages, date filters, comment judgments and task resume | post URL and operation state file |
+| Threads | [`threads-search`](skills/threads-search/SKILL.md) | Post search with native date periods, collection targets, optional engagement enrichment and task resume | query and operation state file |
+| YouTube | [`youtube-content-search`](skills/youtube-content-search/SKILL.md) | Video/Shorts/channel/playlist search with exact-date controls, explicit joins and task resume | query and operation state file |
+| YouTube | [`youtube-channel-videos`](skills/youtube-channel-videos/SKILL.md) | Channel videos with incremental boundaries, original-title controls, optional channel enrichment and task resume | handle or channel ID, and operation state file |
+| Facebook | [`facebook-posts-search`](skills/facebook-posts-search/SKILL.md) | Post search with native date/location scope, optional recency ranking and task resume | query and operation state file |
+| Facebook | [`facebook-profile-posts`](skills/facebook-profile-posts/SKILL.md) | Page/profile posts with share-link or page-ID input, incremental boundaries, explicit engagement and task resume | URL or page ID, and operation state file |
+| LinkedIn | [`linkedin-posts-search`](skills/linkedin-posts-search/SKILL.md) | Query/member/company posts with explicit pages or bounded collection and task resume | query, bare member URN or numeric company ID, and operation state file |
+| Cross-platform | [`cross-platform-search`](skills/cross-platform-search/SKILL.md) | Aggregated ranked/source results with explicit source/date controls, stance/relevance, optional transcripts and task resume | query and operation state file |
 | TikTok Ads | [`tiktok-ads-search`](skills/tiktok-ads-search/SKILL.md) | Search public ads and retrieve details with async polling | query, advertiser, country, or ad IDs |
 | TikTok Top Ads | [`tiktok-top-ads-search`](skills/tiktok-top-ads-search/SKILL.md) | Search Creative Center Top Ads with async polling and performance filters | keyword or Top Ads URLs |
 | TikTok | [`tiktok-posts-discover-by-keyword`](skills/tiktok-posts-discover-by-keyword/SKILL.md) | Discover public posts by keyword with async polling | keyword |
@@ -92,7 +113,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Google Shopping | [`google-immersive-product`](skills/google-immersive-product/SKILL.md) | Google Shopping immersive product details | page token |
 | Google Ads | [`google-ads-transparency-center`](skills/google-ads-transparency-center/SKILL.md) | Google Ads Transparency Center creatives | advertiser ID, text, or next page token |
 | Google Patents | [`google-patents-search`](skills/google-patents-search/SKILL.md) | Google Patents search | query |
-| YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search results | search query |
+| YouTube | [`youtube-search`](skills/youtube-search/SKILL.md) | YouTube search through the search_query/sp/hl/gl API | search query |
 | Facebook | [`facebook-profile`](skills/facebook-profile/SKILL.md) | Facebook profile lookup | profile ID or username |
 | Reddit | [`reddit-url-mentions`](skills/reddit-url-mentions/SKILL.md) | Reddit mentions of specific URLs through Frevana | one or more target URLs |
 | Backlinks | [`backlinks-index`](skills/backlinks-index/SKILL.md) | External backlink/inbound-link index freshness and database status | none |
@@ -198,7 +219,7 @@ These skills use the local Frevana daemon and the user's logged-in Chrome Extens
 | AI Platform | [`perplexity-ask`](skills/perplexity-ask/SKILL.md) | Ask Perplexity through Chrome Extension | one or more prompts |
 | AI Platform | [`deepseek-ask`](skills/deepseek-ask/SKILL.md) | Ask DeepSeek through Chrome Extension | one or more prompts |
 | AI Platform | [`doubao-ask`](skills/doubao-ask/SKILL.md) | Ask Doubao through Chrome Extension | one or more prompts |
-| Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Search Reddit link posts by query | query |
+| Social | [`reddit-search`](skills/reddit-search/SKILL.md) | Search Reddit link posts through the Chrome Extension | query |
 | Social | [`x-topic-search`](skills/x-topic-search/SKILL.md) | Search X/Twitter posts by topic | topic |
 | Social | [`meta-ads-search`](skills/meta-ads-search/SKILL.md) | Search Meta Ads Library ads by keyword or advertiser text | keyword |
 | Social publishing | [`publish-twitter-post`](skills/publish-twitter-post/SKILL.md) | Publish to Twitter/X | final text |

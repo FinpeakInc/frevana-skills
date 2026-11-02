@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reddit Posts Search"
+  short_description: "Search posts with ranking and resumable tasks"
+  default_prompt: "Use $reddit-posts-search to search Reddit posts through Frevana and return results with resumable task metadata."

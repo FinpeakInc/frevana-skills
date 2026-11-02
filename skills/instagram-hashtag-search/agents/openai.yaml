@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Hashtag Search"
+  short_description: "Search hashtag posts with filters and resumable tasks"
+  default_prompt: "Use $instagram-hashtag-search to fetch one page of Instagram hashtag posts and return the data with resumable task metadata."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Profile Reels"
+  short_description: "Fetch creator reels with filters and resumable tasks"
+  default_prompt: "Use $instagram-profile-reels to fetch one page of reels from an Instagram handle or user ID and return resumable task metadata."

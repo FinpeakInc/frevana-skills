@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "required": [
+    "url"
+  ],
+  "properties": {
+    "url": {
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "region": {
+      "type": "string"
+    },
+    "max_age_s": {
+      "type": "integer",
+      "maximum": 3600,
+      "minimum": 0
+    },
+    "download_media": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

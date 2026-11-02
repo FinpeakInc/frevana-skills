@@ -1,0 +1,93 @@
+{
+  "type": "object",
+  "required": [
+    "handle"
+  ],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "offer": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "stop_at_id": {
+      "type": "string"
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

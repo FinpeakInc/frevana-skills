@@ -1,0 +1,4 @@
+interface:
+  display_name: "Facebook Posts Search"
+  short_description: "Search posts with dates and resumable tasks"
+  default_prompt: "Use $facebook-posts-search to search Facebook posts through Frevana and return results with resumable task metadata."

@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "required": [
+    "url"
+  ],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "label": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

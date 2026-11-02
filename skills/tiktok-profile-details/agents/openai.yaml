@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Profile Details"
+  short_description: "Fetch TikTok profile details with resumable tasks"
+  default_prompt: "Use $tiktok-profile-details to fetch a TikTok profile by handle or user ID and return its data with resumable task metadata."

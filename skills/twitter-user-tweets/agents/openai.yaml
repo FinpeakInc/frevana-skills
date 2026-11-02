@@ -1,0 +1,4 @@
+interface:
+  display_name: "X / Twitter User Tweets"
+  short_description: "Fetch user tweets with dates and task recovery"
+  default_prompt: "Use $twitter-user-tweets to fetch one page of tweets by X / Twitter handle and return results with resumable task metadata."

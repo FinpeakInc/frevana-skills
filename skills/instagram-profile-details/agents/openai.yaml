@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Profile Details"
+  short_description: "Fetch Instagram profiles with resumable Frevana tasks"
+  default_prompt: "Use $instagram-profile-details to fetch an Instagram profile and return its data with resumable task metadata."

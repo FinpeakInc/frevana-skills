@@ -1,0 +1,4 @@
+interface:
+  display_name: "X / Twitter Tweet Search"
+  short_description: "Search tweets with filters and resumable tasks"
+  default_prompt: "Use $twitter-tweets-search to search X / Twitter tweets through Frevana and return results with resumable task metadata."

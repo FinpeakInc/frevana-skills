@@ -1,0 +1,80 @@
+{
+  "type": "object",
+  "required": [
+    "query"
+  ],
+  "properties": {
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "query": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "include": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "string"
+    },
+    "to_date": {
+      "type": "string"
+    },
+    "from_date": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "platforms": {
+      "type": "string"
+    },
+    "relevance": {
+      "enum": [
+        "filter"
+      ],
+      "type": "string"
+    },
+    "switch_from": {
+      "type": "string"
+    },
+    "lookback_days": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "include_transcripts": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

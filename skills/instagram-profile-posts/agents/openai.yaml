@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Profile Posts"
+  short_description: "Fetch Instagram posts with filters and resumable tasks"
+  default_prompt: "Use $instagram-profile-posts to fetch one page of Instagram posts and return the data with resumable task metadata."

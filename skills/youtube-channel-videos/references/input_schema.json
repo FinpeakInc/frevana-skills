@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "channelId"
+          ]
+        },
+        {
+          "required": [
+            "handle"
+          ]
+        }
+      ]
+    }
+  ],
+  "required": [],
+  "properties": {
+    "sort": {
+      "enum": [
+        "latest",
+        "popular"
+      ],
+      "type": "string"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "include": {
+      "enum": [
+        "channel"
+      ],
+      "type": "string"
+    },
+    "channelId": {
+      "type": "string"
+    },
+    "stop_at_id": {
+      "type": "string"
+    },
+    "exact_dates": {
+      "enum": [
+        "true",
+        "false"
+      ],
+      "type": "string"
+    },
+    "includeExtras": {
+      "type": "string"
+    },
+    "continuationToken": {
+      "type": "string"
+    },
+    "is_paid_promotions": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

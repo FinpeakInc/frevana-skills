@@ -1,0 +1,4 @@
+interface:
+  display_name: "Facebook Profile Posts"
+  short_description: "Fetch profile posts with dates and task recovery"
+  default_prompt: "Use $facebook-profile-posts to fetch one page of Facebook page or profile posts and return results with resumable task metadata."

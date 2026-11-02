@@ -1,0 +1,4 @@
+interface:
+  display_name: "Threads Search"
+  short_description: "Search posts with date bounds and task recovery"
+  default_prompt: "Use $threads-search to search Threads posts through Frevana and return results with resumable task metadata."

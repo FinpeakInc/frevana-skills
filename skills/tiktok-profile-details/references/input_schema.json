@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "handle"
+          ]
+        },
+        {
+          "required": [
+            "user_id"
+          ]
+        }
+      ]
+    }
+  ],
+  "required": [],
+  "properties": {
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "counts": {
+      "enum": [
+        "app",
+        "web"
+      ],
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

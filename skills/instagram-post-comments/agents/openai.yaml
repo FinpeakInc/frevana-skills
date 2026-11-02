@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Post Comments"
+  short_description: "Fetch post comments with filters and task recovery"
+  default_prompt: "Use $instagram-post-comments to fetch Instagram post comments and return one page with resumable task metadata."

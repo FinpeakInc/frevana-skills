@@ -1,0 +1,160 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "query"
+          ]
+        },
+        {
+          "required": [
+            "from_member"
+          ]
+        },
+        {
+          "required": [
+            "from_company"
+          ]
+        }
+      ]
+    }
+  ],
+  "required": [],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "limit": {
+      "type": "integer",
+      "maximum": 200,
+      "minimum": 1
+    },
+    "offer": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "sort_by": {
+      "enum": [
+        "date_posted",
+        "relevance"
+      ],
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "relevance": {
+      "enum": [
+        "score",
+        "filter"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "date_posted": {
+      "enum": [
+        "past_24h",
+        "past_week",
+        "past_month"
+      ],
+      "type": "string"
+    },
+    "from_member": {
+      "type": "string"
+    },
+    "relevant_to": {
+      "type": "string"
+    },
+    "content_type": {
+      "enum": [
+        "videos",
+        "photos",
+        "jobs",
+        "live_videos",
+        "documents",
+        "collaborative_articles"
+      ],
+      "type": "string"
+    },
+    "from_company": {
+      "type": "string"
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "relevance_threshold": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,130 @@
+{
+  "type": "object",
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "user_id"
+          ]
+        },
+        {
+          "required": [
+            "handle"
+          ]
+        }
+      ]
+    }
+  ],
+  "required": [],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "sort": {
+      "enum": [
+        "most_viewed"
+      ],
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "offer": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "handle": {
+      "type": "string"
+    },
+    "max_id": {
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "include": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "stop_at_id": {
+      "type": "string"
+    },
+    "recent_days": {
+      "type": "integer",
+      "maximum": 3650,
+      "minimum": 1
+    },
+    "exclude_pinned": {
+      "type": "boolean"
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

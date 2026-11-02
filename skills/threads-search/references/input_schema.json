@@ -1,0 +1,126 @@
+{
+  "type": "object",
+  "required": [
+    "query"
+  ],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "seen": {
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "limit": {
+      "type": "integer",
+      "maximum": 100,
+      "minimum": 1
+    },
+    "offer": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "expand": {
+      "type": "boolean"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "include": {
+      "enum": [
+        "engagement"
+      ],
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "relevance": {
+      "enum": [
+        "score",
+        "filter"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "relevant_to": {
+      "type": "string"
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "relevance_threshold": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

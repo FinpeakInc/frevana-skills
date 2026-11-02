@@ -1,0 +1,141 @@
+{
+  "type": "object",
+  "required": [
+    "query"
+  ],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "seen": {
+      "type": "string"
+    },
+    "sort": {
+      "enum": [
+        "relevance",
+        "new",
+        "top",
+        "comment_count"
+      ],
+      "type": "string"
+    },
+    "trim": {
+      "type": "boolean"
+    },
+    "after": {
+      "type": "string"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "limit": {
+      "type": "integer",
+      "maximum": 1000,
+      "minimum": 1
+    },
+    "offer": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "relevance": {
+      "enum": [
+        "score",
+        "filter"
+      ],
+      "type": "string"
+    },
+    "timeframe": {
+      "enum": [
+        "all",
+        "day",
+        "week",
+        "month",
+        "year"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "relevant_to": {
+      "type": "string"
+    },
+    "include_body": {
+      "type": "boolean"
+    },
+    "max_age_days": {
+      "type": "integer",
+      "maximum": 3650,
+      "minimum": 1
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "relevance_threshold": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

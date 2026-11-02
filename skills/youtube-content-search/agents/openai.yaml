@@ -1,0 +1,4 @@
+interface:
+  display_name: "YouTube Content Search"
+  short_description: "Search content with dates and task recovery"
+  default_prompt: "Use $youtube-content-search to search YouTube videos, Shorts, channels or playlists through Frevana and return resumable task metadata."

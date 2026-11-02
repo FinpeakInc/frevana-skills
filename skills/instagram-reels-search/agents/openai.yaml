@@ -1,0 +1,4 @@
+interface:
+  display_name: "Instagram Reels Search"
+  short_description: "Search Instagram reels with filters and task recovery"
+  default_prompt: "Use $instagram-reels-search to search for Instagram reels and return one page of results with resumable task metadata."

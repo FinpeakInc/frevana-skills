@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reddit Post Comments"
+  short_description: "Fetch comments and replies with task recovery"
+  default_prompt: "Use $reddit-post-comments to fetch a Reddit post's nested comment tree and report returned-comment counts, coverage and resumable task metadata."

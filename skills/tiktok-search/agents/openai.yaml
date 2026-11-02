@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Search"
+  short_description: "Search TikTok videos with filters and task recovery"
+  default_prompt: "Use $tiktok-search to search TikTok videos and return one result page with resumable task metadata."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok Profile Videos"
+  short_description: "Fetch creator videos with filters and task recovery"
+  default_prompt: "Use $tiktok-profile-videos to fetch one page of videos by TikTok handle or user ID and return resumable task metadata."

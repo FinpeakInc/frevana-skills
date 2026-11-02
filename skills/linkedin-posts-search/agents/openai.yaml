@@ -1,0 +1,4 @@
+interface:
+  display_name: "LinkedIn Posts Search"
+  short_description: "Search posts and author feeds with task recovery"
+  default_prompt: "Use $linkedin-posts-search to find LinkedIn posts by query, member URN or company ID and return resumable task metadata."

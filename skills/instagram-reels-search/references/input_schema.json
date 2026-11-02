@@ -1,0 +1,164 @@
+{
+  "type": "object",
+  "required": [
+    "query"
+  ],
+  "properties": {
+    "fit": {
+      "enum": [
+        "goal"
+      ],
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "page": {
+      "type": "integer"
+    },
+    "seen": {
+      "type": "string"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "brand": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "offer": {
+      "type": "string"
+    },
+    "query": {
+      "type": "string"
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "region": {
+      "enum": [
+        "ES",
+        "MX",
+        "DE",
+        "BR",
+        "KR",
+        "FR",
+        "ZA",
+        "NG",
+        "KE",
+        "AE",
+        "SA"
+      ],
+      "type": "string"
+    },
+    "country": {
+      "enum": [
+        "ES",
+        "MX",
+        "DE",
+        "BR",
+        "KR",
+        "FR",
+        "ZA",
+        "NG",
+        "KE",
+        "AE",
+        "SA"
+      ],
+      "type": "string"
+    },
+    "dry_run": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "exclude": {
+      "type": "string"
+    },
+    "include": {
+      "type": "string"
+    },
+    "judgments": {
+      "enum": [
+        "on",
+        "off"
+      ],
+      "type": "string"
+    },
+    "min_views": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "relevance": {
+      "enum": [
+        "score",
+        "filter"
+      ],
+      "type": "string"
+    },
+    "sort_rows": {
+      "enum": [
+        "views"
+      ],
+      "type": "string"
+    },
+    "fit_tokens": {
+      "type": "integer"
+    },
+    "date_posted": {
+      "enum": [
+        "last-week",
+        "last-month",
+        "last-year"
+      ],
+      "type": "string"
+    },
+    "relevant_to": {
+      "type": "string"
+    },
+    "max_age_days": {
+      "type": "integer",
+      "maximum": 3650,
+      "minimum": 1
+    },
+    "label_evidence": {
+      "enum": [
+        "1"
+      ],
+      "type": "string"
+    },
+    "brand_description": {
+      "type": "string"
+    },
+    "relevance_threshold": {
+      "type": "string"
+    },
+    "ai_written_threshold": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

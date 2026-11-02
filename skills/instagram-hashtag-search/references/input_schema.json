@@ -1,0 +1,73 @@
+{
+  "type": "object",
+  "required": [
+    "hashtag"
+  ],
+  "properties": {
+    "seen": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "top",
+        "recent",
+        "clips"
+      ],
+      "type": "string"
+    },
+    "async": {
+      "enum": [
+        true,
+        false,
+        1,
+        0,
+        "true",
+        "false",
+        "1",
+        "0"
+      ],
+      "type": [
+        "boolean",
+        "integer",
+        "string"
+      ]
+    },
+    "since": {
+      "type": "string"
+    },
+    "until": {
+      "type": "string"
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "hashtag": {
+      "type": "string"
+    },
+    "include": {
+      "enum": [
+        "country"
+      ],
+      "type": "string"
+    },
+    "safe_url": {
+      "type": "boolean"
+    },
+    "min_views": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sort_rows": {
+      "enum": [
+        "views"
+      ],
+      "type": "string"
+    },
+    "max_age_days": {
+      "type": "integer",
+      "maximum": 3650,
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}
