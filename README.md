@@ -191,6 +191,8 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
 | Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
 | Text | [`gpt-6`](skills/gpt-6/SKILL.md) | Next-generation frontier intelligence and reasoning with GPT-6 | prompt or input file |
+| Text | [`gpt-6.1-sol`](skills/gpt-6.1-sol/SKILL.md) | Complex coding, computer use, and professional reasoning with GPT-6.1 Sol | prompt or input file |
+| Text | [`gpt-6.1-terra`](skills/gpt-6.1-terra/SKILL.md) | Visual reasoning, focused coding, and clear writing with GPT-6.1 Terra | prompt or input file |
 | Decision | [`jev-latest`](skills/jev-latest/SKILL.md) | Structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest via OpenRouter | state and questions |
 | Report | [`frevana-gen-report`](skills/frevana-gen-report/SKILL.md) | Generate final HTML from a Frevana template | template ID and content |
 

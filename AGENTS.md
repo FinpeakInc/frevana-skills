@@ -28,7 +28,7 @@ This repository contains reusable skills for four main workflow families:
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
-- OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, and GPT-6
+- OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, GPT-6, GPT-6.1 Sol, and GPT-6.1 Terra
 - OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
 - OpenRouter Decisions API workflows for structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest
 - OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, and ByteDance Seedance 2.5
@@ -656,6 +656,16 @@ skills/
     scripts/create_response.sh
     tests/test_create_response.py
   gpt-6/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-6.1-sol/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-6.1-terra/
     SKILL.md
     agents/openai.yaml
     scripts/create_response.sh
@@ -3401,6 +3411,19 @@ Fixed Frevana routing contract:
 - use the `gpt-6` skill script
 - forward `x-frevana-agent-app-instance-id` when instance ID is provided
 
+### Use `gpt-6.1-sol` and `gpt-6.1-terra`
+
+Route requests for GPT-6.1 Sol (`gpt-6.1-sol`) to `gpt-6.1-sol`, and GPT-6.1 Terra (`gpt-6.1-terra`) to `gpt-6.1-terra`. Sol suits complex coding, computer use, and professional analysis; Terra suits visual reasoning, focused code fixes, and clear writing. Read the selected skill's `SKILL.md` and use its own `scripts/create_response.sh`.
+
+Both follow the `gpt-6` workflow through `POST https://ai-factory.frevana.com/openai/v1/responses`, with Frevana Bearer/API-key auth, optional Agent App attribution, input/instruction files, tools, local-history sessions, interactive chat, JSON output, and `--text-only`. Every request forces `store:false`; session files replay the full earlier input/output item sequence, including encrypted reasoning and tool items. `previous_response_id` and stored `conversation` are rejected. Legacy ID-only or invalid state fails before transport; use `--new-session` to intentionally replace it. Session files contain local conversation content and instructions, use private permissions and atomic writes, and are bound to model/API origin. Persistence failures after a valid response return a recovery-file path instead of silently dropping state. The model is fixed per skill, including raw payloads. Both support `low`, `medium` (upstream default), `high`, `xhigh`, and `max`; Terra additionally supports `none`. Sampling parameters require `none`, so Sol rejects them. Maximum output is 128000 tokens. Terra does not expose `ultrafast`; gateway support for other tiers still needs verification. No automatic retries, tool execution, or output continuation occur.
+
+Offline validation (mocked transport, no paid requests):
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6.1-sol/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6.1-terra/tests -v
+```
+
 ### Use `deepseek-v4.1-flash`
 
 Route here when the user wants high-speed, cost-effective inference, rapid code generation, data extraction, high-throughput summarization, or conversational tasks using DeepSeek V4.1 Flash (`deepseek/deepseek-v4.1-flash`) through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`).
@@ -4608,7 +4631,7 @@ bash skills/frevana-gen-report/scripts/generate_report.sh \
   --output ./out/frevana-report.html
 ```
 
-### OpenAI Responses (GPT-5.6 Sol, Luna, Terra, GPT-6)
+### OpenAI Responses (GPT-5.6 Sol, Luna, Terra, GPT-6, GPT-6.1 Sol and Terra)
 
 ```bash
 # GPT-5.6 Sol with high reasoning effort
@@ -4633,6 +4656,19 @@ bash skills/gpt-6/scripts/create_response.sh \
   --input "Analyze this formal verification proof and suggest optimizations" \
   --instructions "Provide rigorous mathematical step-by-step reasoning." \
   --reasoning-effort high \
+  --text-only
+
+# GPT-6.1 Sol complex coding response
+bash skills/gpt-6.1-sol/scripts/create_response.sh \
+  --input "Design a distributed rate limiter in Go and explain the concurrency tradeoffs" \
+  --reasoning-effort high \
+  --text-only
+
+# GPT-6.1 Terra text generation without reasoning
+bash skills/gpt-6.1-terra/scripts/create_response.sh \
+  --input "Rewrite these API release notes into a concise customer update" \
+  --reasoning-effort none \
+  --temperature 0.7 \
   --text-only
 ```
 
