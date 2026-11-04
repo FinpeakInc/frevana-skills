@@ -1,0 +1,4 @@
+interface:
+  display_name: "AgentWeb"
+  short_description: "Discover and execute public website read actions"
+  default_prompt: "Use $agentweb to discover this website's actions, prompt me for any required site authorization, and execute the supported read action while preserving request and billing status."

@@ -1,6 +1,6 @@
 # Frevana Skills
 
-Reusable skills for Frevana auth bootstrap, Lark/Feishu and Snowflake CLI workflows, Frevana-backed HTTP API lookups, Chrome Extension workflows, WordPress content management, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, database operations, image generation, and HTML generation.
+Reusable skills for Frevana auth bootstrap, Lark/Feishu and Snowflake CLI workflows, Frevana-backed HTTP API lookups, Chrome Extension workflows, WordPress, Shopify and Webflow content publishing, SendGrid email sending, Email Logs activity, and statistics, Slack webhook notifications, Telegram bot workflows, Instantly email sending, database operations, image generation, and HTML generation.
 
 Each skill lives under `skills/`. Start with its `SKILL.md` to see what it does and what it needs. If your agent supports repo-level instructions, also read [AGENTS.md](AGENTS.md).
 
@@ -52,6 +52,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
+| AgentWeb | [`agentweb`](skills/agentweb/SKILL.md) | Discover mapped website actions, execute public reads and recover request/billing results | domain; discovered action/params for execution |
 | Firecrawl | [`firecrawl-scrape`](skills/firecrawl-scrape/SKILL.md) | Single-page or batch URL scraping, JSON extraction and screenshots | URL(s) |
 | Firecrawl | [`firecrawl-crawl`](skills/firecrawl-crawl/SKILL.md) | Recursive website content collection with async task management | website URL |
 | Firecrawl | [`firecrawl-map`](skills/firecrawl-map/SKILL.md) | Website URL discovery with keyword and Sitemap filters | website URL |
@@ -161,6 +162,8 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Lark | [`lark-cli`](skills/lark-cli/SKILL.md) | Install, locate, initialize, authenticate, and verify official Lark/Feishu CLI | none |
 | Browser | [`browser-harness`](skills/browser-harness/SKILL.md) | Install/upgrade with uv and Python 3.12, register upstream instructions, connect local Chrome, and automate browser tasks via CLI | active Agent skill folder for setup; task for browser work |
 | CMS | [`wordpress-content`](skills/wordpress-content/SKILL.md) | Manage WordPress posts, pages, media, taxonomies, and menus | HTTPS site URL, Application Password, and requested operation |
+| CMS | [`shopify-cms`](skills/shopify-cms/SKILL.md) | Publish or update Shopify blog articles; discover blogs and read articles | store domain, Client ID/Secret, destination blog, final HTML content |
+| CMS | [`webflow-cms`](skills/webflow-cms/SKILL.md) | Publish or update Webflow CMS items with Collection field mapping | API token, HTTPS Site URL, Site/Collection IDs, body field slug, final HTML content |
 | Email | [`sendgrid-send-email`](skills/sendgrid-send-email/SKILL.md) | Send transactional email through SendGrid Mail Send API | sender, recipients, and content |
 | Email | [`sendgrid-email-log`](skills/sendgrid-email-log/SKILL.md) | Query SendGrid Email Logs and per-message detail | full `sg_message_id`, or recipient/time/message ID |
 | Email | [`sendgrid-global-email-stats`](skills/sendgrid-global-email-stats/SKILL.md) | Retrieve aggregate SendGrid email statistics | start date |
@@ -325,6 +328,32 @@ Features:
 - avoids bare `lark-cli config init --new`; the wrapper always passes an explicit brand, defaulting to Feishu
 - verifies auth with `lark-cli auth status`
 - documents `user` versus `bot` identity and JSON output handling
+
+### [`shopify-cms`](skills/shopify-cms/SKILL.md)
+
+First-time configuration: [Frevana Shopify CMS Integration guide](https://frevana.gitbook.io/frevana-docs/cms-integrations/shopify-cms-integration). Missing configuration errors include the guide URL.
+
+Publish final HTML to a Shopify blog or update an exact article ID through Admin GraphQL, following the desktop App's client-credentials and immediate-publication contract. Includes independent local credential configuration, blog discovery, article reads, offline previews, publication checks, and remote IDs for recovery. Body HTML is submitted unchanged; product management is outside its scope.
+
+```bash
+bash skills/shopify-cms/scripts/shopify_cms.sh status
+bash skills/shopify-cms/scripts/shopify_cms.sh blogs
+bash skills/shopify-cms/scripts/shopify_cms.sh create --blog-id 123 --data-file /absolute/path/article.json
+```
+
+### [`webflow-cms`](skills/webflow-cms/SKILL.md)
+
+First-time configuration: [Frevana Webflow Integration guide](https://frevana.gitbook.io/frevana-docs/cms-integrations/webflow-integration). Site ID, public HTTPS Site URL, and API Token are required; older configurations missing Site URL must be completed with `configure --site-url URL`. Missing configuration errors include the guide URL; the guide also covers Collection Page body binding and initial site publication.
+
+Publish final HTML to a Webflow CMS Collection or update an exact item ID through Data API v2 live endpoints. Includes local credential configuration, Collection/schema discovery, explicit field mapping, required-field checks, offline previews, and live readback. Body HTML is submitted unchanged; site design and whole-site publishing are outside its scope.
+
+```bash
+bash skills/webflow-cms/scripts/webflow_cms.sh collections
+bash skills/webflow-cms/scripts/webflow_cms.sh fields --collection-id COLLECTION_ID
+bash skills/webflow-cms/scripts/webflow_cms.sh create --data-file /absolute/path/item.json
+```
+
+Both helpers require Python 3 and Bash, publish only with `--execute`, preserve remote write receipts on readback failure, and never automatically retry a mutation. They use provider credentials directly rather than a Frevana token or the App's encrypted settings. Read each skill for environment variables and JSON payload fields. All bundled tests mock HTTP; no live publishing is needed for validation.
 
 ### [`wordpress-content`](skills/wordpress-content/SKILL.md)
 

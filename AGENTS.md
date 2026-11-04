@@ -11,6 +11,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana CLI auth bootstrap and local API key setup
 - Frevana custom-domain publishing for local agent-generated files
 - Frevana universal S3 file uploads and updates for arbitrary files
+- AgentWeb website action discovery, public-read execution and saved request/billing result recovery
 - Lark/Feishu CLI installation, app configuration, OAuth login, auth verification, and shared operating rules for Lark skills
 - Amazon, Apple App Store, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - AppsFlyer Master API freshness and KPI reports plus Aggregate Pull API partner, daily, and geo reports
@@ -25,6 +26,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana asynchronous TikTok Ads Library search and ad detail lookups
 - TikTok Business API v1.3 workflows for local OAuth authorization and advertiser, campaign, ad group, ad, creative, audience, measurement, reporting, Business Center, catalog, and automation management
 - WordPress content workflows through the built-in REST API for posts, pages, media, taxonomies, menus, scheduling, and bulk operations
+- Shopify CMS blog article publishing through Admin GraphQL and Webflow CMS item publishing through Data API v2 live endpoints
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
@@ -58,6 +60,13 @@ These skills use the local Frevana daemon and the user's logged-in Chrome Extens
 
 ```text
 skills/
+  agentweb/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/agentweb.sh
+    scripts/agentweb.py
+    tests/test_agentweb.py
   frevana-auth/
     SKILL.md
     scripts/login.sh
@@ -499,6 +508,24 @@ skills/
     scripts/unity_ads.sh
     scripts/unity_ads.py
     tests/test_unity_ads.py
+  shopify-cms/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/shopify_cms.sh
+    scripts/shopify_cms.py
+    scripts/cms_common.py
+    tests/test_shopify_cms.py
+    tests/test_cms_common.py
+  webflow-cms/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
+    scripts/webflow_cms.sh
+    scripts/webflow_cms.py
+    scripts/cms_common.py
+    tests/test_webflow_cms.py
+    tests/test_cms_common.py
   wordpress-content/
     SKILL.md
     agents/openai.yaml
@@ -762,6 +789,14 @@ skills/
 7. When returning structured results, summarize them unless the user explicitly asks for raw JSON or raw HTML.
 
 ## Skill Routing
+
+### Use `agentweb`
+
+Use for Frevana AgentWeb website action discovery, execution of mapped public read actions, and saved request/billing status. Read `skills/agentweb/SKILL.md`; prefer `bash skills/agentweb/scripts/agentweb.sh discover --domain DOMAIN`, then `execute --domain DOMAIN --action ACTION --params JSON --state-file PATH` using exact discovered regional map/action/parameter names. The skill wraps only discover, execute and requests/:request_id. Requires runtime `FREVANA_TOKEN` (Bearer only); default origin is `https://ai-factory.frevana.com`, following the existing backend API skills. No Chrome, daemon, provider key or target-account login is needed.
+
+Execute saves original body/key before submission. Existing IDs resume through GET only; `status` queries once and `wait` polls pending saved records. Without an ID, stop automatic retries; explicit `recover` replays the original body/key once. Do not replace uncertain operations, bypass public-read permission checks, or infer business success/no charge from billing/HTTP status alone. REVIEW/REJECTED stop; preserve native outcomes, candidates and recovery IDs. Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/agentweb/tests -v` (all HTTP mocked).
+
+When discovery declares login/connection requirements or a request reports `AUTH_REQUIRED` / `TARGET_AUTH_UNSUPPORTED`, explain the required user authorization. Show an exact HTTPS `auth.connect_url` returned by Frevana, ask the user to authorize in their browser and wait for completion confirmation. Never derive URLs from `connect_providers`, collect login credentials, or automatically repeat execute. Current Server blocks login-required maps and strips upstream auth links; when no link is returned, explain that a backend authorization entry point is needed rather than promising the flow is available.
 
 ### Use `instagram-hashtag-search`
 
@@ -2164,6 +2199,26 @@ Important behavior:
 - Prefer structured commands over `raw-sql`.
 - Do not invent table or column names. Run `schema` first when uncertain.
 - The local `sqlite3` client is required and should support JSON output mode.
+
+### Use `shopify-cms`
+
+When credentials are missing, show `https://frevana.gitbook.io/frevana-docs/cms-integrations/shopify-cms-integration` and identify the missing values; the wrapper also returns this link as `setupGuide`. Guide users through local configuration without collecting secrets in chat.
+
+Use for Shopify CMS blog article publication/updates, blog discovery, and article inspection. Read `skills/shopify-cms/SKILL.md`; prefer `bash skills/shopify-cms/scripts/shopify_cms.sh status`, then `blogs`, then `create` or `update --id ID --data-file FILE`. This is direct Shopify Admin GraphQL using store domain, Client ID/Secret, and a selected Blog ID; no Frevana token, daemon, or Chrome Extension. The client-secret grant requires a compatible installed app/store relationship; do not promise support for arbitrary merchants. Credentials resolve per field from options, `SHOPIFY_*` environment variables, then protected local JSON configuration.
+
+Writes preview offline by default; add `--execute` when final publication is authorized. Both create/update publish immediately. Preserve supplied HTML and optional summary unchanged, use exact IDs and real discovered destinations, and refuse cross-blog moves. Check GraphQL errors and userErrors, preserve remote receipts, and reconcile uncertain mutations with get/articles rather than repeating create. Candidate URLs are not verified public links. Product/theme/page management and draft/scheduled writes are outside this skill.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/shopify-cms/tests -v` (all HTTP mocked).
+
+### Use `webflow-cms`
+
+When credentials/settings are missing, show `https://frevana.gitbook.io/frevana-docs/cms-integrations/webflow-integration` and identify the missing values; the wrapper also returns this link as `setupGuide`. Site URL is required along with Site ID and API token, including for existing configurations. Ask the user to supply the actual public HTTPS website origin and save it with `configure --site-url URL` before proceeding; do not publish while deferring links because the domain is missing. Use the guide's Collection Page/Post Body binding steps when API content does not appear publicly.
+
+Use for Webflow CMS Collection item publication/updates, Collection/schema discovery, and staged/live inspection. Read `skills/webflow-cms/SKILL.md`; prefer `bash skills/webflow-cms/scripts/webflow_cms.sh collections`, then `fields --collection-id ID`, then `create` or `update --id ID --data-file FILE`. Uses direct Data API v2 with `WEBFLOW_API_TOKEN`, site/Collection IDs and explicit RichText body mapping. No Frevana token, daemon, Chrome Extension, or App credential extraction. Per-field credential resolution supports options, environment and protected local JSON.
+
+Writes preview offline by default; authorized `--execute` uses POST/PATCH live endpoints with `isDraft=false` and `isArchived=false`. Validate membership/schema/required fields before the write, preserve supplied HTML, and send only supplied fields on updates. Do not silently select an ambiguous body field or invent reference IDs. Preserve receipts on readback failure and reconcile uncertain outcomes without replacement creation. Candidate URLs need route verification. This helper uses the default CMS locale and does not implement draft/scheduled writes, schema changes, deletion, bulk/localized publication, or whole-site deployment.
+
+Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/webflow-cms/tests -v` (all HTTP mocked).
 
 ### Use `wordpress-content`
 
@@ -4268,6 +4323,8 @@ bash skills/tiktok-profiles-collect-by-url/scripts/tiktok_task.sh
 bash skills/douyin-hot-search/scripts/douyin_task.sh
 bash skills/douyin-search/scripts/douyin_task.sh
 bash skills/wordpress-content/scripts/wordpress_rest.sh status
+bash skills/shopify-cms/scripts/shopify_cms.sh status
+bash skills/webflow-cms/scripts/webflow_cms.sh status
 bash skills/klaviyo-send-email/scripts/campaign.sh
 bash skills/klaviyo-send-email/scripts/audience.sh
 bash skills/frevana-auth/scripts/login.sh

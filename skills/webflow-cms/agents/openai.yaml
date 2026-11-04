@@ -1,0 +1,4 @@
+interface:
+  display_name: "Webflow CMS"
+  short_description: "Publish HTML to Webflow CMS collections"
+  default_prompt: "Use $webflow-cms to publish my final HTML content to a Webflow CMS Collection."

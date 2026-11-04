@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shopify CMS"
+  short_description: "Publish and update Shopify blog articles"
+  default_prompt: "Use $shopify-cms to publish my final HTML article to a selected Shopify blog."
