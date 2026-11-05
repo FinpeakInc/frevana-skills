@@ -1,0 +1,4 @@
+interface:
+  display_name: "GPT Image 2.6 Flare"
+  short_description: "Generate images and GIFs with GPT Image 2.6 Flare."
+  default_prompt: "Use $gpt-image-2-6-flare to generate or edit an image, or generate a GIF, through Frevana."

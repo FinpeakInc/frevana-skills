@@ -33,7 +33,7 @@ This repository contains reusable skills for four main workflow families:
 - OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, GPT-6, GPT-6.1 Sol, and GPT-6.1 Terra
 - OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
 - OpenRouter Decisions API workflows for structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest
-- OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, and ByteDance Seedance 2.5
+- OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, ByteDance Seedance 2.5, and HeyGen Video 1
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
 - MySQL, PostgreSQL, Redis, MongoDB, and SQLite CRUD workflows with saved local profiles; SQLite is local-file only, while the networked database skills can support direct, SSH tunnel, or remote-server access as documented per skill
 - Snowflake CLI workflows for connection management, safe SQL execution, object inspection and mutation, and specialized Snowflake workload or application operations
@@ -644,8 +644,18 @@ skills/
   gpt-image-2/
     SKILL.md
     scripts/generate_image.sh
-  gpt-image-2-5/
+  gpt-image-2.5/
     SKILL.md
+    scripts/generate_image.sh
+    tests/test_generate_image.py
+  gpt-image-2-6-flare/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_image.sh
+    tests/test_generate_image.py
+  gpt-image-2-6-sunburst/
+    SKILL.md
+    agents/openai.yaml
     scripts/generate_image.sh
     tests/test_generate_image.py
   nano-banana-2/
@@ -746,6 +756,12 @@ skills/
   wan-3.0/
     SKILL.md
     agents/openai.yaml
+    scripts/generate_video.sh
+    tests/test_generate_video.py
+  heygen-video-1/
+    SKILL.md
+    agents/openai.yaml
+    references/api.md
     scripts/generate_video.sh
     tests/test_generate_video.py
   kling-v3.0-std/
@@ -3232,7 +3248,7 @@ Fixed Frevana routing contract:
 
 Do not pass or ask for alternate image routing values.
 
-### Use `gpt-image-2-5`
+### Use `gpt-image-2.5`
 
 Route here when the user wants GPT Image 2.5 or either `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst` through Frevana.
 
@@ -3240,7 +3256,19 @@ Required input: `prompt` or `contents`.
 
 Honor an explicit model choice. Otherwise default to Flare for most generation and fast/high-volume work; choose Sunburst when the request prioritizes maximum editing precision, reference preservation, production-ready creative, polished product imagery, complex layouts, or exact detail over latency.
 
-The skill supports `n`, valid custom `size`, `quality` through `xhigh`/`max`, transparent backgrounds, output format/compression, generation `moderation`, edit `input_fidelity`, reference images/URLs/directories, and a PNG mask. Use the fixed `gpt-image-2-5` script and backend route; do not accept any other provider or model.
+The skill supports `n`, valid custom `size`, `quality` through `xhigh`/`max`, transparent backgrounds, output format/compression, generation `moderation`, edit `input_fidelity`, reference images/URLs/directories, and a PNG mask. Use the fixed `gpt-image-2.5` script and backend route; do not accept any other provider or model.
+
+### Use `gpt-image-2-6-flare` and `gpt-image-2-6-sunburst`
+
+Use these independently packaged skills for GPT Image 2.6. Honor the requested variant; default to Flare when unspecified. Each script fixes provider `openai`, its exact `gpt-image-2.6-flare` or `gpt-image-2.6-sunburst` model, and `POST /openai/image/generate`; model/provider override flags are rejected.
+
+Require `prompt` or `contents`. Preserve the GPT Image 2.5 reference-image, mask, moderation, input-fidelity, transparency, and quality options. Add optional `complexity=low|medium|high`, independent of quality; omission preserves the upstream high default. Runtime auth is `FREVANA_TOKEN` or `--token` (Bearer only), plus conditional `FREVANA_AGENT_APP_INSTANCE_ID` attribution.
+
+GIF output is text-only: `--output-format gif`, optional `--frame-count` 2–16 (server default 9), and `--frame-duration-ms` 20–2000 (server default 200). Reject references, masks, input fidelity, compression, and transparent backgrounds before downloading or submitting. Frame options require GIF. Prefer `size=auto`; do not apply old static-image pixel budgets to GIF. The provider enforces remaining model limits and preview access. SVG and markup-guided editing are unsupported.
+
+Use the synchronous helper once; it does not implement async jobs or automatic retries. Preserve JSON and `data[0].image_url`, including GIF URLs. Timeouts can leave generation/billing uncertain; if local saving fails after success, recover stdout rather than regenerate. Server support requires migration `20261105090000_add_gpt_image_2_6_models`; estimates are not charge caps.
+
+Offline validation for each skill: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/<skill-name>/tests -v` (all HTTP mocked).
 
 ### Use `nano-banana-2`
 
@@ -3691,6 +3719,14 @@ Optional input:
 - download directory or output file
 - text-only flag (`-t`, `--text-only`)
 
+### Use `heygen-video-1`
+
+Use for scene generation with native sound through Frevana using `heygen/heygen-video-1`, plus status, wait, and optional downloads. Read `skills/heygen-video-1/SKILL.md` and its API reference; use the bundled `scripts/generate_video.sh` helper. Creation requires a prompt; status/wait require an existing job ID. Requires a Frevana JWT through `FREVANA_TOKEN` / `--token`; the current Server route does not accept ordinary API keys, so the helper ignores `FREVANA_API_KEY` and rejects `--api-key`. Default endpoint: `https://ai-factory.frevana.com/openrouter/v1/videos`.
+
+Helper defaults are 5 seconds, 768p, 16:9, and `provider.options.heygen.prompt_enhancement="quality"`. OpenRouter's catalog confirms 5–30 seconds, 480p/768p/1080p/2K, six aspect ratios, first frame only, seed, and the prompt-enhancement passthrough key. OpenRouter accepts frame images plus references together, with frame images taking precedence; the helper preserves both fields and reports that precedence. Separately, it applies HeyGen-native safeguards: reference mode without a first frame and disabled/ultraquality enhancement stop at 15 seconds; 1080p/2K text/reference output requires 16:9 or 9:16; audio-only reference mode requires an image/video reference. These conditional restrictions are not published in OpenRouter's normalized schema; consult the source distinctions in the API reference.
+
+The model generates native audio without a `generateAudio` toggle. Do not add last frames, watermark, avatar/voice IDs, or direct HeyGen request fields. Use `--dry-run` for offline request inspection. Keep the returned job ID and resume through GET only after timeouts or download failures; never automatically repeat a creation POST. Offline validation: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/heygen-video-1/tests -v` (all HTTP mocked).
+
 ### Use `kling-v3.0-std`
 
 Route here when the user wants:
@@ -4077,7 +4113,7 @@ For `publish-twitter-post`, `publish-facebook-post`, and `publish-linkedin-post`
 
 ### Frevana image skills
 
-For `gpt-image-2`, `gpt-image-2-5`, `nano-banana-2`, `nano-banana-2-1`, `nano-banana-pro`, `gemini-3.1-flash-image`, and `gemini-3-pro-image`:
+For `gpt-image-2`, `gpt-image-2.5`, `gpt-image-2-6-flare`, `gpt-image-2-6-sunburst`, `nano-banana-2`, `nano-banana-2-1`, `nano-banana-pro`, `gemini-3.1-flash-image`, and `gemini-3-pro-image`:
 
 1. Confirm the user supplied `prompt` or `contents`.
 2. Prefer the repo script over ad hoc `curl`.
@@ -4270,7 +4306,8 @@ Never echo bearer tokens back to the user.
 - Preserve the raw JSON response when returning structured output.
 - Treat the first image URL as the primary asset:
   - `gpt-image-2`: `data[0].image_url`
-  - `gpt-image-2-5`: `data[0].image_url`
+  - `gpt-image-2.5`: `data[0].image_url`
+  - `gpt-image-2-6-flare` and `gpt-image-2-6-sunburst`: `data[0].image_url` (static image or GIF)
   - `nano-banana-2`: `generated_images[0].image_url`
   - `nano-banana-2-1`: `data[0].image_url` (sync and completed async jobs)
   - `nano-banana-pro`: `generated_images[0].image_url`
@@ -4331,7 +4368,9 @@ bash skills/frevana-auth/scripts/login.sh
 bash skills/frevana-space-cms/scripts/publish_file.sh
 bash skills/frevana-s3/scripts/upload_file.sh
 bash skills/gpt-image-2/scripts/generate_image.sh
-bash skills/gpt-image-2-5/scripts/generate_image.sh
+bash skills/gpt-image-2.5/scripts/generate_image.sh
+bash skills/gpt-image-2-6-flare/scripts/generate_image.sh
+bash skills/gpt-image-2-6-sunburst/scripts/generate_image.sh
 bash skills/nano-banana-2/scripts/generate_image.sh
 bash skills/nano-banana-2-1/scripts/generate_image.sh
 bash skills/nano-banana-pro/scripts/generate_image.sh

@@ -172,7 +172,9 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Email | [`instantly-send-email`](skills/instantly-send-email/SKILL.md) | Manage Instantly leads, campaigns, and replies | lead email, campaign choice, or selected email |
 | Email | [`klaviyo-send-email`](skills/klaviyo-send-email/SKILL.md) | Manage Klaviyo campaigns and audiences | campaign or audience details |
 | Image | [`gpt-image-2`](skills/gpt-image-2/SKILL.md) | Frevana-hosted image generation or editing | prompt or contents |
-| Image | [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
+| Image | [`gpt-image-2.5`](skills/gpt-image-2.5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
+| Image | [`gpt-image-2-6-flare`](skills/gpt-image-2-6-flare/SKILL.md) | GPT Image 2.6 Flare static generation, editing, and text-to-GIF | prompt or contents |
+| Image | [`gpt-image-2-6-sunburst`](skills/gpt-image-2-6-sunburst/SKILL.md) | GPT Image 2.6 Sunburst static generation, editing, and text-to-GIF | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-2-1`](skills/nano-banana-2-1/SKILL.md) | Nano Banana 2.1 generation and editing with thinking-level control | prompt or contents; optional references |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -180,6 +182,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Video | [`minimax-h3-max`](skills/minimax-h3-max/SKILL.md) | Fast video generation with MiniMax H3 Max | prompt or job ID |
 | Video | [`veo-3.1`](skills/veo-3.1/SKILL.md) | Cinematic video with synchronized audio using Google Veo 3.1 | prompt or job ID |
 | Video | [`wan-3.0`](skills/wan-3.0/SKILL.md) | Flexible video generation using Alibaba Wan 3.0 | prompt or job ID |
+| Video | [`heygen-video-1`](skills/heygen-video-1/SKILL.md) | HeyGen scene generation with native audio, first-frame or media references | prompt or job ID |
 | Video | [`kling-v3.0-std`](skills/kling-v3.0-std/SKILL.md) | Smooth video with synchronized audio using Kling Video v3.0 Standard | prompt or job ID |
 | Video | [`kling-v3.0-pro`](skills/kling-v3.0-pro/SKILL.md) | Cinematic video with enhanced visual quality using Kling Video v3.0 Pro | prompt or job ID |
 | Video | [`seedance-2-0`](skills/seedance-2-0/SKILL.md) | Character-consistent video with synchronized audio using ByteDance Seedance 2.0 | prompt or job ID |
@@ -1030,7 +1033,7 @@ Features:
 - returns a hosted image link
 - supported options: `--n`, `--size`, `--quality`, `--background` (`opaque` or `auto`; transparent backgrounds are not supported), `--output-format`, `--output-compression`
 
-### [`gpt-image-2-5`](skills/gpt-image-2-5/SKILL.md)
+### [`gpt-image-2.5`](skills/gpt-image-2.5/SKILL.md)
 
 Generate or edit Frevana-hosted images with GPT Image 2.5.
 
@@ -1040,6 +1043,37 @@ Features:
 - supports explicit or intent-based selection of precision-focused `gpt-image-2.5-sunburst`
 - supports custom valid resolutions, `xhigh`/`max` quality, transparent backgrounds, moderation, and edit input fidelity
 - accepts local files, remote URLs, directories, and PNG masks as reference inputs
+
+### GPT Image 2.6: [Flare](skills/gpt-image-2-6-flare/SKILL.md) and [Sunburst](skills/gpt-image-2-6-sunburst/SKILL.md)
+
+Two independently installable skills fix the model to `gpt-image-2.6-flare` and `gpt-image-2.6-sunburst`, respectively, using `POST /openai/image/generate`. Choose the requested variant; use Flare when no variant is specified.
+
+- Generate static images or edit local/remote references with masks, input fidelity, transparency, and quality through `xhigh`/`max`.
+- Set `--complexity low|medium|high` independently of image quality; omission preserves the upstream default of `high`.
+- Generate GIFs with `--output-format gif`, optional `--frame-count` (2–16, default 9), and `--frame-duration-ms` (20–2000, default 200).
+- GIFs require text-only input and reject references, masks, input fidelity, compression, and transparent backgrounds. Frame options require GIF output. SVG and markup-guided edits are not exposed.
+- Use `FREVANA_TOKEN` (or `--token`) for Bearer auth and optional Agent App attribution. The synchronous helper preserves response JSON and hosted image/GIF URLs; it does not automatically retry.
+
+Server rollout requires migration `20261105090000_add_gpt_image_2_6_models`; GIF generation also depends on provider preview access. Offline tests do not verify deployment or live access.
+
+```bash
+bash skills/gpt-image-2-6-flare/scripts/generate_image.sh \
+  --prompt "A paper boat bobbing on water, seamless loop" \
+  --output-format gif --frame-count 9 --frame-duration-ms 200 \
+  --size auto --quality medium --complexity medium
+
+bash skills/gpt-image-2-6-sunburst/scripts/generate_image.sh \
+  --prompt "Change only the label typography, preserving the product" \
+  --image ./refs/product.png --input-fidelity high --quality max \
+  --complexity high --output ./out/gpt-image-2-6-sunburst.json
+```
+
+Offline validation (all HTTP calls mocked):
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-image-2-6-flare/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-image-2-6-sunburst/tests -v
+```
 
 ### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
 
@@ -1121,6 +1155,16 @@ Use when:
 - you want 480p, 720p, or 1080p video clips
 - you want durations between 2 and 30 seconds
 - you want text-to-video or image-to-video with first frame guidance
+
+### [`heygen-video-1`](skills/heygen-video-1/SKILL.md)
+
+Generate scenes with native sound using `heygen/heygen-video-1` through Frevana's OpenRouter video endpoint.
+
+Use when:
+
+- you want text, first-frame, or image/video/audio reference generation at 480p, 768p, 1080p, or 2K
+- you want 5–30 second text/first-frame clips with compatible prompt enhancement, or 5–15 second reference clips
+- you want prompt-enhancement and seed controls, job polling, or downloads; this skill does not use HeyGen's avatar API
 
 ### [`kling-v3.0-std`](skills/kling-v3.0-std/SKILL.md)
 

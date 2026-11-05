@@ -1,0 +1,4 @@
+interface:
+  display_name: "HeyGen Video 1"
+  short_description: "Generate HeyGen scenes with native sound and references"
+  default_prompt: "Use $heygen-video-1 to generate a video with native audio from my prompt or reference media."
