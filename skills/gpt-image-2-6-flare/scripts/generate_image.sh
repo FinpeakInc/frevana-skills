@@ -28,6 +28,7 @@ Fixed backend:
 OpenAI image options:
   --n                    Number of images (1-10)
   --size                 auto or positive WIDTHxHEIGHT dimensions divisible by 16
+                         GIF defaults to auto; explicit values are per-frame sizes
   --quality              auto, low, medium, high, xhigh, or max
   --complexity           low, medium, or high (planning effort; upstream default high)
   --background           auto, opaque, or transparent
@@ -308,6 +309,9 @@ fi
 if [[ "$BACKGROUND" == transparent && -z "$OUTPUT_FORMAT" ]]; then
   OUTPUT_FORMAT=png
 fi
+if [[ "$OUTPUT_FORMAT" == gif && -z "$SIZE" ]]; then
+  SIZE=auto
+fi
 
 TOKEN="${TOKEN_OVERRIDE:-${FREVANA_TOKEN:-}}"
 if [[ -z "$TOKEN" ]]; then
@@ -406,6 +410,27 @@ fi
 if [[ "$HTTP_CODE" -lt 200 || "$HTTP_CODE" -ge 300 ]]; then
   echo "Frevana API request failed with HTTP $HTTP_CODE" >&2
   cat "$RESPONSE_FILE" >&2
+  if [[ "$OUTPUT_FORMAT" == gif && "$HTTP_CODE" == 400 ]]; then
+    python3 - "$RESPONSE_FILE" "$SIZE" <<'PYGIF' >&2
+import json, sys
+try:
+    payload = json.loads(open(sys.argv[1], encoding="utf-8").read())
+except (OSError, ValueError):
+    raise SystemExit(0)
+if not isinstance(payload, dict) or payload.get("code") != "invalid_value":
+    raise SystemExit(0)
+message = payload.get("message")
+if not isinstance(message, str) or "no supported sheet fits" not in message.lower():
+    raise SystemExit(0)
+print("\nOpenAI rejected its internal GIF sheet layout. Fewer frames do not guarantee a supported size.")
+if sys.argv[2] == "auto":
+    print("GIF size=auto was also rejected. Stop and preserve the original error for provider investigation.")
+else:
+    print("For a new request, use --size auto if adaptive frame dimensions meet the user's requirements; preserve the desired frame count and timing.")
+    print("Do not promise native 1024x1024 output or silently change an explicitly required native size.")
+print("No retry was made. Do not guess progressively smaller frame counts or automatically resubmit.")
+PYGIF
+  fi
   exit 1
 fi
 [[ -s "$RESPONSE_FILE" ]] || { echo "Frevana API returned an empty response body." >&2; exit 1; }

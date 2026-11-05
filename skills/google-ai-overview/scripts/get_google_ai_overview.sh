@@ -66,6 +66,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Bash 3.2 treats an empty array as unset under nounset. Fail before expanding it.
+[[ ${#PAYLOAD_ARGS[@]} -gt 0 ]] || fail "Missing required argument(s): --page-token"
+
 command -v curl >/dev/null 2>&1 || fail "curl is required but was not found in PATH."
 command -v python3 >/dev/null 2>&1 || fail "python3 is required but was not found in PATH."
 

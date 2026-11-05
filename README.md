@@ -63,7 +63,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Google Search | [`google-events-search`](skills/google-events-search/SKILL.md) | Google Events search | query |
 | Google Search | [`google-images-search`](skills/google-images-search/SKILL.md) | Google Images search and filters | query |
 | Google Search | [`google-ai-mode`](skills/google-ai-mode/SKILL.md) | Google AI Mode answers | query |
-| Google Search | [`google-ai-overview`](skills/google-ai-overview/SKILL.md) | Google AI Overview by page token | page token |
+| Google Search | [`google-ai-overview`](skills/google-ai-overview/SKILL.md) | Google AI Overview using Google Search and its continuation token when needed | query, existing Search response, or fresh `ai_overview.page_token` |
 | Google Search | [`google-autocomplete`](skills/google-autocomplete/SKILL.md) | Google Autocomplete suggestions | query prefix |
 | Google Search | [`google-short-videos-search`](skills/google-short-videos-search/SKILL.md) | Google Short Videos results | query |
 | Google Search | [`google-videos-search`](skills/google-videos-search/SKILL.md) | Google Videos results | query |
@@ -641,8 +641,19 @@ Features:
 - `q` is the only required input
 - optional `--location`, `--gl`, and `--hl`
 - optional `--num`, `--start`, `--safe`, and `--device`
+- optional `--no-cache true|false` to control search cache use; omitted by default and requires updated Server support
 - saves every successful response to `./out/google-search-<timestamp>-<pid>.json` by default
 - use `--output` to choose a specific result path
+
+### [`google-ai-overview`](skills/google-ai-overview/SKILL.md)
+
+Retrieve Google AI Overview content through a Search-to-Overview workflow. The `google-ai-overview-bundle` catalog configuration combines the existing standalone `google-ai-overview` and `google-search` skills; the bundle itself has no download or runtime scripts.
+
+- With a query, run Google Search once with `--no-cache true` and inspect its saved `ai_overview` immediately. Deploy Server cache-control support before publishing the updated skills and bundle.
+- Use embedded content directly. Only call the Overview endpoint when content is not embedded and a fresh `ai_overview.page_token` is returned; SerpApi documents a 1-minute token lifetime.
+- If no content or token is returned, report that no retrievable overview was returned for that search. Do not invent a token or automatically repeat the search.
+- A supplied fresh token can go directly to `scripts/get_google_ai_overview.sh --page-token TOKEN`. The script does not accept a keyword or run Search itself.
+- Each API request retains its own billing; bundle installation does not execute the requests or merge their charges.
 
 ### [`google-forums-search`](skills/google-forums-search/SKILL.md)
 

@@ -342,6 +342,50 @@ class GenerateImageScriptTests(unittest.TestCase):
             "model": MODEL, "prompt": "loop", "output_format": "gif", "size": "256x256",
         })
 
+    def test_gif_omitted_size_selects_auto_without_inventing_other_options(self):
+        result = self.run_script("--prompt", "loop", "--output-format", "gif")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.requests()[0]["payload"], {
+            "model": MODEL, "prompt": "loop", "output_format": "gif", "size": "auto",
+        })
+
+    def test_gif_sheet_rejections_preserve_request_and_error_without_retry(self):
+        errors = {
+            16: "Invalid size '4096x4096'. The longest edge must be less than or equal to 3840.",
+            9: "Invalid size '3072x3072'. Requested resolution exceeds the current pixel budget.",
+            4: "Invalid size '4096x2048'. The longest edge must be less than or equal to 3840.",
+        }
+        for frames, detail in errors.items():
+            with self.subTest(frames=frames):
+                error = json.dumps({"code": "invalid_value", "message":
+                    f"400 No supported sheet fits {frames} GIF frames at size '1024x1024'. {detail}"})
+                self.env.update(TEST_HTTP_CODE="400", TEST_RESPONSE=error)
+                before = len(self.requests())
+                result = self.run_script(
+                    "--prompt", "loop", "--output-format", "gif", "--size", "1024x1024",
+                    "--frame-count", str(frames), "--frame-duration-ms", "150", "--quality", "max",
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "")
+                self.assertIn(error, result.stderr)
+                self.assertIn("--size auto", result.stderr)
+                self.assertIn("Do not guess progressively smaller frame counts", result.stderr)
+                self.assertEqual(len(self.requests()), before + 1)
+                self.assertEqual(self.requests()[-1]["payload"], {
+                    "model": MODEL, "prompt": "loop", "output_format": "gif", "size": "1024x1024",
+                    "frame_count": frames, "frame_duration_ms": 150, "quality": "max",
+                })
+
+    def test_gif_auto_sheet_error_does_not_recommend_repeating_auto(self):
+        self.env.update(TEST_HTTP_CODE="400", TEST_RESPONSE=json.dumps({
+            "code": "invalid_value", "message": "No supported sheet fits 9 GIF frames at size 'auto'.",
+        }))
+        result = self.run_script("--prompt", "loop", "--output-format", "gif")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("size=auto was also rejected", result.stderr)
+        self.assertNotIn("use --size auto", result.stderr)
+        self.assertEqual(len(self.requests()), 1)
+
     def test_gif_lower_bounds_and_decimal_leading_zero_values(self):
         result = self.run_script(
             "--prompt", "loop", "--output-format", "gif", "--frame-count", "02",
@@ -407,8 +451,24 @@ class GenerateImageScriptTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("HTTP 400", result.stderr)
         self.assertIn("GIF preview unavailable", result.stderr)
+        self.assertNotIn("--size auto", result.stderr)
         self.assertEqual(len(self.requests()), 1)
         self.assertEqual(result.stdout, "")
+
+    def test_gif_guidance_is_not_added_to_unrelated_failures(self):
+        for args, status, body in (
+            (["--output-format", "png"], "400", {"code": "invalid_value", "message": "No supported sheet fits"}),
+            (["--output-format", "gif"], "400", {"code": "moderation_blocked", "message": "Request blocked"}),
+            (["--output-format", "gif"], "500", {"code": "invalid_value", "message": "No supported sheet fits"}),
+            (["--output-format", "gif"], "400", ["No supported sheet fits"]),
+        ):
+            with self.subTest(args=args, status=status, body=body):
+                self.env.update(TEST_HTTP_CODE=status, TEST_RESPONSE=json.dumps(body))
+                before = len(self.requests())
+                result = self.run_script("--prompt", "loop", *args)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("--size auto", result.stderr)
+                self.assertEqual(len(self.requests()), before + 1)
 
     def test_transport_failure_reports_uncertain_outcome_without_retry(self):
         self.env["TEST_TRANSPORT_ERROR"] = "1"

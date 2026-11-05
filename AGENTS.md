@@ -1523,8 +1523,14 @@ Optional input:
 - one-time token override
 
 The user can provide only `q`. Do not invent optional location, country, language, result count, pagination, safe-search, or device fields when the user did not provide them.
-The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Search fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, `device`, and optional boolean `no_cache`. Use `--no-cache true|false` only when requested or required by the calling workflow; omission preserves the default. Deploy Server support before relying on this flag. Do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `async`, or `zero_trace`.
 The script saves every successful response to a JSON file by default, so use that saved file for follow-up parsing instead of calling the search API again.
+
+### Use `google-ai-overview`
+
+Use for a Google AI Overview requested by query, from an existing Google Search response, or with a fresh `ai_overview.page_token`. Read `skills/google-ai-overview/SKILL.md`. The `google-ai-overview-bundle` catalog entry has `package_type="bundle"` and depends on the standalone `google-ai-overview` and `google-search` skills; bundle installation supplies both, while the skill instructions determine execution order.
+
+When no usable result or token is available, run `google-search` once with the user's query, requested options, and `--no-cache true`. This requires the updated Search helper and deployed Server support for `GoogleSearchDto.no_cache`; publish Server support before the updated skills and bundle. Use embedded `ai_overview.text_blocks` and references directly when available. Otherwise, pass the exact `ai_overview.page_token` immediately to `bash skills/google-ai-overview/scripts/get_google_ai_overview.sh --page-token TOKEN`; SerpApi documents a 1-minute token lifetime. The endpoint requires a page token, not `q`, `FREVANA_TOKEN`, a related-questions pagination token, or `serpapi_link`. If neither content nor token is returned, report the absence and stop; distinguish API errors from absent content. Do not automatically repeat failed or expired-token requests or fetch Overview during an ordinary Search-only task. Preserve raw JSON and summarize with source links by default.
 
 ### Use `google-forums-search`
 

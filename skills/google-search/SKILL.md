@@ -21,6 +21,7 @@ Inputs:
 - optional `start`
 - optional `safe`
 - optional `device`
+- optional `no_cache` (boolean; omitted by default)
 
 Output:
 
@@ -39,6 +40,7 @@ This skill validates that the response is JSON, saves it to disk, and returns it
 - optional `start`
 - optional `safe`
 - optional `device`
+- optional `no_cache`
 - `FREVANA_TOKEN` in the environment variables, or an explicit `--token` override for the current run
 - `curl`
 - `bash`
@@ -89,6 +91,16 @@ bash <skill-path>/scripts/search_google.sh \
   --device mobile
 ```
 
+### Bypass the search cache
+
+```bash
+bash <skill-path>/scripts/search_google.sh \
+  --q "coffee" \
+  --no-cache true
+```
+
+`--no-cache` accepts only `true` or `false` and sends a JSON boolean. Omit it for ordinary searches unless fresh results are requested by the user or required by the calling workflow. This requires a Frevana Server version that supports `GoogleSearchDto.no_cache`; deploy that support before relying on cache bypass.
+
 ### Save response JSON to a specific file
 
 ```bash
@@ -120,13 +132,14 @@ The script sends this payload shape, omitting optional fields that were not prov
   "num": 20,
   "start": 20,
   "safe": "off",
-  "device": "mobile"
+  "device": "mobile",
+  "no_cache": true
 }
 ```
 
 Only `q` is required. Do not invent `location`, `gl`, `hl`, `num`, `start`, `safe`, or `device` values when the user did not provide them.
 
-The Frevana endpoint schema currently exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, and `device`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `no_cache`, `async`, or `zero_trace`, and do not pass other unsupported Google Search fields unless the Frevana endpoint schema is expanded first.
+The Frevana endpoint schema exposes only `q`, `location`, `gl`, `hl`, `num`, `start`, `safe`, `device`, and `no_cache`; do not pass unsupported passthrough fields such as `engine`, `api_key`, `output`, `async`, or `zero_trace`, and do not pass other unsupported Google Search fields unless the Frevana endpoint schema is expanded first.
 
 ## Response Shape
 

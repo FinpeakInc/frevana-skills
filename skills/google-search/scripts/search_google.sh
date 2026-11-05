@@ -11,7 +11,7 @@ MAX_TIME="600"
 usage() {
   cat <<'EOF'
 Usage:
-  search_google.sh --q "coffee" [--location "Austin, Texas, United States"] [--gl us] [--hl en] [--num 10] [--start 0] [--safe active|off] [--device desktop|mobile|tablet] [--output /path/to/result.json] [--token "bearer token"]
+  search_google.sh --q "coffee" [--location "Austin, Texas, United States"] [--gl us] [--hl en] [--num 10] [--start 0] [--safe active|off] [--device desktop|mobile|tablet] [--no-cache true|false] [--output /path/to/result.json] [--token "bearer token"]
 
 Options:
   --q           Search query keyword to send
@@ -23,6 +23,7 @@ Options:
   --start       Optional pagination start offset, 0 or greater
   --safe        Optional safe search level: active or off
   --device      Optional device type: desktop, mobile, or tablet
+  --no-cache    Optional cache bypass: true or false. Omitted by default
   --output      Optional file path for saving returned JSON. Defaults to ./out/google-search-<timestamp>-<pid>.json
   --token       Optional Bearer token override for this run
   -h, --help    Show this help message
@@ -37,6 +38,7 @@ NUM=""
 START=""
 SAFE=""
 DEVICE=""
+GOOGLE_SEARCH_NO_CACHE=""
 OUTPUT_PATH=""
 TOKEN_OVERRIDE=""
 
@@ -72,6 +74,13 @@ while [[ $# -gt 0 ]]; do
       ;;
     --device)
       DEVICE="${2:-}"
+      shift 2
+      ;;
+    --no-cache)
+      case "${2:-}" in
+        true|false) GOOGLE_SEARCH_NO_CACHE="$2" ;;
+        *) echo "Invalid --no-cache value: expected true or false" >&2; exit 1 ;;
+      esac
       shift 2
       ;;
     --output)
@@ -165,7 +174,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-export Q LOCATION GL HL NUM START SAFE DEVICE
+export Q LOCATION GL HL NUM START SAFE DEVICE GOOGLE_SEARCH_NO_CACHE
 
 python3 - "$PAYLOAD_FILE" <<'PY'
 import json
@@ -178,6 +187,10 @@ payload_path = Path(sys.argv[1])
 payload = {
     "q": os.environ["Q"],
 }
+
+no_cache = os.environ["GOOGLE_SEARCH_NO_CACHE"]
+if no_cache:
+    payload["no_cache"] = no_cache == "true"
 
 string_fields = {
     "location": os.environ.get("LOCATION"),

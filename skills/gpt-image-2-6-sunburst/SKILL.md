@@ -13,7 +13,7 @@ Use the bundled script with fixed provider `openai`, model `gpt-image-2.6-sunbur
 2. For static edits, map local references to repeatable `--image`, remote HTTP(S) references to `--image-url`, and local directories to `--image-dir`. A PNG `--mask` requires at least one reference image. References retain command-line order across input types; directories expand at their argument position in byte-sorted path order. Put the image being masked first.
 3. Set `--input-fidelity high` when preserving source details is necessary; this option requires references. `--moderation` applies only to generation without references.
 4. Set `--complexity` independently of `--quality` when planning effort is requested; leave unspecified settings omitted. The server documents the upstream complexity default as `high`.
-5. For animation, use `--output-format gif` and prefer `--size auto`. Apply the GIF restrictions below before downloading references or submitting a request.
+5. For animation, use `--output-format gif --size auto` unless the user explicitly requires a native frame size. An omitted GIF size is sent as `auto`; explicit sizes are passed through unchanged. Apply the GIF restrictions and sizing guidance below before submitting.
 6. Run the script once. It uses `FREVANA_TOKEN` or a one-run `--token` override for Bearer authentication. A missing token fails immediately in non-interactive runs; `FREVANA_API_KEY` is not a fallback. When set, `FREVANA_AGENT_APP_INSTANCE_ID` is sent as `x-frevana-agent-app-instance-id` only to Frevana.
 7. Preserve the response JSON and hosted URLs. Present `data[0].image_url` as the primary image or GIF, summarize by default, and return raw JSON when requested. `--output` saves the same JSON returned on stdout.
 
@@ -39,7 +39,16 @@ The script requires Bash, curl, and Python 3. It defaults to `https://ai-factory
 
 GIF supports text-only generation. Reject all reference inputs, masks, input fidelity, compression, and transparent backgrounds for GIF. Frame options are invalid for static output. GIF input files, SVG output, and markup-guided edits are not exposed by this integration.
 
-The provider enforces model-specific pixel, edge, and GIF request-budget limits. Prefer `auto`, `1024x1024`, `1536x1024`, or `1024x1536`; do not assume GPT Image 2.5's pixel limits apply to 2.6 GIFs. GIF generation also depends on the server's provider account having preview access.
+For static images, prefer `auto`, `1024x1024`, `1536x1024`, or `1024x1536`; provider pixel and edge limits still apply. GIF generation depends on the server's provider account having preview access.
+
+## GIF sizing and recovery
+
+- `size` is the finished size of each frame. OpenAI also validates an internal frame sheet. Its layout is not a simple `width × height × frame_count` rule: a rejected 4-frame request at `1024x1024` reported candidate sheets of `4096x2048` and `2048x4096`. Do not assume fewer frames make a requested size valid or invent a universal GIF pixel cap.
+- Use `size=auto` for adaptive frame dimensions. Frevana production logs on 2026-11-05 recorded Flare succeeding with `auto`, 16 frames, 150ms, `quality=high`, and both variants with `auto`, 12 frames, 150ms, quality omitted; all returned `size=512x512`. These are observed working configurations, not a fixed resolution limit or a guarantee for every request.
+- If OpenAI returns HTTP 400 / `invalid_value` with `No supported sheet fits`, preserve its original error. Stop the 16 → 9 → 4 guessing cycle. If adaptive dimensions fit the user's requirements, use `--size auto` for the next authorized request while retaining desired frame count and timing. Do not silently replace an explicitly required native size. If `auto` also fails, stop and report the upstream error instead of probing more combinations. The script never retries automatically.
+- Report the actual returned `size` when present. `quality=max` does not guarantee 1024px frames. If the user needs a 1024×1024 deliverable and accepts resizing, reuse the generated GIF for local resizing, preserving frame timing and looping, and identify the result as upscaled. For crisp stationary brand text with only decorative motion, a high-resolution static image plus local animation is an alternative; it changes the generation method and must fit the user's request. Neither path establishes native 1024×1024 GIF support.
+
+See the [official GIF guide](https://developers.openai.com/api/docs/guides/image-generation#generate-animated-gif-output) for per-frame size semantics. Preserve original API JSON and hosted URLs when creating any separately identified local derivative.
 
 ## Examples
 
@@ -57,8 +66,8 @@ bash <skill-path>/scripts/generate_image.sh \
 
 bash <skill-path>/scripts/generate_image.sh \
   --prompt "A paper boat bobbing gently on water, seamless loop" \
-  --output-format gif --frame-count 9 --frame-duration-ms 200 \
-  --size auto --quality medium \
+  --output-format gif --frame-count 12 --frame-duration-ms 150 \
+  --size auto \
   --output ./out/gpt-image-2-6-sunburst-animation.json
 ```
 
