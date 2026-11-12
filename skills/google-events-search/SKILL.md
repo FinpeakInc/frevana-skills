@@ -1,6 +1,6 @@
 ---
 name: google-events-search
-description: Use when the user wants Google Events results through Frevana, including localized event searches, event pagination, date or event-type filters, and raw SerpAPI event result JSON.
+description: Use when the user wants Google Events results through Frevana, including localized event searches, event pagination, date or event-type filters, and raw event result JSON.
 ---
 
 # Google Events Search
@@ -9,7 +9,7 @@ Search Google Events through Frevana.
 
 ## Purpose
 
-This skill calls Frevana's `/service/google-events` endpoint and returns the SerpAPI response unchanged.
+This skill calls Frevana's `/service/google-events` endpoint and returns the API response unchanged.
 
 Required input: `q`.
 
@@ -78,7 +78,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Do not pass unsupported fields. Do not pass SerpAPI `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
+Do not pass unsupported fields. Do not pass provider-only `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
 
 ## Output
 

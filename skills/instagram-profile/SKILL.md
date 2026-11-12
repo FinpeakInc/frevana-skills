@@ -1,6 +1,6 @@
 ---
 name: instagram-profile
-description: Use when the user wants Instagram profile details through Frevana from an Instagram profile ID, including paginated profile data from SerpAPI.
+description: Use when the user wants Instagram profile details through Frevana from an Instagram profile ID, including paginated profile data.
 ---
 
 # Instagram Profile
@@ -9,7 +9,7 @@ Retrieve an Instagram profile through Frevana.
 
 ## Purpose
 
-This skill calls Frevana's `/service/instagram-profile` endpoint and returns the SerpAPI response unchanged.
+This skill calls Frevana's `/service/instagram-profile` endpoint and returns the API response unchanged.
 
 Required input: `profile_id`.
 
@@ -62,7 +62,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Do not pass unsupported fields. Do not pass SerpAPI `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
+Do not pass unsupported fields. Do not pass provider-only `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
 
 ## Output
 

@@ -1,6 +1,6 @@
 ---
 name: jev-latest
-description: Use when the user wants structured classification, boolean judgment, or ordered scoring with TypeSafe JEV Latest through Frevana's OpenRouter Decisions API.
+description: Use when the user wants structured classification, boolean judgment, or ordered scoring with TypeSafe JEV Latest through Frevana's Decisions API.
 ---
 
 # JEV Latest
@@ -34,14 +34,14 @@ Instructions, criteria entries, and state may be structured JSON where the API c
 - `--token`: Frevana Bearer token override for this run.
 - `--session-id`: observability grouping identifier, at most 256 characters.
 - `--user`: end-user identifier, at most 256 characters.
-- `--provider` or `--provider-file`: OpenRouter provider preferences JSON object.
+- `--provider` or `--provider-file`: Upstream provider preferences JSON object.
 - `--trace` or `--trace-file`: trace metadata JSON object.
 - `--agent-app-instance-id`: Frevana Agent App attribution header.
 - `--output`: save the full response JSON while still printing the selected output form.
 
 Do not invent optional provider routing, trace metadata, session IDs, or user IDs. Do not automatically retry a request: a timed-out request may still have completed and incurred cost.
 
-The Frevana server uses the OpenRouter SDK's camelCase input shape. For convenience, the script also accepts the official OpenRouter wire-format snake_case names in provider, trace, and raw-payload JSON and normalizes them before sending the request.
+The Frevana server uses a camelCase input shape. For convenience, the script also accepts the upstream wire-format snake_case names in provider, trace, and raw-payload JSON and normalizes them before sending the request.
 
 ## Examples
 

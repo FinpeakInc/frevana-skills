@@ -1,11 +1,11 @@
 ---
 name: seedance-2-5
-description: Generate next-generation audio-visual video with extended durations using ByteDance Seedance 2.5 (bytedance/seedance-2.5) via Frevana's OpenRouter video endpoint, supporting 480p and 720p resolutions, durations from 4 to 30 seconds, deterministic seed, and first/last frame controls.
+description: Generate next-generation audio-visual video with extended durations using ByteDance Seedance 2.5 (bytedance/seedance-2.5) via Frevana's video generation endpoint, supporting 480p and 720p resolutions, durations from 4 to 30 seconds, deterministic seed, and first/last frame controls.
 ---
 
 # ByteDance Seedance 2.5 Video
 
-Generate next-generation audio-visual video with extended duration through Frevana's OpenRouter video endpoint using `bytedance/seedance-2.5`.
+Generate next-generation audio-visual video with extended duration through Frevana's video generation endpoint using `bytedance/seedance-2.5`.
 
 ## Model Characteristics
 
@@ -85,4 +85,4 @@ bash skills/seedance-2-5/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate duration, resolution, and aspect ratio against the selected model.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Seedance 2.5 accepts 4-30 seconds at 480p/720p; Seedance 1.5 Pro accepts 4-12 seconds, adds 1080p and `9:21`.
-- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- Frame images and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

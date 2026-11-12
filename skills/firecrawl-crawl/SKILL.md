@@ -1,6 +1,6 @@
 ---
 name: firecrawl-crawl
-description: Crawl a website or directory recursively through Frevana Firecrawl, with path/depth filters, Sitemap-only collection, and asynchronous start, wait, status and cancellation. Use for site content; use firecrawl-map when only URLs are needed.
+description: Crawl a website or directory recursively through Frevana, with path/depth filters, Sitemap-only collection, and asynchronous start, wait, status and cancellation. Use for site content; use firecrawl-map when only URLs are needed.
 ---
 
 # Firecrawl Crawl Websites

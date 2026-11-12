@@ -1,6 +1,6 @@
 ---
 name: amazon-related-keywords
-description: Find as many related Amazon keywords as possible from one seed keyword through Frevana's DataForSEO-backed Amazon Related Keywords API, with maximum-depth defaults and automatic offset pagination. Use when the user wants Amazon keyword ideas, related search terms, semantic keyword expansion, synonym-aware Amazon keyword research, or exhaustive related-keyword results for SEO, PPC, and listing optimization.
+description: Find as many related Amazon keywords as possible from one seed keyword through Frevana's Amazon Related Keywords API, with maximum-depth defaults and automatic offset pagination. Use when the user wants Amazon keyword ideas, related search terms, semantic keyword expansion, synonym-aware Amazon keyword research, or exhaustive related-keyword results for SEO, PPC, and listing optimization.
 ---
 
 # Amazon Related Keywords
@@ -53,7 +53,7 @@ bash <skill-path>/scripts/search_amazon_related_keywords.sh \
   --language-name "English"
 ```
 
-### Use DataForSEO codes and request deeper expansion
+### Use location and language codes and request deeper expansion
 
 ```bash
 bash <skill-path>/scripts/search_amazon_related_keywords.sh \

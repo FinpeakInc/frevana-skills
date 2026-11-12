@@ -1,11 +1,11 @@
 ---
 name: kling-v3.0-std
-description: Generate smooth, high-quality video with synchronized audio using Kling Video v3.0 Standard (kwaivgi/kling-v3.0-std) via Frevana's OpenRouter video endpoint, supporting 720p resolution, durations from 3 to 15 seconds, negative prompt, cfg scale, and first/last frame controls.
+description: Generate smooth, high-quality video with synchronized audio using Kling Video v3.0 Standard (kwaivgi/kling-v3.0-std) via Frevana's video generation endpoint, supporting 720p resolution, durations from 3 to 15 seconds, negative prompt, cfg scale, and first/last frame controls.
 ---
 
 # Kling Video v3.0 Standard
 
-Generate smooth video with synchronized audio through Frevana's OpenRouter video endpoint using `kwaivgi/kling-v3.0-std`.
+Generate smooth video with synchronized audio through Frevana's video generation endpoint using `kwaivgi/kling-v3.0-std`.
 
 ## Model Characteristics
 
@@ -85,4 +85,4 @@ bash skills/kling-v3.0-std/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate that `--aspect-ratio` is one of `16:9`, `9:16`, or `1:1`.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Do not pass `--seed`; Kling Standard does not support deterministic seed.
-- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- Frame images and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

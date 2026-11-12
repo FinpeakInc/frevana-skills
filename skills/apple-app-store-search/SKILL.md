@@ -23,7 +23,7 @@ Inputs:
 - optional `category_id` (numeric genre ID, e.g. 6014 for Games)
 - optional `device` (`desktop` | `tablet` | `mobile`, default: `desktop`)
 - optional `output`; defaults to `./out/apple-app-store-search-<timestamp>-<pid>.json`
-- optional SerpAPI flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
+- optional API flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
 
 Output:
 

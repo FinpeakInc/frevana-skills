@@ -1,6 +1,6 @@
 ---
 name: firecrawl-map
-description: Discover and filter website URLs through Frevana Firecrawl Map, using keyword, subdomain and Sitemap options. Use for website URL inventories without page bodies; use firecrawl-crawl for content collection.
+description: Discover and filter website URLs through Frevana URL discovery, using keyword, subdomain and Sitemap options. Use for website URL inventories without page bodies; use firecrawl-crawl for content collection.
 ---
 
 # Firecrawl Map Website URLs

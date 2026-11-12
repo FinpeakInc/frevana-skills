@@ -1,17 +1,17 @@
 ---
 name: claude-sonnet-5.5
-description: Use when the user wants feature development, bug fixes, polished documents, and everyday agentic work with Anthropic Claude Sonnet 5.5 (anthropic/claude-sonnet-5.5) through the Frevana OpenRouter Responses API.
+description: Use when the user wants feature development, bug fixes, polished documents, and everyday agentic work with Anthropic Claude Sonnet 5.5 (anthropic/claude-sonnet-5.5) through the Frevana Responses API.
 ---
 
 # Claude Sonnet 5.5
 
-Generate responses through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`) using `anthropic/claude-sonnet-5.5`.
+Generate responses through Frevana's Responses API (`POST /openrouter/v1/responses`) using `anthropic/claude-sonnet-5.5`.
 
 Return the validated API response JSON unchanged for a single response. When automatic continuation occurs, return the stitched result with original responses under `continuation.responses`, or use `--text-only` for the joined text.
 
 ## Model Characteristics
 
-- Model ID: `anthropic/claude-sonnet-5.5` (Anthropic Claude Sonnet 5.5 via OpenRouter).
+- Model ID: `anthropic/claude-sonnet-5.5` (Anthropic Claude Sonnet 5.5 through Frevana).
 - Best suited for well-scoped feature development, bug fixes, document work, and everyday agentic workflows.
 - Use `--reasoning-effort` to trade off depth, latency, and cost; this model always uses thinking.
 
@@ -37,7 +37,7 @@ Return the validated API response JSON unchanged for a single response. When aut
 - `--instructions`: system developer instructions
 - `--instructions-file`: file path containing system instructions
 - `--reasoning-effort`: `low`, `medium`, `high`, `xhigh`, `max`
-- `--temperature`: `0.0 - 2.0` (currently available only on some OpenRouter endpoints)
+- `--temperature`: `0.0 - 2.0` (currently available only on some upstream endpoints)
 - `--max-continuations`: maximum extra requests after output truncation, `0..32`, default `8` (`0` disables automatic continuation)
 - `--max-output-tokens`: integer from 1 to 128000
 - `--session`: session name (e.g. default, chat1) saved under `~/.frevana/sessions`
@@ -47,7 +47,7 @@ Return the validated API response JSON unchanged for a single response. When aut
 - `--previous-response-id`: ID of a previous response for multi-turn conversations
 - `--chat`: start an interactive chat session in the terminal
 - `--service-tier`: `default`
-- `--tools`: JSON array string defining tools; availability varies by OpenRouter endpoint
+- `--tools`: JSON array string defining tools; availability varies by upstream endpoint
 - `--tools-file`: path to JSON file defining tools
 - `--tool-choice`: `auto` or `none` (string or JSON object); forced tool use is unsupported
 - `--raw-payload-file`: path to raw JSON request body
@@ -57,11 +57,11 @@ Return the validated API response JSON unchanged for a single response. When aut
 - `--text-only`, `-t`: output only the response text
 - `--output`: save full response JSON to path
 
-The skill accepts only default service tier. The current Frevana Server checkout rejects fast and priority tiers for Claude 5.5. OpenRouter endpoints for these models require reasoning and do not support `top_p` or forced tool choice; temperature support varies by provider. For raw payloads, use `reasoning.effort` rather than a fixed reasoning-token budget. Session files store the last response ID and model, not the conversation transcript; continuation uses OpenRouter's `previous_response_id`. Reusing a file for a different model or loading a malformed file fails with an error; use `--new-session` to intentionally start over.
+The skill accepts only default service tier. The current Frevana Server checkout rejects fast and priority tiers for Claude 5.5. Upstream endpoints for these models require reasoning and do not support `top_p` or forced tool choice; temperature support varies by provider. For raw payloads, use `reasoning.effort` rather than a fixed reasoning-token budget. Session files store the last response ID and model, not the conversation transcript; continuation uses the upstream API's `previous_response_id`. Reusing a file for a different model or loading a malformed file fails with an error; use `--new-session` to intentionally start over.
 
 ## Automatic Output Continuation
 
-When `status=incomplete` and `incomplete_details.reason=max_output_tokens`, the script carries the original input and generated assistant text into another request and asks for only the remaining content. For stateless OpenRouter calls, automatic continuation sends message history. If the initial request uses `previous_response_id` through a stateful compatible API, retain that original ID as the earlier-conversation anchor on every continuation; do not switch to the latest truncated response ID, because the current turn is already included in message history. Preserve the original `store` setting as well. Request instructions, model, token limit, tools, sampling, authentication, and attribution are preserved; this works with `--no-session`, raw non-streaming payloads, and chat mode.
+When `status=incomplete` and `incomplete_details.reason=max_output_tokens`, the script carries the original input and generated assistant text into another request and asks for only the remaining content. For stateless API calls, automatic continuation sends message history. If the initial request uses `previous_response_id` through a stateful compatible API, retain that original ID as the earlier-conversation anchor on every continuation; do not switch to the latest truncated response ID, because the current turn is already included in message history. Preserve the original `store` setting as well. Request instructions, model, token limit, tools, sampling, authentication, and attribution are preserved; this works with `--no-session`, raw non-streaming payloads, and chat mode.
 
 Completed hosted tool items (such as web search) are replayed as context and preserved in the combined output. A completed client function call still requires a corresponding `function_call_output`; the script never executes client tools automatically.
 
@@ -69,7 +69,7 @@ For raw JSON structured-output requests (`text.format` or `response_format`), th
 
 Text chunks are concatenated without inserting separators, preserving split words, JSON, and code. The stitched JSON uses the last response ID/status, combined `output_text` and message `output`, summed numeric usage fields, and `continuation.responses` containing every original response. Single responses remain unchanged. Continuation adds latency and billable requests; the model may still repeat content despite the continuation instruction.
 
-Stop after `--max-continuations` extra requests, an empty truncated text, an unfinished hosted tool or a client tool still awaiting its result, a different incomplete reason, or an API/transport error. Preserve available partial text/JSON on stdout and in `--output`, return nonzero, and do not advance the saved session after a failed chain. Raw `stream=true` is unsupported. On success, persist the final response ID using the existing session behavior. Existing explicit response-ID sessions are separate from this stateless continuation; OpenRouter currently rejects non-null `previous_response_id` unless the configured API supplies its own state support.
+Stop after `--max-continuations` extra requests, an empty truncated text, an unfinished hosted tool or a client tool still awaiting its result, a different incomplete reason, or an API/transport error. Preserve available partial text/JSON on stdout and in `--output`, return nonzero, and do not advance the saved session after a failed chain. Raw `stream=true` is unsupported. On success, persist the final response ID using the existing session behavior. Existing explicit response-ID sessions are separate from this stateless continuation; The upstream API currently rejects non-null `previous_response_id` unless the configured API supplies its own state support.
 
 ## Commands
 

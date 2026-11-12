@@ -1,11 +1,11 @@
 ---
 name: heygen-video-1
-description: Generate videos with native sound using HeyGen Video 1 (heygen/heygen-video-1) through Frevana's OpenRouter video endpoint, from text, a first-frame image, or image/video/audio references. Also check, wait for, and download existing video jobs. Use for scene generation, not HeyGen avatar or lip-sync APIs.
+description: Generate videos with native sound using HeyGen Video 1 (heygen/heygen-video-1) through Frevana's video generation endpoint, from text, a first-frame image, or image/video/audio references. Also check, wait for, and download existing video jobs. Use for scene generation, not HeyGen avatar or lip-sync APIs.
 ---
 
 # HeyGen Video 1
 
-Use `scripts/generate_video.sh` for `heygen/heygen-video-1`. It follows the existing Frevana video skills' create/status/wait workflow. Read [references/api.md](references/api.md) for the OpenRouter request contract and model metadata, Frevana field mapping, and separately identified upstream safeguards.
+Use `scripts/generate_video.sh` for `heygen/heygen-video-1`. It follows the existing Frevana video skills' create/status/wait workflow. Read [references/api.md](references/api.md) for the video API request contract and model metadata, Frevana field mapping, and separately identified upstream safeguards.
 
 ## Authentication
 
@@ -13,11 +13,11 @@ Use `scripts/generate_video.sh` for `heygen/heygen-video-1`. It follows the exis
 - Use runtime `FREVANA_TOKEN` with a Frevana JWT, or override with `--token`. The current Server video route uses `JwtAuthGuard`; ordinary Frevana API keys are not supported. The helper ignores `FREVANA_API_KEY` and rejects `--api-key` before HTTP.
 - Optional `FREVANA_AGENT_APP_INSTANCE_ID` / `--agent-app-instance-id` sets the corresponding Frevana header.
 - Default origin: `https://ai-factory.frevana.com`; override with `FREVANA_API_BASE_URL` or `--api-base-url` for an explicitly chosen environment.
-- No direct HeyGen or OpenRouter key is needed. `--dry-run` needs no credentials and makes no HTTP requests.
+- No direct provider key is needed. `--dry-run` needs no credentials and makes no HTTP requests.
 
 ## Workflow
 
-For creation, obtain a non-empty prompt or prompt file. Use a first frame to animate that image; use references to guide a new scene. OpenRouter accepts both fields together, but gives `frame_images` precedence and selects image-to-video. The helper preserves both fields and prints a note; do not promise that references control this mode. For reference mode without a first frame, the upstream safeguard requires an image or video alongside audio.
+For creation, obtain a non-empty prompt or prompt file. Use a first frame to animate that image; use references to guide a new scene. The video API accepts both fields together, but gives `frame_images` precedence and selects image-to-video. The helper preserves both fields and prints a note; do not promise that references control this mode. For reference mode without a first frame, the upstream safeguard requires an image or video alongside audio.
 
 ```bash
 # Inspect a request locally without submitting it
@@ -52,13 +52,13 @@ The example media URLs are placeholders; use user-provided or authorized assets.
 
 ## Generation options
 
-The OpenRouter catalog confirms duration/resolution/ratio enums, first-frame support, seed support, and the allowed passthrough key. Numeric reference/prompt/seed limits and mode-dependent combinations below are additional safeguards from HeyGen's native documentation, not constraints published in OpenRouter's normalized schema. The helper defaults (5 seconds, 768p, 16:9, quality enhancement) are explicit local choices.
+The upstream model catalog confirms duration/resolution/ratio enums, first-frame support, seed support, and the allowed passthrough key. Numeric reference/prompt/seed limits and mode-dependent combinations below are additional safeguards from HeyGen's native documentation, not constraints published in the normalized API schema. The helper defaults (5 seconds, 768p, 16:9, quality enhancement) are explicit local choices.
 
 | Option | Accepted values / behavior |
 | --- | --- |
 | `--prompt`, `-p` / `--prompt-file` | Prompt text or UTF-8 file; 1–32,000 characters |
 | `--model` | Only `heygen/heygen-video-1` |
-| `--duration` | OpenRouter: integer 5–30; helper default 5. Upstream safeguard: reference mode without a first frame, `disabled`, or `ultraquality` limits it to 15 |
+| `--duration` | API: integer 5–30; helper default 5. Upstream safeguard: reference mode without a first frame, `disabled`, or `ultraquality` limits it to 15 |
 | `--resolution` | `480p`, `768p` (default), `1080p`, `2K` |
 | `--aspect-ratio` | `16:9` (default), `9:16`, `1:1`, `4:3`, `3:4`, `21:9` |
 | `--size` | Explicit `WIDTHxHEIGHT`; replaces resolution and aspect ratio; provider validates compatibility |
@@ -68,9 +68,9 @@ The OpenRouter catalog confirms duration/resolution/ratio enums, first-frame sup
 | `--prompt-enhancement` | `turbo`, `quality` (helper default), `ultraquality`, `disabled` |
 | `--seed` | Integer 0–4294967295; omitted for random generation |
 
-The helper applies HeyGen's documented safeguard of `16:9` or `9:16` for text/reference generation at `1080p` or `2K`. First-frame generation follows the image shape upstream. Prefer resolution plus aspect ratio to exact pixels. Local image files are limited to 5 MiB each; the complete encoded JSON must also fit Frevana's 50 MiB body limit. Use smaller images or public HTTPS URLs when the combined Base64 payload is too large. These additional checks are not claimed to be OpenRouter catalog restrictions.
+The helper applies HeyGen's documented safeguard of `16:9` or `9:16` for text/reference generation at `1080p` or `2K`. First-frame generation follows the image shape upstream. Prefer resolution plus aspect ratio to exact pixels. Local image files are limited to 5 MiB each; the complete encoded JSON must also fit Frevana's 50 MiB body limit. Use smaller images or public HTTPS URLs when the combined Base64 payload is too large. These additional checks are not claimed to be upstream catalog restrictions.
 
-Audio is native to this model. Describe dialogue, ambience, and sound effects in the prompt. The helper omits `generateAudio` and rejects both `--audio` and `--no-audio`; neither is a supported mute control. There is no watermark option. Do not add avatar IDs, voice IDs, scripts, or direct HeyGen `mode` fields to this OpenRouter request.
+Audio is native to this model. Describe dialogue, ambience, and sound effects in the prompt. The helper omits `generateAudio` and rejects both `--audio` and `--no-audio`; neither is a supported mute control. There is no watermark option. Do not add avatar IDs, voice IDs, scripts, or direct HeyGen `mode` fields to this video generation request.
 
 ## Job handling and output
 

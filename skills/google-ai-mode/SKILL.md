@@ -9,7 +9,7 @@ Search Google AI Mode through Frevana.
 
 ## Purpose
 
-This skill calls Frevana's `/service/google-ai-mode` endpoint and returns the SerpAPI response unchanged.
+This skill calls Frevana's `/service/google-ai-mode` endpoint and returns the API response unchanged.
 
 Required input: `q`.
 
@@ -81,7 +81,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Do not pass unsupported fields. Do not pass SerpAPI `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
+Do not pass unsupported fields. Do not pass provider-only `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
 
 ## Output
 

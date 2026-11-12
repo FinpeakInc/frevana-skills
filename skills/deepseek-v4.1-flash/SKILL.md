@@ -1,17 +1,17 @@
 ---
 name: deepseek-v4.1-flash
-description: Use when the user wants high-speed, cost-effective inference, rapid code generation, data extraction, high-throughput summarization, or conversational tasks using DeepSeek V4.1 Flash (deepseek/deepseek-v4.1-flash) through the Frevana OpenRouter Responses API.
+description: Use when the user wants high-speed, cost-effective inference, rapid code generation, data extraction, high-throughput summarization, or conversational tasks using DeepSeek V4.1 Flash (deepseek/deepseek-v4.1-flash) through the Frevana Responses API.
 ---
 
 # DeepSeek V4.1 Flash
 
-Generate responses through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`) using `deepseek/deepseek-v4.1-flash`.
+Generate responses through Frevana's Responses API (`POST /openrouter/v1/responses`) using `deepseek/deepseek-v4.1-flash`.
 
 Return the validated API response JSON unchanged, or use `--text-only` when the user requests only the final text output.
 
 ## Model Characteristics
 
-- Model ID: `deepseek/deepseek-v4.1-flash` (DeepSeek V4.1 Flash model via OpenRouter).
+- Model ID: `deepseek/deepseek-v4.1-flash` (DeepSeek V4.1 Flash model through Frevana).
 - Best suited for high-speed inference, rapid code drafting, high-throughput summarization, data extraction, and cost-effective conversational workflows.
 - For frontier reasoning or complex multi-turn architecture, consider `anthropic/claude-opus-5` or `gpt-5.6-sol`. For balanced enterprise workflows, consider `anthropic/claude-sonnet-5`.
 

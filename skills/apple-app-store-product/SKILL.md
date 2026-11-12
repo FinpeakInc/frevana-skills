@@ -17,7 +17,7 @@ Inputs:
 - optional `type` (default: `app`)
 - optional `country` (default: `us`)
 - optional `output`; defaults to `./out/apple-product-<timestamp>-<pid>.json`
-- optional SerpAPI flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
+- optional API flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
 
 Output:
 

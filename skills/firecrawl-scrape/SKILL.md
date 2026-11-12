@@ -1,6 +1,6 @@
 ---
 name: firecrawl-scrape
-description: Scrape webpages and batch URL lists through Frevana Firecrawl, including structured JSON extraction and screenshots, with automatic sync/async selection and job polling. Use for known URLs; use firecrawl-crawl for recursive site collection.
+description: Scrape webpages and batch URL lists through Frevana, including structured JSON extraction and screenshots, with automatic sync/async selection and job polling. Use for known URLs; use firecrawl-crawl for recursive site collection.
 ---
 
 # Firecrawl Scrape Pages

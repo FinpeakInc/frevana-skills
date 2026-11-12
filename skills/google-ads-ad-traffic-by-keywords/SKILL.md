@@ -110,7 +110,7 @@ The script sends this payload shape:
 
 Default behavior when no dates are provided:
 
-- DataForSEO applies `next_month`
+- The API applies `next_month`
 
 Do not pass unsupported fields. Do not pass API keys, output paths, or request metadata in the payload; Frevana handles server-side details.
 

@@ -1,6 +1,6 @@
 ---
 name: youtube-video-transcript
-description: Use when the user wants a YouTube video transcript through Frevana, including transcript language, title, or transcript type selection from SerpAPI.
+description: Use when the user wants a YouTube video transcript through Frevana, including transcript language, title, or transcript type selection.
 ---
 
 # YouTube Video Transcript
@@ -9,7 +9,7 @@ Retrieve a YouTube video transcript through Frevana.
 
 ## Purpose
 
-This skill calls Frevana's `/service/youtube-video-transcript` endpoint and returns the SerpAPI response unchanged.
+This skill calls Frevana's `/service/youtube-video-transcript` endpoint and returns the API response unchanged.
 
 Required input: `v`.
 
@@ -67,7 +67,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Do not pass unsupported fields. Do not pass SerpAPI `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
+Do not pass unsupported fields. Do not pass provider-only `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
 
 ## Output
 

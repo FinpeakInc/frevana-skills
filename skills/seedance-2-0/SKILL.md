@@ -1,11 +1,11 @@
 ---
 name: seedance-2-0
-description: Generate character-consistent video with synchronized audio using ByteDance Seedance 2.0 (bytedance/seedance-2.0) via Frevana's OpenRouter video endpoint, supporting 480p, 720p, 1080p, and 4K resolutions, durations from 4 to 15 seconds, deterministic seed, and first/last frame controls.
+description: Generate character-consistent video with synchronized audio using ByteDance Seedance 2.0 (bytedance/seedance-2.0) via Frevana's video generation endpoint, supporting 480p, 720p, 1080p, and 4K resolutions, durations from 4 to 15 seconds, deterministic seed, and first/last frame controls.
 ---
 
 # ByteDance Seedance 2.0 Video
 
-Generate character-consistent video with synchronized audio through Frevana's OpenRouter video endpoint using `bytedance/seedance-2.0`.
+Generate character-consistent video with synchronized audio through Frevana's video generation endpoint using `bytedance/seedance-2.0`.
 
 ## Model Characteristics
 
@@ -87,4 +87,4 @@ bash skills/seedance-2-0/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate resolution against the selected model; Fast and Mini reject `1080p` and `4K`.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
 - Validate that `--aspect-ratio` is one of the supported 7 aspect ratios.
-- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- Frame images and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

@@ -1,17 +1,17 @@
 ---
 name: claude-sonnet-5
-description: Use when the user wants enterprise-grade reasoning, fast and reliable coding, technical analysis, and balanced production intelligence using Anthropic Claude Sonnet 5 (anthropic/claude-sonnet-5) through the Frevana OpenRouter Responses API.
+description: Use when the user wants enterprise-grade reasoning, fast and reliable coding, technical analysis, and balanced production intelligence using Anthropic Claude Sonnet 5 (anthropic/claude-sonnet-5) through the Frevana Responses API.
 ---
 
 # Claude Sonnet 5
 
-Generate responses through Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`) using `anthropic/claude-sonnet-5`.
+Generate responses through Frevana's Responses API (`POST /openrouter/v1/responses`) using `anthropic/claude-sonnet-5`.
 
 Return the validated API response JSON unchanged for a single response. When automatic continuation occurs, return the stitched result with original responses under `continuation.responses`, or use `--text-only` for the joined text.
 
 ## Model Characteristics
 
-- Model ID: `anthropic/claude-sonnet-5` (Anthropic Claude Sonnet 5 balanced model via OpenRouter).
+- Model ID: `anthropic/claude-sonnet-5` (Anthropic Claude Sonnet 5 balanced model through Frevana).
 - Best suited for production-grade coding, full-stack software development, structured data generation, complex technical workflows, and balanced reasoning at high speed.
 - For deep theoretical research or highest-order reasoning, consider `anthropic/claude-opus-5` or `gpt-5.6-sol`. For high-throughput cost-optimized tasks, consider `deepseek/deepseek-v4.1-flash`.
 
@@ -60,7 +60,7 @@ Return the validated API response JSON unchanged for a single response. When aut
 
 ## Automatic Output Continuation
 
-When `status=incomplete` and `incomplete_details.reason=max_output_tokens`, the script carries the original input and generated assistant text into another request and asks for only the remaining content. For stateless OpenRouter calls, automatic continuation sends message history. If the initial request uses `previous_response_id` through a stateful compatible API, retain that original ID as the earlier-conversation anchor on every continuation; do not switch to the latest truncated response ID, because the current turn is already included in message history. Preserve the original `store` setting as well. Request instructions, model, token limit, tools, sampling, authentication, and attribution are preserved; this works with `--no-session`, raw non-streaming payloads, and chat mode.
+When `status=incomplete` and `incomplete_details.reason=max_output_tokens`, the script carries the original input and generated assistant text into another request and asks for only the remaining content. For stateless API calls, automatic continuation sends message history. If the initial request uses `previous_response_id` through a stateful compatible API, retain that original ID as the earlier-conversation anchor on every continuation; do not switch to the latest truncated response ID, because the current turn is already included in message history. Preserve the original `store` setting as well. Request instructions, model, token limit, tools, sampling, authentication, and attribution are preserved; this works with `--no-session`, raw non-streaming payloads, and chat mode.
 
 Completed hosted tool items (such as web search) are replayed as context and preserved in the combined output. A completed client function call still requires a corresponding `function_call_output`; the script never executes client tools automatically.
 
@@ -68,7 +68,7 @@ For raw JSON structured-output requests (`text.format` or `response_format`), th
 
 Text chunks are concatenated without inserting separators, preserving split words, JSON, and code. The stitched JSON uses the last response ID/status, combined `output_text` and message `output`, summed numeric usage fields, and `continuation.responses` containing every original response. Single responses remain unchanged. Continuation adds latency and billable requests; the model may still repeat content despite the continuation instruction.
 
-Stop after `--max-continuations` extra requests, an empty truncated text, an unfinished hosted tool or a client tool still awaiting its result, a different incomplete reason, or an API/transport error. Preserve available partial text/JSON on stdout and in `--output`, return nonzero, and do not advance the saved session after a failed chain. Raw `stream=true` is unsupported. On success, persist the final response ID using the existing session behavior. Existing explicit response-ID sessions are separate from this stateless continuation; OpenRouter currently rejects non-null `previous_response_id` unless the configured API supplies its own state support.
+Stop after `--max-continuations` extra requests, an empty truncated text, an unfinished hosted tool or a client tool still awaiting its result, a different incomplete reason, or an API/transport error. Preserve available partial text/JSON on stdout and in `--output`, return nonzero, and do not advance the saved session after a failed chain. Raw `stream=true` is unsupported. On success, persist the final response ID using the existing session behavior. Existing explicit response-ID sessions are separate from this stateless continuation; The upstream API currently rejects non-null `previous_response_id` unless the configured API supplies its own state support.
 
 ## Commands
 

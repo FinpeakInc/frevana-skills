@@ -18,7 +18,7 @@ Inputs:
 - optional `page` (1-indexed, default: 1)
 - optional `sort` (`mostrecent` | `mosthelpful` | `mostfavorable` | `mostcritical`, default: `mostrecent`)
 - optional `output`; defaults to `./out/apple-reviews-<timestamp>-<pid>.json`
-- optional SerpAPI flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
+- optional API flags: `serpapi_output` (`json` | `html`), `no_cache`, `async`, `zero_trace`
 
 Output:
 

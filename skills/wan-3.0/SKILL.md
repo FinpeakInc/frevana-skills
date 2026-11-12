@@ -1,11 +1,11 @@
 ---
 name: wan-3.0
-description: Generate flexible video from text or image prompts using Alibaba Wan 3.0 (alibaba/wan-3.0) via Frevana's OpenRouter video endpoint, supporting 480p, 720p, and 1080p resolutions, durations from 2 to 30 seconds, audio, and seed control.
+description: Generate flexible video from text or image prompts using Alibaba Wan 3.0 (alibaba/wan-3.0) via Frevana's video generation endpoint, supporting 480p, 720p, and 1080p resolutions, durations from 2 to 30 seconds, audio, and seed control.
 ---
 
 # Alibaba Wan 3.0 Video
 
-Generate high-quality video from text or image prompts through Frevana's OpenRouter video endpoint using `alibaba/wan-3.0`.
+Generate high-quality video from text or image prompts through Frevana's video generation endpoint using `alibaba/wan-3.0`.
 
 ## Model Characteristics
 
@@ -82,4 +82,4 @@ bash skills/wan-3.0/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate that `--resolution` is one of `480p`, `720p`, or `1080p`.
 - Do not pass `--last-frame`; Wan 3.0 only supports `first_frame`.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
-- A first-frame image and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- A first-frame image and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

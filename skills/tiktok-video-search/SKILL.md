@@ -5,7 +5,7 @@ description: Find public TikTok videos by keyword, hashtag, or username through 
 
 # TikTok Video Search
 
-Find public TikTok videos by keyword, hashtag, or username through Frevana's asynchronous video API. Requires Bash and Python 3.9+; no browser extension, daemon, Apify SDK, or provider token is needed.
+Find public TikTok videos by keyword, hashtag, or username through Frevana's asynchronous video API. Requires Bash and Python 3.9+; no browser extension, daemon, provider SDK, or provider token is needed.
 
 ## Workflow
 

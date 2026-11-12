@@ -1,11 +1,11 @@
 ---
 name: veo-3.1
-description: Generate cinematic, production-grade video with synchronized audio using Google Veo 3.1 (google/veo-3.1) via Frevana's OpenRouter video endpoint, supporting 720p, 1080p, and 4K resolutions, durations of 4, 6, or 8 seconds, deterministic seed, and first/last frame controls.
+description: Generate cinematic, production-grade video with synchronized audio using Google Veo 3.1 (google/veo-3.1) via Frevana's video generation endpoint, supporting 720p, 1080p, and 4K resolutions, durations of 4, 6, or 8 seconds, deterministic seed, and first/last frame controls.
 ---
 
 # Google Veo 3.1 Video
 
-Generate production-grade video with synchronized audio through Frevana's OpenRouter video endpoint using `google/veo-3.1`.
+Generate production-grade video with synchronized audio through Frevana's video generation endpoint using `google/veo-3.1`.
 
 ## Model Characteristics
 
@@ -87,4 +87,4 @@ bash skills/veo-3.1/scripts/generate_video.sh status --job-id <JOB_ID>
 - Validate that `--aspect-ratio` is either `16:9` or `9:16`.
 - Validate resolution against the selected model; `google/veo-3.1-lite` accepts only `720p` or `1080p`.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
-- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- Frame images and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

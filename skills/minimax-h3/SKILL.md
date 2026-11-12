@@ -1,11 +1,11 @@
 ---
 name: minimax-h3
-description: Generate high-definition 2K videos using MiniMax H3 (minimax/hailuo-3) via Frevana's OpenRouter video endpoint, supporting text-to-video, image-to-video (first frame and last frame), native audio, and durations from 5 to 15 seconds.
+description: Generate high-definition 2K videos using MiniMax H3 (minimax/hailuo-3) via Frevana's video generation endpoint, supporting text-to-video, image-to-video (first frame and last frame), native audio, and durations from 5 to 15 seconds.
 ---
 
 # MiniMax H3 Video
 
-Generate high-definition 2K videos through Frevana's OpenRouter video endpoint using `minimax/hailuo-3`.
+Generate high-definition 2K videos through Frevana's video generation endpoint using `minimax/hailuo-3`.
 
 ## Model Characteristics
 
@@ -87,4 +87,4 @@ bash skills/minimax-h3/scripts/generate_video.sh wait --job-id <JOB_ID> --downlo
 - Do not pass `--seed`; MiniMax H3 does not support seed parameters.
 - If `--first-frame` or `--last-frame` points to a local file, the script automatically encodes it as a base64 data URI.
 - `--size` is format-checked locally but not matched against a static model allowlist; model/provider compatibility is validated by the API.
-- Frame images and input references may be sent together; OpenRouter gives `frameImages` precedence and treats the request as image-to-video.
+- Frame images and input references may be sent together; the video API gives `frameImages` precedence and treats the request as image-to-video.

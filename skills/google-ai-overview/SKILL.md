@@ -9,7 +9,7 @@ Retrieve a Google AI Overview through Frevana, using `google-search` to obtain t
 
 ## Purpose
 
-This skill calls Frevana's `/service/google-ai-overview` endpoint when Google Search requires a separate AI Overview request, and returns the SerpAPI response unchanged. It is not a keyword-search endpoint or Google AI Mode.
+This skill calls Frevana's `/service/google-ai-overview` endpoint when Google Search requires a separate AI Overview request, and returns the API response unchanged. It is not a keyword-search endpoint or Google AI Mode.
 
 The workflow accepts a search query, an existing Google Search response, or a fresh `ai_overview.page_token`. The endpoint script itself requires `page_token`; it does not accept `q` or run Google Search automatically.
 
@@ -41,13 +41,13 @@ The API base URL defaults to `https://ai-factory.frevana.com`. Set `FREVANA_API_
    - If neither content nor a token is present, report that this search returned no retrievable AI Overview and stop. Report API errors as errors, not as evidence that no overview exists.
 4. Summarize the overview and cite its returned source links by default. Preserve the original JSON and return it unchanged when requested.
 
-SerpApi documents that `ai_overview.page_token` expires within **1 minute** of the original search. Do not defer the follow-up while summarizing regular results or doing unrelated work. An older saved response is still useful for embedded content, but its token may no longer work. If a token is expired or the request fails, report the failure; do not automatically repeat searches or follow-up requests. A user-requested refresh must follow the Search cache rules below and may incur another charge.
+The upstream API documentation states that `ai_overview.page_token` expires within **1 minute** of the original search. Do not defer the follow-up while summarizing regular results or doing unrelated work. An older saved response is still useful for embedded content, but its token may no longer work. If a token is expired or the request fails, report the failure; do not automatically repeat searches or follow-up requests. A user-requested refresh must follow the Search cache rules below and may incur another charge.
 
 The workflow uses one Search request, plus one Overview request only when a token is returned without embedded content. A bundle installs these capabilities together; it does not combine their billing or guarantee that Google returns an overview. Do not call this endpoint during an ordinary Google Search task unless the user also requests AI Overview retrieval.
 
 ## Search Cache and Token Freshness
 
-- A new Search request does not necessarily return a new token. SerpApi can serve an identical query and parameters from a cache for up to **1 hour**, including an already-expired `ai_overview.page_token`. Receiving or saving the response now does not restart that token's lifetime.
+- A new Search request does not necessarily return a new token. The upstream API can serve an identical query and parameters from a cache for up to **1 hour**, including an already-expired `ai_overview.page_token`. Receiving or saving the response now does not restart that token's lifetime.
 - For every new Search in this Overview workflow, pass **`--no-cache true` to `search_google.sh`**, which sends **`no_cache: true` on the Google Search request**. Then use embedded Overview content directly, or immediately follow a returned token. Keep the user's query and requested search options unchanged. A supplied fresh token or applicable embedded content needs no extra Search request.
 - **Deployment requirement:** use the updated Search helper with a Frevana Server version that validates and forwards `GoogleSearchDto.no_cache`. Deploy Server support first, then publish the updated skills and the bundle. Older servers may silently strip this field, so HTTP success alone does not prove cache bypass. If the installed helper or target server is known not to support it, stop and explain the required update; do not silently drop the flag or claim a cached search is fresh.
 - If a token is known to be expired or the follow-up reports expiry, stop instead of automatically repeating Search or Overview requests. A user-requested refresh uses a new Search with `--no-cache true` and immediately follows any returned token.
@@ -98,7 +98,7 @@ The script sends this payload shape, omitting optional fields that were not prov
 }
 ```
 
-Do not pass unsupported fields. Do not pass SerpAPI `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
+Do not pass unsupported fields. Do not pass provider-only `engine` or `api_key`; Frevana sets those server-side. Use `--output` for local file saving.
 
 ## Output
 

@@ -1,11 +1,11 @@
 ---
 name: minimax-h3-max
-description: Generate videos with fast turnaround using MiniMax H3 Max (minimax/hailuo-3-max) via Frevana's OpenRouter video endpoint, supporting text-to-video, image-to-video (first and last frame), 768p and 480p resolutions, and durations from 5 to 15 seconds.
+description: Generate videos with fast turnaround using MiniMax H3 Max (minimax/hailuo-3-max) via Frevana's video generation endpoint, supporting text-to-video, image-to-video (first and last frame), 768p and 480p resolutions, and durations from 5 to 15 seconds.
 ---
 
 # MiniMax H3 Max Video
 
-Generate video clips with fast turnaround through Frevana's OpenRouter video endpoint using `minimax/hailuo-3-max`.
+Generate video clips with fast turnaround through Frevana's video generation endpoint using `minimax/hailuo-3-max`.
 
 ## Model Characteristics
 

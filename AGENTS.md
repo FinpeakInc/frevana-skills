@@ -41,6 +41,16 @@ This repository contains reusable skills for four main workflow families:
 
 The repository is not a general application. It is a collection of agent instructions plus a small set of helper scripts.
 
+## Skill Description Branding
+
+Apply these rules when creating, editing, or publishing skill descriptions:
+
+- Do not expose underlying supplier or routing-service brands such as OpenRouter, SerpAPI, Apify, DataForSEO, Bright Data, Socialcrawl, Ahrefs, or Firecrawl in descriptions of Frevana-backed capabilities. Use Frevana or a neutral capability description instead, for example, "Frevana's video generation API".
+- This applies to production `skill.description` and `skill.long_description`, the frontmatter `description` and descriptive prose in `SKILL.md`, and UI descriptions such as `agents/openai.yaml`'s `short_description`. Keep catalog and repository wording consistent when publishing updates.
+- Preserve model names and their publishers, such as Claude, Gemini, DeepSeek, and MiniMax, and target-platform or direct-integration names, such as Amazon, Instagram, Shopify, and SendGrid, when they identify the capability the user is choosing.
+- Preserve exact execution identifiers and supporting references: skill slugs, API routes, model IDs, parameter names, environment variables, script paths, code examples, and source-documentation URLs. Do not globally replace brand strings in these technical values or change routing contracts to satisfy a prose rule.
+- Before publishing, scan the affected descriptions for supplier-brand leakage, including long descriptions and body prose rather than only the short description. Verify that model/platform names and execution identifiers remain intact.
+
 ## Chrome Extension Skill Group
 
 The following skills are Chrome Extension skills:

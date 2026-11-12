@@ -1,4 +1,4 @@
 interface:
   display_name: "Claude Opus 5"
-  short_description: "Frontier intelligence, deep reasoning, and advanced analysis with Claude Opus 5 via OpenRouter."
+  short_description: "Frontier reasoning and analysis with Claude Opus 5 via Frevana."
   default_prompt: "Use $claude-opus-5 for deep reasoning, advanced analysis, complex writing, or frontier cognitive tasks."

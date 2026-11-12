@@ -1,6 +1,6 @@
 ---
 name: firecrawl-search
-description: Search web pages, news, images or the Alexandria tool catalog through Frevana Firecrawl Search, with optional result-page scraping, time/domain filters and categories. Use for query-based discovery; use firecrawl-scrape for known URLs.
+description: Search web pages, news, images or the Alexandria tool catalog through Frevana web search, with optional result-page scraping, time/domain filters and categories. Use for query-based discovery; use firecrawl-scrape for known URLs.
 ---
 
 # Firecrawl Search the Web
