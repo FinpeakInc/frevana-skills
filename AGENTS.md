@@ -668,6 +668,11 @@ skills/
     agents/openai.yaml
     scripts/generate_image.sh
     tests/test_generate_image.py
+  seedream-5-5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/generate_image.sh
+    tests/test_generate_image.py
   nano-banana-2/
     SKILL.md
     scripts/generate_image.sh
@@ -738,6 +743,11 @@ skills/
     scripts/create_response.sh
     tests/test_create_response.py
   claude-sonnet-5.5/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  claude-fable-5-2/
     SKILL.md
     agents/openai.yaml
     scripts/create_response.sh
@@ -3286,6 +3296,14 @@ Use the synchronous helper once; it does not implement async jobs or automatic r
 
 Offline validation for each skill: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/<skill-name>/tests -v` (all HTTP mocked).
 
+### Use `seedream-5-5`
+
+Route Seedream 5.5 image generation or reference-image editing to `skills/seedream-5-5/scripts/generate_image.sh`. The model is fixed to `bytedance-seed/seedream-5-5` and the exact server route is `POST /openrouter/v1/images`.
+
+Require `prompt` or `contents`. Optional settings are `resolution=1K|1.5K|2K`, one documented aspect ratio, an integer seed, session/user attribution, and up to 10 local, remote, or directory reference images. Output count is always one. Do not add output-format, arbitrary pixel-size, quality, background, compression, or streaming parameters.
+
+Require `FREVANA_TOKEN` / `--token` for Bearer authentication; an API key may be sent only as an optional supplemental header. Forward Agent App attribution when supplied, keep the Base64-encoded JSON body below the server's 50MB limit, preserve `data[0].image_url` and the response `x-request-id`, and never automatically retry a transport, storage, cost, or billing ambiguity. Server availability requires the matching integration and `src/sqls/2026-11-13-add-seedream-fable-seedance-flash.sql`.
+
 ### Use `nano-banana-2`
 
 Route here when the user wants:
@@ -3607,6 +3625,12 @@ Fixed Frevana routing contract:
 ### Use `claude-opus-5.5` and `claude-sonnet-5.5`
 
 Route requests for Claude Opus 5.5 (`anthropic/claude-opus-5.5`) to `claude-opus-5.5`, and requests for Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) to `claude-sonnet-5.5`. Both use Frevana's OpenRouter Responses API (`POST /openrouter/v1/responses`). Read the selected skill's `SKILL.md` for inputs and run its own `scripts/create_response.sh`. Both models require reasoning, reject forced tool choice, and do not list `top_p` on OpenRouter endpoints. The scripts expose the default service tier; Frevana rejects fast/priority tiers. Forward `x-frevana-agent-app-instance-id` when an instance ID is provided.
+
+### Use `claude-fable-5-2`
+
+Route Claude Fable 5.2 (`anthropic/claude-fable-5.2`) to `skills/claude-fable-5-2/scripts/create_response.sh` and the exact Frevana route `POST /openrouter/v1/responses`. Use it for frontier reasoning, long-context analysis, coding, structured output, and tool-enabled work.
+
+Require input, an input file, or a raw payload, plus `FREVANA_TOKEN` / `--token` for Bearer authentication; an API key may be sent only as a supplemental header. The helper supports `low|medium|high|xhigh|max` reasoning effort, up to 128000 output tokens, tools, `auto|none` tool choice, response-ID sessions, raw multimodal request bodies, and text-only output. Validate these constraints against the final payload, including raw JSON. It rejects `temperature`, `top_p`, streaming, alternate models, and non-default service tiers. Preserve incomplete results, emit successful API output before optional local persistence, and do not automatically retry or continue them. Forward Agent App attribution when supplied.
 
 ### Use `jev-latest`
 
@@ -4324,6 +4348,7 @@ Never echo bearer tokens back to the user.
   - `gpt-image-2`: `data[0].image_url`
   - `gpt-image-2.5`: `data[0].image_url`
   - `gpt-image-2-6-flare` and `gpt-image-2-6-sunburst`: `data[0].image_url` (static image or GIF)
+  - `seedream-5-5`: `data[0].image_url`
   - `nano-banana-2`: `generated_images[0].image_url`
   - `nano-banana-2-1`: `data[0].image_url` (sync and completed async jobs)
   - `nano-banana-pro`: `generated_images[0].image_url`
@@ -4784,7 +4809,7 @@ bash skills/gpt-6.1-terra/scripts/create_response.sh \
   --text-only
 ```
 
-### OpenRouter Responses (DeepSeek V4.1 Flash, Claude Opus 5/5.5, Claude Sonnet 5/5.5)
+### Responses (DeepSeek V4.1 Flash, Claude Opus 5/5.5, Claude Sonnet 5/5.5, Claude Fable 5.2)
 
 ```bash
 # DeepSeek V4.1 Flash high-speed response
@@ -4812,6 +4837,12 @@ bash skills/claude-opus-5.5/scripts/create_response.sh \
 # Claude Sonnet 5.5 feature development response
 bash skills/claude-sonnet-5.5/scripts/create_response.sh \
   --input "Plan and implement a focused feature with tests" \
+  --text-only
+
+# Claude Fable 5.2 frontier reasoning response
+bash skills/claude-fable-5-2/scripts/create_response.sh \
+  --input "Analyze this long technical record and identify hidden failure modes" \
+  --reasoning-effort high \
   --text-only
 ```
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Fable 5.2"
+  short_description: "Handle frontier reasoning and long-context work with Claude Fable 5.2."
+  default_prompt: "Use $claude-fable-5-2 to analyze this problem deeply and explain the result."

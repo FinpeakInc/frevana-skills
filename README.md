@@ -175,6 +175,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Image | [`gpt-image-2.5`](skills/gpt-image-2.5/SKILL.md) | Frevana-hosted GPT Image 2.5 generation or editing with Flare/Sunburst selection | prompt or contents |
 | Image | [`gpt-image-2-6-flare`](skills/gpt-image-2-6-flare/SKILL.md) | GPT Image 2.6 Flare static generation, editing, and text-to-GIF | prompt or contents |
 | Image | [`gpt-image-2-6-sunburst`](skills/gpt-image-2-6-sunburst/SKILL.md) | GPT Image 2.6 Sunburst static generation, editing, and text-to-GIF | prompt or contents |
+| Image | [`seedream-5-5`](skills/seedream-5-5/SKILL.md) | Seedream 5.5 generation and reference-image editing through Frevana | prompt or contents |
 | Image | [`nano-banana-2`](skills/nano-banana-2/SKILL.md) | Frevana-hosted image generation with Nano Banana 2 | prompt or contents |
 | Image | [`nano-banana-2-1`](skills/nano-banana-2-1/SKILL.md) | Nano Banana 2.1 generation and editing with thinking-level control | prompt or contents; optional references |
 | Image | [`nano-banana-pro`](skills/nano-banana-pro/SKILL.md) | Frevana-hosted image generation with Nano Banana Pro | prompt or contents |
@@ -193,6 +194,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Text | [`claude-sonnet-5`](skills/claude-sonnet-5/SKILL.md) | Balanced enterprise reasoning and coding with Claude Sonnet 5 via OpenRouter | prompt or input file |
 | Text | [`claude-opus-5.5`](skills/claude-opus-5.5/SKILL.md) | Demanding reasoning and long-horizon coding with Claude Opus 5.5 via OpenRouter | prompt or input file |
 | Text | [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md) | Feature development and everyday agentic work with Claude Sonnet 5.5 via OpenRouter | prompt or input file |
+| Text | [`claude-fable-5-2`](skills/claude-fable-5-2/SKILL.md) | Frontier reasoning and long-context work with Claude Fable 5.2 through Frevana | prompt or input file |
 | Text | [`gpt-5.6-sol`](skills/gpt-5.6-sol/SKILL.md) | Frontier reasoning, coding, and scientific research with GPT-5.6 Sol | prompt or input file |
 | Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
 | Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
@@ -1086,6 +1088,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-image-2-6-f
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-image-2-6-sunburst/tests -v
 ```
 
+### [`seedream-5-5`](skills/seedream-5-5/SKILL.md)
+
+Generate or edit one image with Seedream 5.5 through Frevana. The fixed model supports `1K`, `1.5K`, and `2K`, documented aspect ratios, an optional integer seed, and up to 10 PNG/JPEG/WebP reference images. The synchronous helper preserves hosted `data[0].image_url`, sends local references as data URLs, does not download remote references, and never retries an uncertain paid request automatically.
+
 ### [`nano-banana-2`](skills/nano-banana-2/SKILL.md)
 
 Generate Frevana-hosted images with Nano Banana 2.
@@ -1287,6 +1293,10 @@ Generate responses with Anthropic Claude Opus 5.5 (`anthropic/claude-opus-5.5`) 
 ### [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md)
 
 Generate responses with Anthropic Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) via Frevana's OpenRouter Responses API. Use it for feature development, bug fixes, documents, and everyday agentic work. It supports response-ID sessions, tools, `low` through `max` reasoning effort, and text-only output. Forced tool choice and `top_p` are unavailable; this skill exposes the default service tier.
+
+### [`claude-fable-5-2`](skills/claude-fable-5-2/SKILL.md)
+
+Generate responses with Anthropic Claude Fable 5.2 (`anthropic/claude-fable-5.2`) through Frevana. Use it for frontier reasoning, long-context analysis, coding, structured output, and tool-enabled work. The helper supports response-ID sessions, `low` through `max` reasoning effort, raw multimodal request bodies, tools, and text-only output; it rejects undeclared sampling controls and does not automatically retry or continue incomplete responses.
 
 ### [`jev-latest`](skills/jev-latest/SKILL.md)
 

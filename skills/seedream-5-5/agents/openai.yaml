@@ -1,0 +1,4 @@
+interface:
+  display_name: "Seedream 5.5"
+  short_description: "Generate and edit images with Seedream 5.5 through Frevana."
+  default_prompt: "Use $seedream-5-5 to generate an image from my description."
