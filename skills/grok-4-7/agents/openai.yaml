@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grok 4.7"
+  short_description: "Reason, code, and search the web with Grok 4.7."
+  default_prompt: "Use $grok-4-7 with web search to research a topic and cite sources."

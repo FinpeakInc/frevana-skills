@@ -195,6 +195,8 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 | Text | [`claude-opus-5.5`](skills/claude-opus-5.5/SKILL.md) | Demanding reasoning and long-horizon coding with Claude Opus 5.5 via OpenRouter | prompt or input file |
 | Text | [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md) | Feature development and everyday agentic work with Claude Sonnet 5.5 via OpenRouter | prompt or input file |
 | Text | [`claude-fable-5-2`](skills/claude-fable-5-2/SKILL.md) | Frontier reasoning and long-context work with Claude Fable 5.2 through Frevana | prompt or input file |
+| Text | [`muse-wonder`](skills/muse-wonder/SKILL.md) | Meta Muse Wonder reasoning and research through Frevana, with optional web search | prompt or input file |
+| Text | [`grok-4-7`](skills/grok-4-7/SKILL.md) | xAI Grok 4.7 coding and research through Frevana, with optional web search | prompt or input file |
 | Text | [`gpt-5.6-sol`](skills/gpt-5.6-sol/SKILL.md) | Frontier reasoning, coding, and scientific research with GPT-5.6 Sol | prompt or input file |
 | Text | [`gpt-5.6-luna`](skills/gpt-5.6-luna/SKILL.md) | High-speed generation and cost-effective summarization with GPT-5.6 Luna | prompt or input file |
 | Text | [`gpt-5.6-terra`](skills/gpt-5.6-terra/SKILL.md) | Balanced reasoning and production workflows with GPT-5.6 Terra | prompt or input file |
@@ -1293,6 +1295,23 @@ Generate responses with Anthropic Claude Opus 5.5 (`anthropic/claude-opus-5.5`) 
 ### [`claude-sonnet-5.5`](skills/claude-sonnet-5.5/SKILL.md)
 
 Generate responses with Anthropic Claude Sonnet 5.5 (`anthropic/claude-sonnet-5.5`) via Frevana's OpenRouter Responses API. Use it for feature development, bug fixes, documents, and everyday agentic work. It supports response-ID sessions, tools, `low` through `max` reasoning effort, and text-only output. Forced tool choice and `top_p` are unavailable; this skill exposes the default service tier.
+
+### [`muse-wonder`](skills/muse-wonder/SKILL.md) and [`grok-4-7`](skills/grok-4-7/SKILL.md)
+
+Generate responses with Meta Muse Wonder (`meta/muse-wonder`) or xAI Grok 4.7 (`x-ai/grok-4.7`) through Frevana. Each skill provides its own script, local-history sessions, interactive chat, reasoning controls, tools, raw payloads, full JSON and text-only output. Bearer authentication is required.
+
+Search is disabled by default. Enable it according to the user's need for browsing, current information, or additional verification. Explicit instructions not to browse take precedence; omit search flags and remove search configuration from custom request payloads for those requests.
+
+Add `--web-search` to enable Frevana web search with automatic engine selection, preferring native search when available. `--web-search-engine native` also enables search and prefers the native engine; fallback remains possible. Leave endpoint selection to Frevana. Each skill documents search configuration, SDK compatibility, citations and search charges. The deprecated web-plugin form remains available through explicit `--plugins` input. Model IDs stay fixed; do not append `:online`.
+
+```bash
+bash skills/muse-wonder/scripts/create_response.sh \
+  --input "Search for recent battery recycling research and cite sources." \
+  --web-search --output ./out/muse-wonder-search.json
+bash skills/grok-4-7/scripts/create_response.sh \
+  --input "Search for recent battery recycling research and cite sources." \
+  --web-search --output ./out/grok-4-7-search.json
+```
 
 ### [`claude-fable-5-2`](skills/claude-fable-5-2/SKILL.md)
 

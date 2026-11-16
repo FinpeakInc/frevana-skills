@@ -1,0 +1,4 @@
+interface:
+  display_name: "Muse Wonder"
+  short_description: "Reason, code, and search the web with Muse Wonder."
+  default_prompt: "Use $muse-wonder with web search to research a topic and cite sources."

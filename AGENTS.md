@@ -32,6 +32,7 @@ This repository contains reusable skills for four main workflow families:
 - Frevana AI Factory API workflows for image generation and HTML generation
 - OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, GPT-6, GPT-6.1 Sol, and GPT-6.1 Terra
 - OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
+- Frevana Responses API workflows for Meta Muse Wonder and xAI Grok 4.7, including optional web search and local-history conversations
 - OpenRouter Decisions API workflows for structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest
 - OpenRouter Video generation workflows across MiniMax H3, MiniMax H3 Max, Google Veo 3.1, Alibaba Wan 3.0, Kling Video v3.0 Standard, Kling Video v3.0 Pro, ByteDance Seedance 2.0, ByteDance Seedance 2.5, and HeyGen Video 1
 - Seedance 2.0 API workflows for text-to-video, image-to-video, reference-to-video, task polling, and result downloads
@@ -48,7 +49,8 @@ Apply these rules when creating, editing, or publishing skill descriptions:
 - Do not expose underlying supplier or routing-service brands such as OpenRouter, SerpAPI, Apify, DataForSEO, Bright Data, Socialcrawl, Ahrefs, or Firecrawl in descriptions of Frevana-backed capabilities. Use Frevana or a neutral capability description instead, for example, "Frevana's video generation API".
 - This applies to production `skill.description` and `skill.long_description`, the frontmatter `description` and descriptive prose in `SKILL.md`, and UI descriptions such as `agents/openai.yaml`'s `short_description`. Keep catalog and repository wording consistent when publishing updates.
 - Preserve model names and their publishers, such as Claude, Gemini, DeepSeek, and MiniMax, and target-platform or direct-integration names, such as Amazon, Instagram, Shopify, and SendGrid, when they identify the capability the user is choosing.
-- Preserve exact execution identifiers and supporting references: skill slugs, API routes, model IDs, parameter names, environment variables, script paths, code examples, and source-documentation URLs. Do not globally replace brand strings in these technical values or change routing contracts to satisfy a prose rule.
+- Preserve exact execution identifiers: skill slugs, API routes, model IDs, parameter names, environment variables, script paths, and code examples. Do not globally replace brand strings in these technical values or change routing contracts to satisfy a prose rule.
+- Keep guidance for Frevana-backed skills self-contained in `SKILL.md` or bundled local reference files. Do not include third-party documentation links in reference sections or reference files. Preserve Frevana API URLs and external URLs needed as execution inputs; these are distinct from documentation references.
 - Before publishing, scan the affected descriptions for supplier-brand leakage, including long descriptions and body prose rather than only the short description. Verify that model/platform names and execution identifiers remain intact.
 
 ## Chrome Extension Skill Group
@@ -723,6 +725,16 @@ skills/
     scripts/create_response.sh
     tests/test_create_response.py
   deepseek-v4.1-flash/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  muse-wonder/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  grok-4-7/
     SKILL.md
     agents/openai.yaml
     scripts/create_response.sh
@@ -3631,6 +3643,29 @@ Route requests for Claude Opus 5.5 (`anthropic/claude-opus-5.5`) to `claude-opus
 Route Claude Fable 5.2 (`anthropic/claude-fable-5.2`) to `skills/claude-fable-5-2/scripts/create_response.sh` and the exact Frevana route `POST /openrouter/v1/responses`. Use it for frontier reasoning, long-context analysis, coding, structured output, and tool-enabled work.
 
 Require input, an input file, or a raw payload, plus `FREVANA_TOKEN` / `--token` for Bearer authentication; an API key may be sent only as a supplemental header. The helper supports `low|medium|high|xhigh|max` reasoning effort, up to 128000 output tokens, tools, `auto|none` tool choice, response-ID sessions, raw multimodal request bodies, and text-only output. Validate these constraints against the final payload, including raw JSON. It rejects `temperature`, `top_p`, streaming, alternate models, and non-default service tiers. Preserve incomplete results, emit successful API output before optional local persistence, and do not automatically retry or continue them. Forward Agent App attribution when supplied.
+
+### Use `muse-wonder` and `grok-4-7`
+
+Route Meta Muse Wonder (`meta/muse-wonder`) requests to `muse-wonder`, and xAI Grok 4.7 (`x-ai/grok-4.7`) requests to `grok-4-7`. Read the selected skill's `SKILL.md` and use its own `scripts/create_response.sh` through `POST https://ai-factory.frevana.com/openrouter/v1/responses`. Require `FREVANA_TOKEN` / `--token`; API keys are supplemental only. Forward Agent App attribution when supplied.
+
+Choose search from the current user's task: enable it for requested browsing, current information, or verification requiring sources beyond the supplied material; leave it disabled when available context is sufficient. Explicit no-internet/no-search instructions take precedence. In that case omit both search flags, remove search tools and the legacy web plugin from the effective CLI/raw payload, preserve unrelated tools, and do not retrieve outside web content through another tool. State any resulting verification limitation. A search-enabled interactive chat must be restarted without its inherited search configuration before a no-search turn.
+
+Enable web search with `--web-search`, which adds `tools=[{"type":"openrouter:web_search"}]` while preserving the fixed model ID and function tools. `--web-search-engine native` also enables search and sets `tools[].parameters.engine="native"`; native availability depends on provider routing and the gateway may fall back to another engine. Use `--tools` / `--tools-file` or a raw payload for custom server-tool parameters. The older web plugin is deprecated; `--plugins` / `--plugins-file` remain explicit compatibility options and cannot combine a legacy web plugin with the new search switches. These HTTP extensions may be absent from standard compatible Node.js SDK types, although the current Frevana Server transport preserves them. Do not add `:online`, assume a prompt alone enables search, or claim search occurred without returned evidence. Preserve citation annotations and accounting metadata; search may incur additional charges.
+
+Muse Wonder supports `minimal|low|medium|high|xhigh|max` reasoning effort (default medium), up to 943718 output tokens, and 1048576 context tokens. Grok 4.7 supports `low|medium|high|xhigh` (default high), up to 450000 output tokens, and 500000 context tokens. Both require reasoning, use Frevana's 8192-token output default when omitted, and expose only the default service tier. Output limits include reasoning and are constrained by remaining context. Validate effective raw/CLI requests, including fixed model identity, reasoning, sampling, tools and plugin arrays.
+
+Use full local-history sessions with `store:false`; reject non-null `previous_response_id` and stored conversations. Preserve returned reasoning/tool items and instructions in model/origin-bound session files. Do not automatically retry, execute client tools, or continue incomplete responses. Preserve incomplete JSON and inspect its status before claiming completion. Search options must be passed again on later non-chat invocations. Persistence failures after a valid response report a recovery file instead of silently losing the turn.
+
+Live checks through Frevana on 2026-11-16 verified default/auto and native-option requests for both models without provider restrictions. Search output can use `openrouter:web_search` (observed for Muse) or `web_search_call` (observed for Grok). Treat `url_citation` entries with `uncited:true` and zero-length offsets as source attachments, not positioned inline citations. Muse returned source attachments without valid inline positions; Grok returned two valid inline citations. Read actual search usage rather than assuming request limits cap native queries.
+
+Normal use and tests should leave `provider` unset and let Frevana select available endpoints, unless the user explicitly requests endpoint routing. An explicit route may fail under data-policy constraints while other routes remain available. A successful native-option request does not by itself prove native execution.
+
+Offline validation (mocked transport, no paid requests):
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/muse-wonder/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/grok-4-7/tests -v
+```
 
 ### Use `jev-latest`
 
