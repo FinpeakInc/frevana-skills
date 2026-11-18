@@ -30,7 +30,7 @@ This repository contains reusable skills for four main workflow families:
 - Instantly API V2 lead, campaign, and email workflows for campaign enrollment and replies
 - Klaviyo Campaign API workflows for campaign and audience management
 - Frevana AI Factory API workflows for image generation and HTML generation
-- OpenAI Responses API workflows for advanced reasoning, autonomous coding, and next-generation intelligence across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, GPT-6, GPT-6.1 Sol, and GPT-6.1 Terra
+- OpenAI Responses API workflows for advanced reasoning and coding across GPT-5.6 Sol, GPT-5.6 Luna, GPT-5.6 Terra, GPT-6, GPT-6.1 Sol, GPT-6.1 Terra, GPT-6.2 Sol, and GPT-6.2 Astra
 - OpenRouter Responses API workflows for high-speed inference with DeepSeek V4.1 Flash, frontier intelligence with Claude Opus 5, and balanced enterprise reasoning with Claude Sonnet 5
 - Frevana Responses API workflows for Meta Muse Wonder and xAI Grok 4.7, including optional web search and local-history conversations
 - OpenRouter Decisions API workflows for structured choice, boolean-like, and ordered-score evaluations with TypeSafe JEV Latest
@@ -720,6 +720,16 @@ skills/
     scripts/create_response.sh
     tests/test_create_response.py
   gpt-6.1-terra/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-6-2-sol/
+    SKILL.md
+    agents/openai.yaml
+    scripts/create_response.sh
+    tests/test_create_response.py
+  gpt-6-2-astra/
     SKILL.md
     agents/openai.yaml
     scripts/create_response.sh
@@ -3551,6 +3561,19 @@ Offline validation (mocked transport, no paid requests):
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6.1-sol/tests -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6.1-terra/tests -v
+```
+
+### Use `gpt-6-2-sol` and `gpt-6-2-astra`
+
+Route GPT-6.2 Sol to `gpt-6-2-sol` for everyday coding, debugging, and tool-assisted work. Route GPT-6.2 Astra to `gpt-6-2-astra` for demanding software engineering and deep analysis. Read the selected skill's `SKILL.md` and run its bundled `scripts/create_response.sh`.
+
+Both use `POST https://ai-factory.frevana.com/openai/v1/responses` and fix the model to the corresponding API ID, `gpt-6.2-sol` or `gpt-6.2-astra`. Set the `FREVANA_TOKEN` environment variable for Bearer authentication. The helpers preserve Agent App attribution, force `store:false`, and use local session files to replay earlier inputs, outputs, encrypted reasoning, and tool items.
+
+Both accept `low`, `medium`, `high`, `xhigh`, and `max` reasoning effort and an explicit output limit of 16 to 128000 tokens. The catalog default is 8192. Omit sampling and log-probability options. Each skill's offline suite mocks HTTP.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6-2-sol/tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s skills/gpt-6-2-astra/tests -v
 ```
 
 ### Use `deepseek-v4.1-flash`
