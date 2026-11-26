@@ -1,0 +1,16 @@
+{
+  "campaign_name": "Trail shoes launch",
+  "ad_group_name": "Weekend trail runners",
+  "ad_name": "Trail shoes product card",
+  "currency": "USD",
+  "daily_budget": "50.00",
+  "countries": ["US"],
+  "objective": "clicks",
+  "bid_strategy": "maximize_clicks",
+  "context_hints": ["Choosing shoes for a rocky trail"],
+  "title": "Find your next trail shoe",
+  "body": "Explore our trail running collection.",
+  "landing_page_url": "https://example.com/trail-shoes",
+  "image_url": "https://example.com/assets/trail-shoe.png",
+  "final_status": "paused"
+}

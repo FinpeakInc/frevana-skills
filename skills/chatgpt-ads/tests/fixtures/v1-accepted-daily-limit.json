@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "operation_id": "523dd4d5609f4dbcac4f40466b498bd0",
+  "proposal": {
+    "kind": "operation",
+    "account": {
+      "id": "acct",
+      "name": "Fixture",
+      "currency_code": "USD",
+      "timezone": "UTC",
+      "status": "active"
+    },
+    "request": {
+      "action": "set-ad-account-daily-spend-limit",
+      "params": {},
+      "query": {},
+      "body": {
+        "window_id": "rule1",
+        "amount_micros": 200,
+        "expected_revision": 3
+      },
+      "private_body": null,
+      "file": null
+    },
+    "before": {
+      "revision": 3,
+      "limits": [],
+      "daily_limit": {},
+      "daily_limits": [
+        {
+          "window_id": "rule1",
+          "amount_micros": 100
+        }
+      ]
+    },
+    "secret_output": null
+  },
+  "steps": {
+    "dispatch": "pending",
+    "accepted": {
+      "spend_limits": {
+        "data": [],
+        "daily_limits": [
+          {
+            "window_id": "rule1",
+            "amount_micros": 200
+          }
+        ],
+        "revision": 4
+      }
+    }
+  },
+  "result": null,
+  "confirmation": "a8e45dcf809ec8244716c521828f390f2d5e1bb11e3ffa6abe50a9181258437b"
+}

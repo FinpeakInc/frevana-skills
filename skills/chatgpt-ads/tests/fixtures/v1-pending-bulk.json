@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "operation_id": "efe0ef20e7374fc18a12982790e53cf9",
+  "proposal": {
+    "kind": "operation",
+    "account": {
+      "id": "acct",
+      "name": "Fixture",
+      "currency_code": "USD",
+      "timezone": "UTC",
+      "status": "active"
+    },
+    "request": {
+      "action": "create-bulk-job",
+      "params": {},
+      "query": {},
+      "body": {
+        "operations": [
+          {
+            "operation_id": "update",
+            "type": "campaign.update",
+            "target_resource_id": "c1",
+            "input": {
+              "name": "New campaign"
+            }
+          }
+        ]
+      },
+      "private_body": null,
+      "file": null
+    },
+    "before": {
+      "/campaigns/c1": {
+        "id": "c1",
+        "name": "Campaign",
+        "status": "active",
+        "budget": {
+          "daily_spend_limit_micros": 50000000
+        }
+      }
+    },
+    "secret_output": null
+  },
+  "steps": {
+    "dispatch": "pending"
+  },
+  "result": null,
+  "confirmation": "62ac894b09dac33932d88befeb362fb87e0357f2876d330bc422fa48491b6ead"
+}

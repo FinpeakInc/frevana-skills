@@ -16,6 +16,7 @@ This repository contains reusable skills for four main workflow families:
 - Amazon, Apple App Store, eBay, Home Depot, and Walmart data lookups through Frevana-backed HTTP APIs
 - AppsFlyer Master API freshness and KPI reports plus Aggregate Pull API partner, daily, and geo reports
 - Moloco Ads API authentication, analytics, report and log exports, and guarded campaign-resource management
+- ChatGPT Ads advertiser account management, approved campaign and bulk mutations, targeting, feeds, conversion tracking, and reporting
 - Google Ads Transparency Center, Google Ads Search, Google Ads keyword search volume, Google Ads keyword suggestions, Google Ads ad traffic forecasts, Backlinks API lookups, Google Search, Google Forums, Google Patents, Google News, Google Related Questions, Google Events, Google Images, Google AI Mode, Google AI Overview, Google Autocomplete, Google Short Videos, Google Videos, Google Maps Reviews, Google Local Services, Google Shopping, Google Shopping Light, Google Immersive Product, Google Trends, Bing Search, YouTube Search, YouTube Video, YouTube Transcript, Instagram Profile, Facebook Profile, and Reddit Search lookups
 - Chrome Extension local Frevana workflows, including URL scraping, AI platform asks, Amazon page research, social publishing, and X/Twitter topic search
 - SendGrid Mail Send API workflows for transactional email sending and SendGrid Stats API workflows for global email statistics
@@ -156,6 +157,34 @@ skills/
     scripts/appsflyer_reporting.sh
     scripts/appsflyer_reporting.py
     tests/test_appsflyer_reporting.py
+  chatgpt-ads/
+    SKILL.md
+    agents/openai.yaml
+    assets/draft-card.html
+    references/create.md
+    references/manage.md
+    references/analyze.md
+    references/diagnose.md
+    references/draft.json
+    references/coverage.md
+    references/advertiser-operations.md
+    references/operations.json
+    scripts/chatgpt_ads.sh
+    scripts/chatgpt_ads.py
+    scripts/ads_api.py
+    scripts/ads_accounts.py
+    scripts/ads_bulk.py
+    scripts/ads_delivery.py
+    scripts/ads_draft.py
+    scripts/ads_workflow.py
+    scripts/ads_operations.py
+    scripts/ads_changes.py
+    scripts/ads_files.py
+    tests/ads_test_support.py
+    tests/test_ads_accounts.py
+    tests/test_ads_delivery.py
+    tests/test_chatgpt_ads.py
+    tests/test_advertiser_operations.py
   moloco-ads/
     SKILL.md
     agents/openai.yaml
@@ -1516,6 +1545,10 @@ Important behavior:
 - Treat `standard`, `facebook`, and `organic` as the verified Pull categories; do not send the documentation-inconsistent `twitter` category without a verified API update.
 - If `401` occurs, mention that AppsFlyer revoked API V2 tokens generated before March 10, 2026 at 19:00 UTC.
 - Summarize the report by default and return the saved output path instead of pasting large report bodies.
+
+### Use `chatgpt-ads`
+
+Read `skills/chatgpt-ads/SKILL.md` and select the create, manage, analyze or diagnose workflow. All four use `scripts/chatgpt_ads.sh`. Use `preview-card` for a local ad card before account selection. Use `operations`, `describe` and `read` for discovery and reads. Use `preview`, `pause`, `activate`, or `plan` for changes, then `execute` only after approval of the frozen receipt. Use separate Ads and CAPI credentials and preserve the original receipt for recovery.
 
 ### Use `moloco-ads`
 

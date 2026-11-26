@@ -1,0 +1,4 @@
+interface:
+  display_name: "ChatGPT Ads"
+  short_description: "Create and manage ads, analyze results, and diagnose delivery"
+  default_prompt: "Use $chatgpt-ads to prepare a campaign from my product brief and show me the budget and ad before launch."

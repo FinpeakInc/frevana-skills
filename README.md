@@ -154,6 +154,7 @@ Choose a top-level group first: [Data Skills](#data-skills) for retrieving or ma
 
 | Family | Skill | Use for | Required input |
 | --- | --- | --- | --- |
+| Advertising | [`chatgpt-ads`](skills/chatgpt-ads/SKILL.md) | Preview ad cards, manage campaigns, audiences, feeds, conversions, Lead Sync subscriptions and Partner Data uploads, analyze results and diagnose delivery | Local card previews run offline. Live calls use an Ads account or partner credential, or a Conversions API key for event delivery |
 | Skill authoring | [`skill-from-materials`](skills/skill-from-materials/SKILL.md) | Turn supplied notes, docs, or workflows into a usable skill | goal and source material |
 | Auth | [`frevana-auth`](skills/frevana-auth/SKILL.md) | Frevana CLI login and local credential setup | none |
 | Publishing | [`frevana-space-cms`](skills/frevana-space-cms/SKILL.md) | Publish or update a local HTML file with Frevana Space CMS on the user's custom domain | local `.html` path; previous `file_key` for updates |
