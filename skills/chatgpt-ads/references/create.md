@@ -55,3 +55,5 @@ bash <skill-path>/scripts/chatgpt_ads.sh execute --state ./activation.json --con
 ```
 
 Show the preview and the proposed activation together. Execute only after the user approves enabling delivery. The activation proposal uses the three existing IDs and rechecks their membership and settings.
+
+If the CLI reports that a child was found by ID but its parent list is empty, keep the original receipt. Report the filtered list and campaign status from the error, then follow the [membership checks](diagnose.md#activation-membership). If the activation preview stopped, repeat `activate --from-state` with the completed paused launch receipt. If an approved execution stopped, resume `execute` with its original state and confirmation.

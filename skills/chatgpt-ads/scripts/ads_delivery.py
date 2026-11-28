@@ -1,5 +1,7 @@
 """Campaign, ad group and ad proposals, execution, bulk targets and readbacks."""
 
+from time import sleep, time
+
 from ads_api import (
     RESOURCES,
     TRANSITION_STATUS,
@@ -265,28 +267,13 @@ def launch(execution):
     }
 
 
-def inspect_launch(api, plan, ids):
+def read_launch_resources(api, plan, ids):
     group = {**plan["ad_group"], "campaign_id": ids["campaign"]}
     ad = {
         **plan["ad"],
         "ad_group_id": ids["ad_group"],
         "creative": {**plan["ad"]["creative"], "file_id": ids["file_id"]},
     }
-    # Activation can enable every child. Also check membership when GET omits
-    # a parent ID or an operator has added another ad in Ads Manager.
-    if plan["final_status"] == "active":
-        for kind, parent in (("ad_group", "campaign"), ("ad", "ad_group")):
-            page = api.request(
-                "GET", "/" + RESOURCES[kind], query=[(parent + "_id", ids[parent]), ("limit", "2")]
-            )
-            if (
-                page.get("has_more") is not False
-                or not isinstance(page.get("data"), list)
-                or [item.get("id") for item in page["data"]] != [ids[kind]]
-            ):
-                raise AdsError(
-                    f"The campaign hierarchy differs from the approved {kind}. Inspect its children."
-                )
     current = {}
     for kind, settings in (("campaign", plan["campaign"]), ("ad_group", group), ("ad", ad)):
         obj = read_resource(api, kind, ids[kind])
@@ -298,6 +285,53 @@ def inspect_launch(api, plan, ids):
     if plan["final_status"] == "active" and review == "rejected":
         raise AdsError("The ad was rejected. Review it in Ads Manager.")
     return current
+
+
+def missing_launch_children(api, ids):
+    """Return empty, complete lists. Any conflicting or incomplete scope stops activation."""
+    missing = {}
+    for kind, parent in (("ad_group", "campaign"), ("ad", "ad_group")):
+        path = "/" + RESOURCES[kind]
+        field = parent + "_id"
+        listing = f"GET {path} ({field}={ids[parent]})"
+        page = api.request("GET", path, query=[(field, ids[parent]), ("limit", "2")])
+        rows = page.get("data")
+        if not isinstance(rows, list) or not all(isinstance(row, dict) and row.get("id") for row in rows):
+            raise AdsError(f"{listing} returned an invalid child list. Cannot verify the campaign hierarchy.")
+        found = [identifier(row["id"]) for row in rows]
+        if any(rid != ids[kind] for rid in found):
+            raise AdsError(
+                f"The campaign hierarchy differs from the approved scope. "
+                f"{listing} returned {', '.join(found)}. Expected only {ids[kind]}."
+            )
+        if any(field in row and row[field] != ids[parent] for row in rows):
+            raise AdsError(f"{listing} returned a conflicting {field}. Inspect the campaign hierarchy.")
+        if page.get("has_more") is not False or len(found) > 1:
+            raise AdsError(f"{listing} did not confirm a complete, unique child list. Inspect the hierarchy.")
+        if not rows:
+            missing[kind] = f"{kind} {ids[kind]} was found by ID, but {listing} returned an empty list."
+    return missing
+
+
+def inspect_launch(api, plan, ids):
+    # Re-read both levels and the approved settings after a wait. An operator
+    # could add a sibling or change the budget while a new child becomes visible.
+    for delay in (1, 2, 4, None):
+        current = read_launch_resources(api, plan, ids)
+        if plan["final_status"] != "active":
+            return current
+        missing = missing_launch_children(api, ids)
+        if not missing:
+            return current
+        now = time()
+        created = [current[kind].get("created_at") for kind in missing]
+        if delay is None or not all(type(ts) is int and 0 <= now - ts <= 60 for ts in created):
+            raise AdsError(
+                " ".join(missing.values())
+                + f" Membership is unconfirmed. Campaign {ids['campaign']} was read as "
+                f"{current['campaign']['status']}. Recheck using the original receipt."
+            )
+        sleep(delay)
 
 
 def has_value(value):
@@ -336,6 +370,10 @@ def verify_settings(kind, expected, obj):
     for parent in ("ad_group_id", "campaign_id"):
         if parent not in actual:  # Some GET representations omit the parent link.
             expected.pop(parent, None)
+        elif parent in expected and actual[parent] != expected[parent]:
+            raise AdsError(
+                f"{kind} {obj['id']} returned {parent}={actual[parent]}. Expected {expected[parent]}."
+            )
     if kind == "ad_group":
         actual["context_hints"] = actual.get("context_hints") or []
         config = dict(actual.get("bidding_config") or {})

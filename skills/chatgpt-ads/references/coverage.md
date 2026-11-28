@@ -1,6 +1,6 @@
 # ChatGPT Ads coverage audit
 
-Verified on 2026-11-23 against the official Ads OpenAPI 2.3.0 download. The specification has **88 operations across 73 paths**. Each HTTP method and path maps to one skill operation. The CLI also exposes five advertiser endpoints documented in guides, conversion-event ingestion and SFTP file transfer. This gives **95 named operations**, comprising 42 reads and 53 operations requiring a saved proposal. The local draft card preview, standard launch and local Pixel helpers are additional workflows. [Official OpenAPI contract](https://developers.openai.com/ads/openapi.json) · [Local operation catalog](operations.json)
+The official Ads OpenAPI 2.3.0 download on 2026-11-28 contains **89 operations across 74 paths**. The CLI covers all 88 operations from the 2026-11-23 snapshot. The newer snapshot adds one outstanding operation, `GET /ad_account/agent_insights`. The CLI also exposes five advertiser endpoints documented in guides, conversion-event ingestion and SFTP file transfer. This gives **95 named operations**, comprising 42 reads and 53 operations requiring a saved proposal. The local draft card preview, standard launch and local Pixel helpers are additional workflows. [Official OpenAPI contract](https://developers.openai.com/ads/openapi.json) · [Local operation catalog](operations.json)
 
 | Area | Implemented scope |
 | --- | --- |

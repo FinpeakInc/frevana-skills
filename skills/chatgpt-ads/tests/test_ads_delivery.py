@@ -1,5 +1,6 @@
 import copy
 import unittest
+from unittest.mock import call, patch
 from urllib.error import URLError
 
 from ads_test_support import AdvertiserCase, LaunchCase
@@ -370,6 +371,142 @@ class DeliveryOperationTests(AdvertiserCase):
         with self.assertRaisesRegex(AdsError, "uncertain"):
             self.apply(p)
         self.assertEqual(sum(c[0] == "POST" for c in self.calls), 1)
+
+
+class LaunchMembershipTests(LaunchCase):
+    def setUp(self):
+        super().setUp()
+        clock = patch("ads_delivery.time", return_value=101.5)
+        self.clock = clock.start()
+        self.addCleanup(clock.stop)
+        sleeper = patch("ads_delivery.sleep")
+        self.sleep = sleeper.start()
+        self.addCleanup(sleeper.stop)
+
+    @staticmethod
+    def empty_ads(method, path, page):
+        if method == "GET" and path == "/ads":
+            page["data"] = []
+
+    def test_new_children_become_visible_before_activation(self):
+        remaining = {"/ad_groups": 1, "/ads": 3}
+
+        def delay_lists(method, path, page):
+            if method == "GET" and remaining.get(path, 0):
+                self.assertEqual(len(self.wire.posts()), 4)
+                remaining[path] -= 1
+                page["data"] = []
+
+        self.wire.after = delay_lists
+        result = self.execute(self.preview(final_status="active"))
+        self.assertEqual(result["resources"]["campaign"]["status"], "active")
+        self.assertEqual(self.sleep.call_args_list, [call(1), call(2), call(4)])
+        self.assertEqual(
+            [c[1] for c in self.wire.posts()],
+            [
+                "/upload",
+                "/campaigns",
+                "/ad_groups",
+                "/ads",
+                "/ads/ad_3/activate",
+                "/ad_groups/adgrp_2/activate",
+                "/campaigns/cmpn_1/activate",
+            ],
+        )
+        queries = [c[4] for c in self.wire.calls if c[:2] == ("GET", "/ads")]
+        self.assertTrue(all(q == {"ad_group_id": ["adgrp_2"], "limit": ["2"]} for q in queries))
+
+    def test_paused_launch_preview_exhaustion_can_reuse_the_source_receipt(self):
+        self.execute(self.preview())
+        dest = self.work / "activate.json"
+        self.wire.after = self.empty_ads
+        with self.assertRaisesRegex(AdsError, r"ad_3 was found by ID.*ad_group_id=adgrp_2.*empty.*paused"):
+            self.cli("activate", "--from-state", self.state, "--state", dest)
+        self.assertEqual(self.sleep.call_args_list, [call(1), call(2), call(4)])
+        self.assertFalse(dest.exists())
+        self.wire.after = lambda *args: None
+        proposal = self.cli("activate", "--from-state", self.state, "--state", dest)
+        self.assertEqual(proposal["proposal"]["resource_ids"]["ad"], "ad_3")
+        self.assertEqual(len(self.wire.posts()), 4)
+
+    def test_conflicting_or_incomplete_list_stops_even_when_other_list_is_empty(self):
+        self.execute(self.preview())
+        for page in (
+            {"data": [{"id": "ad_other"}], "has_more": False},
+            {"data": [{"id": "ad_3"}, {"id": "ad_other"}], "has_more": False},
+            {"data": [], "has_more": True},
+            {"data": []},
+            {"data": [None], "has_more": False},
+            {"data": [{"id": "ad_3", "ad_group_id": "other"}], "has_more": False},
+        ):
+
+            def lists(method, path, response, ad_page=page):
+                if path == "/ad_groups":
+                    response["data"] = []
+                if path == "/ads":
+                    response.clear()
+                    response.update(ad_page)
+
+            with self.subTest(page=page):
+                self.wire.after = lists
+                with self.assertRaisesRegex(AdsError, r"GET /ads .*ad_group_id=adgrp_2"):
+                    self.cli("activate", "--from-state", self.state, "--state", self.work / "active.json")
+                self.sleep.assert_not_called()
+                self.assertEqual(len(self.wire.posts()), 4)
+
+    def test_old_or_undated_child_does_not_trigger_visibility_retries(self):
+        self.execute(self.preview())
+        self.clock.return_value = 1000
+        ad = self.wire.objects["/ads/ad_3"]
+        self.wire.after = self.empty_ads
+        for created_at in (100, None):
+            with self.subTest(created_at=created_at):
+                ad["created_at"] = created_at
+                with self.assertRaisesRegex(AdsError, "Membership is unconfirmed"):
+                    self.cli("activate", "--from-state", self.state, "--state", self.work / "active.json")
+                self.sleep.assert_not_called()
+        self.assertEqual(len(self.wire.posts()), 4)
+
+    def test_sibling_added_during_wait_blocks_campaign_activation(self):
+        def add_sibling(_):
+            group = self.wire.objects["/ad_groups/adgrp_2"]
+            self.wire.objects["/ad_groups/extra"] = dict(group, id="extra")
+            self.wire.after = lambda *args: None
+
+        self.wire.after = self.empty_ads
+        self.sleep.side_effect = add_sibling
+        with self.assertRaisesRegex(AdsError, "adgrp_2, extra"):
+            self.execute(self.preview(final_status="active"))
+        self.sleep.assert_called_once_with(1)
+        self.assertEqual(len(self.wire.posts()), 4)
+
+    def test_budget_change_during_wait_is_checked_before_any_activation(self):
+        def change_budget(_):
+            self.wire.objects["/campaigns/cmpn_1"]["budget"]["daily_spend_limit_micros"] *= 2
+            self.wire.after = lambda *args: None
+
+        self.wire.after = self.empty_ads
+        self.sleep.side_effect = change_budget
+        with self.assertRaisesRegex(AdsError, "campaign readback differs"):
+            self.execute(self.preview(final_status="active"))
+        self.sleep.assert_called_once_with(1)
+        self.assertEqual(len(self.wire.posts()), 4)
+
+    def test_timeout_after_campaign_activation_resumes_without_repeating_writes(self):
+        proposal = self.preview(final_status="active")
+
+        def delay_final_check(method, path, response):
+            if path == "/ads" and self.wire.objects["/campaigns/cmpn_1"]["status"] == "active":
+                self.empty_ads(method, path, response)
+
+        self.wire.after = delay_final_check
+        with self.assertRaisesRegex(AdsError, "Campaign cmpn_1 was read as active"):
+            self.execute(proposal)
+        self.assertEqual(self.sleep.call_args_list, [call(1), call(2), call(4)])
+        self.assertEqual(len(self.wire.posts()), 7)
+        self.wire.after = lambda *args: None
+        self.assertEqual(self.execute(proposal)["resources"]["campaign"]["status"], "active")
+        self.assertEqual(len(self.wire.posts()), 7)
 
 
 class LaunchTests(LaunchCase):

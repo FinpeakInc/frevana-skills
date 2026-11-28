@@ -72,7 +72,7 @@ class Wire:
             prefix = {"/campaigns": "cmpn", "/ad_groups": "adgrp", "/ads": "ad"}[path]
             if key not in self.idempotency:
                 obj_id = f"{prefix}_{len(self.objects) + 1}"
-                obj = dict(body, id=obj_id, updated_at=100)
+                obj = dict(body, id=obj_id, created_at=100, updated_at=100)
                 if path == "/ads":
                     obj["review_status"] = "in_review"
                 self.objects[path + "/" + obj_id] = copy.deepcopy(obj)
