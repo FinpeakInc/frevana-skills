@@ -9,8 +9,8 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-from ads_api import AdsError
-from ads_delivery import apply_delivery
+from ads_api import AdsError, account_info, identifier
+from ads_delivery import apply_delivery, inspect_launch, launch_result
 
 
 def save_json(path, value, *, create):
@@ -91,6 +91,33 @@ class Execution:
     def checkpoint(self, step, value):
         self.steps[step] = value
         save_json(self.path, self.state, create=False)
+
+
+def reconcile_paused(api, path, confirmation):
+    """Finish only local bookkeeping using GET readbacks of previously created IDs."""
+    with exclusive(path):
+        state = load_state(path)
+        plan = state["proposal"]
+        if confirmation != state["confirmation"] or plan["kind"] != "launch" or plan["final_status"] != "paused":
+            raise AdsError("Select the approved paused creation receipt.")
+        if state["result"] is not None:
+            return state["result"]
+        account = account_info(api)
+        if any(account[k] != plan["account"][k] for k in ("id", "currency_code", "timezone")):
+            raise AdsError("The advertiser account no longer matches the receipt.")
+        steps = state["steps"]
+        ids = {kind: steps.get("create_" + kind) for kind in ("campaign", "ad_group", "ad")}
+        ids["file_id"] = plan["asset"].get("file_id") or steps.get("create_upload")
+        if any(not value or value == "pending" for value in ids.values()):
+            raise AdsError("Creation is incomplete; verification cannot create resources.")
+        ids = {k: identifier(v) for k, v in ids.items()}
+        current = inspect_launch(api, plan, ids)
+        if any(obj["status"] != "paused" for obj in current.values()):
+            raise AdsError("The existing resources are not all paused. Inspect Ads Manager.")
+        result = launch_result(current, ids)
+        state["result"] = result
+        save_json(path, state, create=False)
+        return result
 
 
 def execute(api, path, confirmation, retry_uncertain=False):

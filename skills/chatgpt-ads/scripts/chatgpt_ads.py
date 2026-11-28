@@ -20,7 +20,7 @@ from ads_delivery import activation_proposal, pause_proposal
 from ads_draft import launch_proposal, write_card_preview
 from ads_files import write_pixel
 from ads_operations import CATALOG, call_read, describe, is_read, request_parts
-from ads_workflow import execute, load_state, new_preview, save_json
+from ads_workflow import reconcile_paused, execute, load_state, new_preview, save_json
 
 
 def parser():
@@ -75,6 +75,9 @@ def parser():
     pause.add_argument("--state", type=Path, required=True)
     show = commands.add_parser("show", help="Inspect a saved proposal, progress and result offline")
     show.add_argument("--state", type=Path, required=True)
+    verify = commands.add_parser("verify-paused", help="Read back existing IDs without any advertiser mutation")
+    verify.add_argument("--state", type=Path, required=True)
+    verify.add_argument("--confirm", required=True)
     run = commands.add_parser("execute", help="Apply a specific human-approved proposal")
     run.add_argument("--state", type=Path, required=True)
     run.add_argument("--confirm", required=True, help="Confirmation fingerprint printed by preview or pause")
@@ -135,6 +138,8 @@ def handle(args, api=None):
         return new_preview(args.state, activation_proposal(api, load_state(args.from_state)))
     if args.command == "pause":
         return new_preview(args.state, pause_proposal(api, args.resource, args.id))
+    if args.command == "verify-paused":
+        return reconcile_paused(api, args.state, args.confirm)
     if args.command == "execute":
         return execute(api, args.state, args.confirm, args.retry_uncertain)
     if args.command == "status":

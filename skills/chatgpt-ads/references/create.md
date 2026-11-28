@@ -47,6 +47,14 @@ bash <skill-path>/scripts/chatgpt_ads.sh ad-preview --id AD_ID --output ./native
 
 Execution verifies account identity, creates paused resources and checks the saved settings against their readbacks. An active proposal enables the ad and ad group before the campaign. Report the resource IDs, recorded status and ad review status. An active setting alone does not establish impressions. The official ad preview can be generated for a submitted ad, including a paused ad. Its response contains expiring iframe HTML; treat it as display data.
 
+If an approved paused creation was interrupted after all three resource IDs and the image file ID were recorded, finish its receipt with read-only API calls:
+
+```bash
+bash <skill-path>/scripts/chatgpt_ads.sh verify-paused --state ./launch.json --confirm FINGERPRINT
+```
+
+The command checks the original account, settings and paused states before saving the result. An incomplete set of IDs requires inspection. A completed receipt returns its saved result.
+
 **Approve the rendered ad before starting delivery.** Prepare the launch with `final_status: paused`, have the user approve creating the paused resources, and execute it. Retrieve the native ad preview using its saved ad ID. Then prepare an activation proposal for that same campaign:
 
 ```bash
@@ -54,6 +62,6 @@ bash <skill-path>/scripts/chatgpt_ads.sh activate --from-state ./launch.json --s
 bash <skill-path>/scripts/chatgpt_ads.sh execute --state ./activation.json --confirm ACTIVATION_FINGERPRINT
 ```
 
-Show the preview and the proposed activation together. Execute only after the user approves enabling delivery. The activation proposal uses the three existing IDs and rechecks their membership and settings.
+Show the native preview with the activation proposal. If the platform applied a crop, include the normalized coordinates recorded in the paused receipt. A change to the crop requires a new review. Execute only after the user approves enabling delivery. The activation proposal uses the three existing IDs and rechecks their membership and settings.
 
 If the CLI reports that a child was found by ID but its parent list is empty, keep the original receipt. Report the filtered list and campaign status from the error, then follow the [membership checks](diagnose.md#activation-membership). If the activation preview stopped, repeat `activate --from-state` with the completed paused launch receipt. If an approved execution stopped, resume `execute` with its original state and confirmation.

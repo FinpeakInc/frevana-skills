@@ -260,7 +260,13 @@ def launch(execution):
         current = inspect_launch(execution.api, p, ids)
         if any(obj["status"] != "active" for obj in current.values()):
             raise AdsError("Live state differs from the confirmed activation. Inspect the resources.")
+    return launch_result(current, ids)
+
+
+def launch_result(current, ids):
+    crop = (current["ad"].get("creative") or {}).get("image_crop")
     return {
+        **({"image_crop": crop} if crop else {}),
         "resources": {kind: {"id": obj["id"], "status": obj["status"]} for kind, obj in current.items()},
         "review_status": current["ad"].get("review_status"),
         "file_id": ids["file_id"],
@@ -277,7 +283,15 @@ def read_launch_resources(api, plan, ids):
     current = {}
     for kind, settings in (("campaign", plan["campaign"]), ("ad_group", group), ("ad", ad)):
         obj = read_resource(api, kind, ids[kind])
-        verify_settings(kind, settings, obj)
+        # A paused save can record the platform crop for later review. Activation
+        # requires a crop already frozen in its own new proposal.
+        checked = obj
+        if kind == "ad" and plan["final_status"] == "paused" and obj.get("status") == "paused":
+            creative = obj.get("creative") or {}
+            crop = creative.get("image_crop")
+            if crop and valid_crop(crop):
+                checked = {**obj, "creative": {k: v for k, v in creative.items() if k != "image_crop"}}
+        verify_settings(kind, settings, checked)
         current[kind] = obj
     review = current["ad"].get("review_status")
     if review not in ("in_review", "rejected", "approved"):
@@ -334,6 +348,15 @@ def inspect_launch(api, plan, ids):
         sleep(delay)
 
 
+def valid_crop(crop):
+    if not isinstance(crop, dict) or set(crop) != {"x", "y", "width", "height"}:
+        return False
+    if not all(type(v) in (int, float) and 0 <= v <= 1 for v in crop.values()):
+        return False
+    return (crop["width"] > 0 and crop["height"] > 0
+            and crop["x"] + crop["width"] <= 1.000001 and crop["y"] + crop["height"] <= 1.000001)
+
+
 def has_value(value):
     if isinstance(value, dict):
         return any(has_value(child) for child in value.values())
@@ -351,6 +374,11 @@ def activation_proposal(api, prior):
     ids = {kind: identifier(result["resources"][kind]["id"]) for kind in RESOURCES}
     ids["file_id"] = identifier(result["file_id"])
     plan = {**p, "account": account, "kind": "activate_launch", "final_status": "active", "resource_ids": ids}
+    crop = result.get("image_crop")
+    if crop:
+        if not valid_crop(crop):
+            raise AdsError("Invalid saved image crop. Review the ad.")
+        plan["ad"] = {**p["ad"], "creative": {**p["ad"]["creative"], "image_crop": crop}}
     current = inspect_launch(api, plan, ids)
     if any(obj["status"] != "paused" for obj in current.values()):
         raise AdsError("Activation preview requires all three original resources to be paused.")
@@ -365,7 +393,12 @@ def verify_settings(kind, expected, obj):
         raise AdsError(f"The {kind} has an unapproved landing-page override.")
     if kind == "ad":
         creative = actual.get("creative") or {}
-        if any(has_value(creative.get(k)) for k in ("price", "file_ids", "business_agent_id", "image_crop")):
+        crop = creative.get("image_crop")
+        if crop is not None and crop != {} and (
+            not valid_crop(crop) or crop != expected.get("creative", {}).get("image_crop")
+        ):
+            raise AdsError("The ad has an unapproved image crop. Review the platform preview before enabling delivery.")
+        if any(has_value(creative.get(k)) for k in ("price", "file_ids", "business_agent_id")):
             raise AdsError("The ad contains additional creative settings. Review the changed ad.")
     for parent in ("ad_group_id", "campaign_id"):
         if parent not in actual:  # Some GET representations omit the parent link.
